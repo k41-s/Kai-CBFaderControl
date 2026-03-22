@@ -1,0 +1,7 @@
+Builds/
+JuceLibraryCode/
+.vs/
+out/
+*.user
+*.suo
+*.vclog
