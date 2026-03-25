@@ -5,13 +5,36 @@
               pluginFormats="buildStandalone,buildVST3">
   <MAINGROUP id="f9Ybxx" name="Kai-CBFaderControl">
     <GROUP id="{27F809C4-9955-DA5B-8031-1ABEF1A8F2C3}" name="Source">
-      <FILE id="pQOa2g" name="PluginProcessor.cpp" compile="1" resource="0"
-            file="Source/PluginProcessor.cpp"/>
-      <FILE id="dCoJjr" name="PluginProcessor.h" compile="0" resource="0"
-            file="Source/PluginProcessor.h"/>
-      <FILE id="aiFnsT" name="PluginEditor.cpp" compile="1" resource="0"
-            file="Source/PluginEditor.cpp"/>
-      <FILE id="sSBu1n" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <GROUP id="{91035418-0FAE-8302-EAD0-0359EC207AE7}" name="Main">
+        <GROUP id="{89ED6CA5-1CE0-9ACC-3855-C2C720CEEB79}" name="PluginEditor">
+          <FILE id="zdherh" name="PluginEditor.cpp" compile="1" resource="0"
+                file="Source/Main/PluginEditor/PluginEditor.cpp"/>
+          <FILE id="yoJIXu" name="PluginEditor.h" compile="0" resource="0" file="Source/Main/PluginEditor/PluginEditor.h"/>
+        </GROUP>
+        <GROUP id="{CA20F505-9A21-46A0-E494-A6C70079314A}" name="PluginProcessor">
+          <FILE id="gIn8od" name="PluginProcessor.cpp" compile="1" resource="0"
+                file="Source/Main/PluginProcessor/PluginProcessor.cpp"/>
+          <FILE id="tjF6Iw" name="PluginProcessor.h" compile="0" resource="0"
+                file="Source/Main/PluginProcessor/PluginProcessor.h"/>
+        </GROUP>
+      </GROUP>
+      <GROUP id="{C7A96202-9678-0F48-8CA3-6DBA8FCD9D92}" name="UI">
+        <GROUP id="{242E5ADF-46F2-5124-18E6-634CEAA41104}" name="Views">
+          <GROUP id="{2979A373-C7B8-59CB-DA94-F68F621C6F6E}" name="SetupPageView">
+            <FILE id="E5oj3E" name="SetupPageView.cpp" compile="1" resource="0"
+                  file="Source/UI/Views/SetupPageView/SetupPageView.cpp"/>
+            <FILE id="abfz9e" name="SetupPageView.h" compile="0" resource="0" file="Source/UI/Views/SetupPageView/SetupPageView.h"/>
+          </GROUP>
+        </GROUP>
+        <GROUP id="{85C987F1-CF1A-9A13-E890-A4A368996334}" name="Components">
+          <GROUP id="{9C98ED4C-E73F-ECAF-EB1F-1C38663DD3A6}" name="SlotConfigItem">
+            <FILE id="XfWEjL" name="SlotConfigItem.cpp" compile="1" resource="0"
+                  file="Source/UI/Components/SlotConfigItem/SlotConfigItem.cpp"/>
+            <FILE id="YV9FCm" name="SlotConfigItem.h" compile="0" resource="0"
+                  file="Source/UI/Components/SlotConfigItem/SlotConfigItem.h"/>
+          </GROUP>
+        </GROUP>
+      </GROUP>
     </GROUP>
   </MAINGROUP>
   <MODULES>
