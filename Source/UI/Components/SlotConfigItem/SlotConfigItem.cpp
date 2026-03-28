@@ -21,10 +21,27 @@ SlotConfigItem::SlotConfigItem(int slotNumber)
 	configNameEditor();
 
 	addAndMakeVisible(activeToggle);
+
+	activeToggle.onClick = [this]
+		{
+			if (onToggleChanged != nullptr)
+				onToggleChanged();
+		};
 }
 
 SlotConfigItem::~SlotConfigItem()
 {
+}
+
+void SlotConfigItem::setToggleState(bool shouldBeActive, bool shouldNotify)
+{
+	auto notification = shouldNotify ? juce::sendNotification : juce::dontSendNotification;
+	activeToggle.setToggleState(shouldBeActive, notification);
+}
+
+bool SlotConfigItem::isActive() const
+{
+	return activeToggle.getToggleState();
 }
 
 void SlotConfigItem::paint(juce::Graphics& g)

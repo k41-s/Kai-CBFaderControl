@@ -1,16 +1,31 @@
 #include "SetupPageView.h"
-#include "../SlotConfigItem/SlotConfigItem.h"
+
+juce::String getLocalIpAddress() 
+{
+	auto addresses = juce::IPAddress::getAllAddresses();
+
+	for (const auto& addr : addresses)
+	{
+		auto ipString = addr.toString();
+
+		if (ipString.contains(".") && ipString != "127.0.0.1")
+			return ipString;
+	}
+
+	return "127.0.0.1";
+}
 
 void SetupPageView::configLocalIpLabel()
 {
-	localIpLabel.setText("Local IP Address Displayed Here", juce::dontSendNotification);
+	localIpLabel.setText("Local IP: " + getLocalIpAddress(), juce::dontSendNotification);
 	addAndMakeVisible(localIpLabel);
 }
 
 void SetupPageView::configLabelEditorPair(juce::String lblTxt,
 	juce::Label& label,
 	juce::String editorTxt, 
-	juce::TextEditor& editor) {
+	juce::TextEditor& editor
+) {
 	label.setText(lblTxt, juce::dontSendNotification);
 	addAndMakeVisible(label);
 
@@ -22,6 +37,7 @@ void SetupPageView::configGridContainer()
 {
 	for (int i = 0; i < 32; ++i) {
 		SlotConfigItem* item = new SlotConfigItem(i + 1);
+		item->onToggleChanged = [this] { updateToggleAllBtnTxt(); };
 		slotItems.add(item);
 		gridContainer.addAndMakeVisible(item);
 	}
@@ -33,6 +49,25 @@ void SetupPageView::configGrid()
 	addAndMakeVisible(gridViewport);
 
 	configGridContainer();
+}
+
+void SetupPageView::configStatusComponents()
+{
+	statusLabel.setText("Connection Status:", juce::dontSendNotification);
+	addAndMakeVisible(statusLabel);
+	addAndMakeVisible(statusLED);
+}
+
+void SetupPageView::configToggleAllBtnText()
+{
+	addAndMakeVisible(toggleAllButton);
+	toggleAllButton.setClickingTogglesState(true);
+	toggleAllButton.onClick = [this]
+		{
+			bool newState = toggleAllButton.getToggleState();
+			setAllSlotsActive(newState);
+		};
+	updateToggleAllBtnTxt();
 }
 
 void SetupPageView::configComponents()
@@ -57,8 +92,11 @@ void SetupPageView::configComponents()
 		"8001",
 		outgoingPortEditor);
 
-	// statuslabel stuff to go here
+	configStatusComponents();
+
 	configGrid();
+
+	configToggleAllBtnText();
 }
 
 SetupPageView::SetupPageView() {
@@ -79,25 +117,36 @@ void SetupPageView::setLabelEditorPairBounds(
 	editor.setBounds(area.removeFromTop(40));
 }
 
+void SetupPageView::setStatusBounds(juce::Rectangle<int>& statusRow)
+{
+	statusLabel.setBounds(statusRow.removeFromLeft(100));
+	statusLED.setBounds(statusRow.removeFromLeft(30).reduced(5));
+}
+
 void SetupPageView::setupLeftPanel(juce::Rectangle<int>& area)
 {
-	auto leftPanel = area.removeFromLeft(200);
 
-	localIpLabel.setBounds(leftPanel.removeFromTop(30));
+	localIpLabel.setBounds(area.removeFromTop(30));
 
-	leftPanel.removeFromTop(10);
+	area.removeFromTop(10);
 
-	setLabelEditorPairBounds(leftPanel, targetIpLabel, targetIpEditor);
+	setLabelEditorPairBounds(area, targetIpLabel, targetIpEditor);
 
-	leftPanel.removeFromTop(10);
+	area.removeFromTop(10);
 
-	setLabelEditorPairBounds(leftPanel, incomingPortLabel, incomingPortEditor);
+	setLabelEditorPairBounds(area, incomingPortLabel, incomingPortEditor);
 
-	leftPanel.removeFromTop(10);
+	area.removeFromTop(10);
 
-	setLabelEditorPairBounds(leftPanel, outgoingPortLabel, outgoingPortEditor);
+	setLabelEditorPairBounds(area, outgoingPortLabel, outgoingPortEditor);
 
-	// Status label somewhere here
+	area.removeFromTop(20);
+	toggleAllButton.setBounds(area.removeFromTop(30).reduced(2));
+
+	area.removeFromTop(10);
+
+	auto statusRow = area.removeFromTop(30);
+	setStatusBounds(statusRow);
 }
 
 void SetupPageView::setupSlots(int numColumns, int cellWidth, int cellHeight)
@@ -126,7 +175,7 @@ void SetupPageView::setupGrid(juce::Rectangle<int>& area)
 	int numRows = 8;
 
 	int cellWidth = area.getWidth() / numColumns;
-	int cellHeight = 80;
+	int cellHeight = area.getHeight() / numRows;
 
 	gridContainer.setBounds(0, 0, area.getWidth(), numRows * cellHeight);
 
@@ -137,7 +186,8 @@ void SetupPageView::resized()
 {
 	auto area = getLocalBounds().reduced(10);
 
-	setupLeftPanel(area);
+	auto leftPanel = area.removeFromLeft(200);
+	setupLeftPanel(leftPanel);
 
 	area.removeFromLeft(20);
 
@@ -148,3 +198,34 @@ void SetupPageView::paint(juce::Graphics& g)
 {
 }
 
+void SetupPageView::updateToggleAllBtnTxt()
+{
+	bool allAreActive = true;
+
+	if (slotItems.size() == 0)
+	{
+		toggleAllButton.setButtonText(SELECT_ALL);
+		return;
+	}
+
+	for (auto* item : slotItems)
+	{
+		if (item != nullptr && !item->isActive())
+		{
+			allAreActive = false;
+			break;
+		}
+	}
+	toggleAllButton.setButtonText(allAreActive ? DESELECT_ALL : SELECT_ALL);
+	toggleAllButton.setToggleState(allAreActive, juce::dontSendNotification);
+}
+
+void SetupPageView::setAllSlotsActive(bool shouldBeActive)
+{
+	for (auto* item : slotItems)
+	{
+		if (item != nullptr)
+			item->setToggleState(shouldBeActive, false);
+	}
+	updateToggleAllBtnTxt();
+}

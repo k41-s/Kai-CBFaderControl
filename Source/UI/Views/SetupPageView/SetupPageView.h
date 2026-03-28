@@ -1,6 +1,7 @@
 #pragma once
 #include<JuceHeader.h>
-#include "../SlotConfigItem/SlotConfigItem.h"
+#include "../../Components/SlotConfigItem/SlotConfigItem.h"
+#include "../../Components/StatusLED/StatusLED.h"
 
 class SetupPageView : public juce::Component
 {
@@ -13,6 +14,10 @@ public:
 	void configGridContainer();
 	void configGrid();
 
+	void configStatusComponents();
+
+	void configToggleAllBtnText();
+
 	void configComponents();
 
 	SetupPageView();
@@ -23,6 +28,7 @@ public:
 		juce::Label& label,
 		juce::TextEditor& editor
 	);
+	void setStatusBounds(juce::Rectangle<int>& statusRow);
 	void setupLeftPanel(juce::Rectangle<int>& area);
 	void setupSlots(int numColumns, int cellWidth, int cellHeight);
 	void setupGrid(juce::Rectangle<int>& area);
@@ -45,6 +51,14 @@ private:
 	juce::TextEditor outgoingPortEditor;
 
 	juce::Label statusLabel;
+	StatusLED statusLED;
+
+	juce::String SELECT_ALL = "Select All";
+	juce::String DESELECT_ALL = "Deselect All";
+
+	juce::ToggleButton toggleAllButton{ SELECT_ALL };
+	void updateToggleAllBtnTxt();
+	void setAllSlotsActive(bool shouldBeActive);
 
 	juce::Viewport gridViewport;
 	juce::Component gridContainer;
