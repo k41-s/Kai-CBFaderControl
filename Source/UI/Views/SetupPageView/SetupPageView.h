@@ -2,6 +2,7 @@
 #include<JuceHeader.h>
 #include "../../Components/SlotConfigItem/SlotConfigItem.h"
 #include "../../Components/StatusLED/StatusLED.h"
+#include "../../CustomLookAndFeel/SetupViewLookFeel/SetupViewLookFeel.h"
 
 class SetupPageView : public juce::Component
 {
@@ -38,6 +39,7 @@ public:
 
 
 private:
+	SetupViewLookFeel customLF;
 	
 	juce::Label localIpLabel;
 

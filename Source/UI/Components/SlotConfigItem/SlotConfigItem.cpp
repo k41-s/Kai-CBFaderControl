@@ -9,7 +9,7 @@ void SlotConfigItem::configSlotLabel(int slotNumber)
 
 void SlotConfigItem::configNameEditor()
 {
-	customNameEditor.setTextToShowWhenEmpty("Text here...", juce::Colour::greyLevel(0.4f));
+	customNameEditor.setTextToShowWhenEmpty("Text here...", juce::Colour::greyLevel(0.6f));
 	customNameEditor.setJustification(juce::Justification::left);
 	addAndMakeVisible(customNameEditor);
 }

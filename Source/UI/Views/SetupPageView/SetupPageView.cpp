@@ -21,16 +21,17 @@ void SetupPageView::configLocalIpLabel()
 	addAndMakeVisible(localIpLabel);
 }
 
-void SetupPageView::configLabelEditorPair(juce::String lblTxt,
+void SetupPageView::configLabelEditorPair(
+	juce::String lblTxt,
 	juce::Label& label,
 	juce::String editorTxt, 
 	juce::TextEditor& editor
 ) {
-	label.setText(lblTxt, juce::dontSendNotification);
 	addAndMakeVisible(label);
+	label.setText(lblTxt, juce::dontSendNotification);
 
-	editor.setText(editorTxt);
 	addAndMakeVisible(editor);
+	editor.setText(editorTxt);
 }
 
 void SetupPageView::configGridContainer()
@@ -100,11 +101,13 @@ void SetupPageView::configComponents()
 }
 
 SetupPageView::SetupPageView() {
+	setLookAndFeel(&customLF);
 	configComponents();
 }
 
 SetupPageView::~SetupPageView()
 {
+	setLookAndFeel(nullptr);
 }
 
 void SetupPageView::setLabelEditorPairBounds(
