@@ -17,6 +17,7 @@
           <FILE id="tjF6Iw" name="PluginProcessor.h" compile="0" resource="0"
                 file="Source/Main/PluginProcessor/PluginProcessor.h"/>
         </GROUP>
+        <FILE id="z5Ofjk" name="SlotIDs.h" compile="0" resource="0" file="Source/Main/SlotIDs.h"/>
       </GROUP>
       <GROUP id="{C7A96202-9678-0F48-8CA3-6DBA8FCD9D92}" name="UI">
         <GROUP id="{99DEFE1B-A682-C22E-6326-967790FD3A37}" name="CustomLookAndFeel">

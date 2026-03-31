@@ -8,16 +8,38 @@
 
 #include "PluginProcessor.h"
 #include "../PluginEditor/PluginEditor.h"
+#include "../SlotIDs.h"
 
 //==============================================================================
 KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
          .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
      ),
     apvts(*this, nullptr, "Parameters", createParameterLayout())
-#endif
 {
+    InitialiseNetworkingDefaults();
+    fillIsActiveParamsList();
+}
+
+void KaiCBFaderControlAudioProcessor::fillIsActiveParamsList()
+{
+    for (int i = 0; i < 32; ++i) {
+        isActiveParams[i] = apvts.getRawParameterValue(SlotIDs::isActive(i + 1));
+    }
+}
+
+void KaiCBFaderControlAudioProcessor::InitialiseNetworkingDefaults()
+{
+    auto& state = apvts.state;
+
+    if (!state.hasProperty(SlotIDs::targetIP()))
+        state.setProperty(SlotIDs::targetIP(), "127.0.0.1", nullptr);
+
+    if (!state.hasProperty(SlotIDs::incomingPort()))
+        state.setProperty(SlotIDs::incomingPort(), 8000, nullptr);
+
+    if (!state.hasProperty(SlotIDs::outgoingPort()))
+        state.setProperty(SlotIDs::outgoingPort(), 8001, nullptr);
 }
 
 KaiCBFaderControlAudioProcessor::~KaiCBFaderControlAudioProcessor()
@@ -31,41 +53,45 @@ juce::AudioProcessorValueTreeState::ParameterLayout KaiCBFaderControlAudioProces
     juce::AudioProcessorValueTreeState::ParameterLayout params;
 
     for (int i = 1; i <= 32; ++i) {
-        juce::String volId = "volume_" + juce::String(i);
-        juce::String muteId = "mute_" + juce::String(i);
-        juce::String panId = "pan_" + juce::String(i);
-        juce::String soloId = "solo_" + juce::String(i);
-        juce::String soloSafeId = "soloSafe_" + juce::String(i);
-
-        params.add(std::make_unique<juce::AudioParameterFloat>(
-            volId,
-            "Volume " + juce::String(i),
-            juce::NormalisableRange<float>(-96.0f, 22.0f, 0.0f, 1.0f),
-            0.0f
-        ));
-        params.add(std::make_unique<juce::AudioParameterBool>(
-            muteId,
-            "Mute " + juce::String(i),
-            false
-        ));
-        params.add(std::make_unique<juce::AudioParameterFloat>(
-            panId,
-            "Pan " + juce::String(i),
-            juce::NormalisableRange<float>(-1.0f, 1.0f, 0.0f),
-            0.0f
-        ));
-        params.add(std::make_unique<juce::AudioParameterBool>(
-            soloId,
-            "Solo " + juce::String(i),
-            false
-        ));
-        params.add(std::make_unique<juce::AudioParameterBool>(
-            soloSafeId,
-            "Solo Safe " + juce::String(i),
-            false
-        ));
+        addParamsForSlot(params, i);
     }
     return params;
+}
+
+void KaiCBFaderControlAudioProcessor::addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i)
+{
+    params.add(std::make_unique<juce::AudioParameterBool>(
+        SlotIDs::isActive(i),
+        "Is Active " + juce::String(i),
+        false
+    ));
+    params.add(std::make_unique<juce::AudioParameterFloat>(
+        SlotIDs::volume(i),
+        "Volume " + juce::String(i),
+        juce::NormalisableRange<float>(-96.0f, 22.0f, 0.0f, 1.0f),
+        0.0f
+    ));
+    params.add(std::make_unique<juce::AudioParameterBool>(
+        SlotIDs::mute(i),
+        "Mute " + juce::String(i),
+        false
+    ));
+    params.add(std::make_unique<juce::AudioParameterFloat>(
+        SlotIDs::pan(i),
+        "Pan " + juce::String(i),
+        juce::NormalisableRange<float>(-1.0f, 1.0f, 0.0f),
+        0.0f
+    ));
+    params.add(std::make_unique<juce::AudioParameterBool>(
+        SlotIDs::solo(i),
+        "Solo " + juce::String(i),
+        false
+    ));
+    params.add(std::make_unique<juce::AudioParameterBool>(
+        SlotIDs::soloSafe(i),
+        "Solo Safe " + juce::String(i),
+        false
+    ));
 }
 
 //==============================================================================
@@ -196,15 +222,18 @@ juce::AudioProcessorEditor* KaiCBFaderControlAudioProcessor::createEditor()
 //==============================================================================
 void KaiCBFaderControlAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void KaiCBFaderControlAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(apvts.state.getType()))
+            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================

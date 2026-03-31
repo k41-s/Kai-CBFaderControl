@@ -1,4 +1,5 @@
 #include "SlotConfigItem.h"
+#include "../../../Main/SlotIDs.h"
 
 void SlotConfigItem::configSlotLabel(int slotNumber)
 {
@@ -35,7 +36,7 @@ SlotConfigItem::~SlotConfigItem()
 
 void SlotConfigItem::setToggleState(bool shouldBeActive, bool shouldNotify)
 {
-	auto notification = shouldNotify ? juce::sendNotification : juce::dontSendNotification;
+	auto notification = shouldNotify ? juce::sendNotificationSync : juce::dontSendNotification;
 	activeToggle.setToggleState(shouldBeActive, notification);
 }
 
@@ -57,4 +58,13 @@ void SlotConfigItem::resized()
 	activeToggle.setBounds(area.removeFromLeft(25));
 	slotLabel.setBounds(area.removeFromLeft(40));
 	customNameEditor.setBounds(area);
+}
+
+void SlotConfigItem::setupAttachment(juce::AudioProcessorValueTreeState& state, int slotNum)
+{
+	activeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+		state,
+		SlotIDs::isActive(slotNum),
+		activeToggle
+	);
 }

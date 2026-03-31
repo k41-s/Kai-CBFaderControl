@@ -1,10 +1,11 @@
 #pragma once
 #include<JuceHeader.h>
+#include "../../../Main/PluginProcessor/PluginProcessor.h"
 #include "../../Components/SlotConfigItem/SlotConfigItem.h"
 #include "../../Components/StatusLED/StatusLED.h"
 #include "../../CustomLookAndFeel/SetupViewLookFeel/SetupViewLookFeel.h"
 
-class SetupPageView : public juce::Component
+class SetupPageView : public juce::Component, public juce::ValueTree::Listener
 {
 public:
 	void configLocalIpLabel();
@@ -12,6 +13,8 @@ public:
 		juce::Label& label,
 		juce::String editorTxt,
 		juce::TextEditor& editor);
+	void restrictPortEditors();
+
 	void configGridContainer();
 	void configGrid();
 
@@ -19,9 +22,13 @@ public:
 
 	void configToggleAllBtnText();
 
+
 	void configComponents();
 
-	SetupPageView();
+	void saveNetworkSettings();
+	void bindNetworkEditorCallbacks();
+
+	SetupPageView(KaiCBFaderControlAudioProcessor& p);
 	~SetupPageView() override;
 
 	void setLabelEditorPairBounds(
@@ -37,8 +44,10 @@ public:
 	void resized() override;
 	void paint(juce::Graphics& g) override;
 
+	void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
 
 private:
+	KaiCBFaderControlAudioProcessor& processor;
 	SetupViewLookFeel customLF;
 	
 	juce::Label localIpLabel;

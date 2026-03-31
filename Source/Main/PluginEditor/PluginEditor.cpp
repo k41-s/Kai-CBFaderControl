@@ -10,7 +10,7 @@
 
 //==============================================================================
 KaiCBFaderControlAudioProcessorEditor::KaiCBFaderControlAudioProcessorEditor (KaiCBFaderControlAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p), setupPage(p)
 {
     addAndMakeVisible(setupPage);
 

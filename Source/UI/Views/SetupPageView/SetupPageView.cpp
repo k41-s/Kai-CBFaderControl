@@ -1,4 +1,5 @@
 #include "SetupPageView.h"
+#include "../../../Main/SlotIDs.h"
 
 juce::String getLocalIpAddress() 
 {
@@ -34,10 +35,17 @@ void SetupPageView::configLabelEditorPair(
 	editor.setText(editorTxt);
 }
 
+void SetupPageView::restrictPortEditors()
+{
+	incomingPortEditor.setInputRestrictions(5, "0123456789");
+	outgoingPortEditor.setInputRestrictions(5, "0123456789");
+}
+
 void SetupPageView::configGridContainer()
 {
 	for (int i = 0; i < 32; ++i) {
 		SlotConfigItem* item = new SlotConfigItem(i + 1);
+		item->setupAttachment(processor.apvts, i + 1);
 		item->onToggleChanged = [this] { updateToggleAllBtnTxt(); };
 		slotItems.add(item);
 		gridContainer.addAndMakeVisible(item);
@@ -78,29 +86,57 @@ void SetupPageView::configComponents()
 	configLabelEditorPair(
 		"Target Ip Address",
 		targetIpLabel,
-		"127.0.0.0",
-		targetIpEditor);
+		processor.apvts.state[SlotIDs::targetIP()],
+		targetIpEditor
+	);
 
 	configLabelEditorPair(
 		"Incoming Port",
 		incomingPortLabel,
-		"8000",
-		incomingPortEditor);
+		processor.apvts.state[SlotIDs::incomingPort()].toString(),
+		incomingPortEditor
+	);
 
 	configLabelEditorPair(
 		"Outgoing Port",
 		outgoingPortLabel,
-		"8001",
-		outgoingPortEditor);
+		processor.apvts.state[SlotIDs::outgoingPort()].toString(),
+		outgoingPortEditor
+	);
+
+	restrictPortEditors();
+
+	bindNetworkEditorCallbacks();
 
 	configStatusComponents();
-
 	configGrid();
-
 	configToggleAllBtnText();
 }
 
-SetupPageView::SetupPageView() {
+void SetupPageView::saveNetworkSettings()
+{
+	processor.apvts.state.setProperty(SlotIDs::targetIP(), targetIpEditor.getText(), nullptr);
+	processor.apvts.state.setProperty(SlotIDs::incomingPort(), incomingPortEditor.getText().getIntValue(), nullptr);
+	processor.apvts.state.setProperty(SlotIDs::outgoingPort(), outgoingPortEditor.getText().getIntValue(), nullptr);
+
+	DBG("Network Settings Saved: " << targetIpEditor.getText());
+}
+
+void SetupPageView::bindNetworkEditorCallbacks()
+{
+
+	targetIpEditor.onReturnKey = [this] { saveNetworkSettings(); };
+	incomingPortEditor.onReturnKey = [this] { saveNetworkSettings(); };
+	outgoingPortEditor.onReturnKey = [this] { saveNetworkSettings(); };
+
+	targetIpEditor.onFocusLost = [this] { saveNetworkSettings(); };
+	incomingPortEditor.onFocusLost = [this] { saveNetworkSettings(); };
+	outgoingPortEditor.onFocusLost = [this] { saveNetworkSettings(); };
+}
+
+SetupPageView::SetupPageView(KaiCBFaderControlAudioProcessor& p) : processor(p)
+{
+	processor.apvts.state.addListener(this);
 	setLookAndFeel(&customLF);
 	configComponents();
 }
@@ -201,6 +237,16 @@ void SetupPageView::paint(juce::Graphics& g)
 {
 }
 
+void SetupPageView::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
+{
+	if (property == SlotIDs::targetIP())
+		targetIpEditor.setText(tree[property], juce::dontSendNotification);
+	if (property == SlotIDs::incomingPort())
+		incomingPortEditor.setText(tree[property], juce::dontSendNotification);
+	if (property == SlotIDs::outgoingPort())
+		outgoingPortEditor.setText(tree[property], juce::dontSendNotification);
+}
+
 void SetupPageView::updateToggleAllBtnTxt()
 {
 	bool allAreActive = true;
@@ -228,7 +274,7 @@ void SetupPageView::setAllSlotsActive(bool shouldBeActive)
 	for (auto* item : slotItems)
 	{
 		if (item != nullptr)
-			item->setToggleState(shouldBeActive, false);
+			item->setToggleState(shouldBeActive, true);
 	}
 	updateToggleAllBtnTxt();
 }
