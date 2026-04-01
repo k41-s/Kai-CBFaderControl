@@ -1,4 +1,5 @@
 #include "SetupViewLookFeel.h"
+#include "../MyColours.h"
 
 SetupViewLookFeel::SetupViewLookFeel()
 {

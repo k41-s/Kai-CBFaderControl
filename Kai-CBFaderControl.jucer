@@ -21,12 +21,19 @@
       </GROUP>
       <GROUP id="{C7A96202-9678-0F48-8CA3-6DBA8FCD9D92}" name="UI">
         <GROUP id="{99DEFE1B-A682-C22E-6326-967790FD3A37}" name="CustomLookAndFeel">
+          <GROUP id="{FC6A8208-1AEA-FB57-1555-81A937EB7C23}" name="PerformanceViewLookFeel">
+            <FILE id="RCHQiM" name="PerformanceViewLookFeel.cpp" compile="1" resource="0"
+                  file="Source/UI/CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.cpp"/>
+            <FILE id="ietLAz" name="PerformanceViewLookFeel.h" compile="0" resource="0"
+                  file="Source/UI/CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"/>
+          </GROUP>
           <GROUP id="{88A98984-DD99-EC8C-CD9F-5F6D2D17F3A8}" name="SetupViewLookFeel">
             <FILE id="upRX4a" name="SetupViewLookFeel.cpp" compile="1" resource="0"
                   file="Source/UI/CustomLookAndFeel/SetupViewLookFeel/SetupViewLookFeel.cpp"/>
             <FILE id="PCunU6" name="SetupViewLookFeel.h" compile="0" resource="0"
                   file="Source/UI/CustomLookAndFeel/SetupViewLookFeel/SetupViewLookFeel.h"/>
           </GROUP>
+          <FILE id="Arh3ql" name="MyColours.h" compile="0" resource="0" file="Source/UI/CustomLookAndFeel/MyColours.h"/>
         </GROUP>
         <GROUP id="{242E5ADF-46F2-5124-18E6-634CEAA41104}" name="Views">
           <GROUP id="{2979A373-C7B8-59CB-DA94-F68F621C6F6E}" name="SetupPageView">
@@ -46,6 +53,7 @@
             <FILE id="Rtjcyd" name="StatusLED.cpp" compile="1" resource="0" file="Source/UI/Components/StatusLED/StatusLED.cpp"/>
             <FILE id="a2TSHr" name="StatusLED.h" compile="0" resource="0" file="Source/UI/Components/StatusLED/StatusLED.h"/>
           </GROUP>
+          <FILE id="a5Oun4" name="UIConstants.h" compile="0" resource="0" file="Source/UI/Components/UIConstants.h"/>
         </GROUP>
       </GROUP>
     </GROUP>
