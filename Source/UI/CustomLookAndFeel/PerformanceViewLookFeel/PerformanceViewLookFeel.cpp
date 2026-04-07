@@ -147,7 +147,7 @@ void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton
 ) {
 	g.setColour(button.getToggleState() ? juce::Colours::black : juce::Colours::white);
 
-	float fontSize = juce::jmin(14.0f, button.getHeight() * 0.6f);
+	float fontSize = juce::jmin(14.0f, button.getWidth() * 0.6f);
 	g.setFont(juce::Font(fontSize, juce::Font::bold));
 
 	g.drawText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, false);

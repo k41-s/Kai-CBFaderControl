@@ -36,6 +36,12 @@
           <FILE id="Arh3ql" name="MyColours.h" compile="0" resource="0" file="Source/UI/CustomLookAndFeel/MyColours.h"/>
         </GROUP>
         <GROUP id="{242E5ADF-46F2-5124-18E6-634CEAA41104}" name="Views">
+          <GROUP id="{43DC2C75-C313-7585-90DF-56A3DD6C5F8E}" name="PerformanceView">
+            <FILE id="iwDptr" name="PerformanceView.cpp" compile="1" resource="0"
+                  file="Source/UI/Views/PerformanceView/PerformanceView.cpp"/>
+            <FILE id="S1s7IQ" name="PerformanceView.h" compile="0" resource="0"
+                  file="Source/UI/Views/PerformanceView/PerformanceView.h"/>
+          </GROUP>
           <GROUP id="{2979A373-C7B8-59CB-DA94-F68F621C6F6E}" name="SetupPageView">
             <FILE id="E5oj3E" name="SetupPageView.cpp" compile="1" resource="0"
                   file="Source/UI/Views/SetupPageView/SetupPageView.cpp"/>

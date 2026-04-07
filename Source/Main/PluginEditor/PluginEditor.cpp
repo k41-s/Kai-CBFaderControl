@@ -10,9 +10,10 @@
 
 //==============================================================================
 KaiCBFaderControlAudioProcessorEditor::KaiCBFaderControlAudioProcessorEditor (KaiCBFaderControlAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), setupPage(p)
+	: AudioProcessorEditor(&p), audioProcessor(p), setupPage(p), performanceView(p)
 {
     addAndMakeVisible(setupPage);
+	addAndMakeVisible(performanceView);
 
     setResizable(true, true);
     setResizeLimits(750, 400, 1600, 1200);
@@ -31,5 +32,20 @@ void KaiCBFaderControlAudioProcessorEditor::paint (juce::Graphics& g)
 
 void KaiCBFaderControlAudioProcessorEditor::resized()
 {
-    setupPage.setBounds(getLocalBounds());
+    bool showSetupPage = false;
+    showCurrentView(showSetupPage);
+}
+
+void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
+{
+    if (showSetupPage)
+    {
+        setupPage.setBounds(getLocalBounds());
+        performanceView.setBounds(0, 0, 0, 0);
+    }
+    else
+    {
+        performanceView.setBounds(getLocalBounds());
+        setupPage.setBounds(0, 0, 0, 0);
+    }
 }
