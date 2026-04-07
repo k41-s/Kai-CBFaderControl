@@ -43,6 +43,12 @@
           </GROUP>
         </GROUP>
         <GROUP id="{85C987F1-CF1A-9A13-E890-A4A368996334}" name="Components">
+          <GROUP id="{30AC02B6-F48E-ECAC-05C4-0A6185D30ADA}" name="PerformanceSlotItem">
+            <FILE id="Vjqamu" name="PerformanceSlotItem.cpp" compile="1" resource="0"
+                  file="Source/UI/Components/PerformanceSlotItem/PerformanceSlotItem.cpp"/>
+            <FILE id="P135WL" name="PerformanceSlotItem.h" compile="0" resource="0"
+                  file="Source/UI/Components/PerformanceSlotItem/PerformanceSlotItem.h"/>
+          </GROUP>
           <GROUP id="{9C98ED4C-E73F-ECAF-EB1F-1C38663DD3A6}" name="SlotConfigItem">
             <FILE id="XfWEjL" name="SlotConfigItem.cpp" compile="1" resource="0"
                   file="Source/UI/Components/SlotConfigItem/SlotConfigItem.cpp"/>

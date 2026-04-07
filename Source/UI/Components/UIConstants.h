@@ -13,3 +13,10 @@ namespace UIProperties
     static inline const juce::Identifier isHighRes = "isHighRes";
     static inline const juce::Identifier customColour = "customColour";
 }
+
+namespace UIButtonLabels
+{
+    static inline const juce::String mute = "M";
+    static inline const juce::String solo = "S";
+    static inline const juce::String soloInPlace = "SIP";
+}
