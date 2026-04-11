@@ -8,28 +8,29 @@
 class SetupPageView : public juce::Component, public juce::ValueTree::Listener
 {
 public:
+	SetupPageView(KaiCBFaderControlAudioProcessor& p);
+	~SetupPageView() override;
+
+	void resized() override;
+	void paint(juce::Graphics& g) override;
+
+	void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
+
+private:
 	void configLocalIpLabel();
 	void configLabelEditorPair(juce::String lblTxt,
 		juce::Label& label,
 		juce::String editorTxt,
 		juce::TextEditor& editor);
 	void restrictPortEditors();
-
 	void configGridContainer();
 	void configGrid();
-
 	void configStatusComponents();
-
 	void configToggleAllBtnText();
-
-
 	void configComponents();
 
 	void saveNetworkSettings();
 	void bindNetworkEditorCallbacks();
-
-	SetupPageView(KaiCBFaderControlAudioProcessor& p);
-	~SetupPageView() override;
 
 	void setLabelEditorPairBounds(
 		juce::Rectangle<int>& area,
@@ -41,12 +42,6 @@ public:
 	void setupSlots(int numColumns, int cellWidth, int cellHeight);
 	void setupGrid(juce::Rectangle<int>& area);
 
-	void resized() override;
-	void paint(juce::Graphics& g) override;
-
-	void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
-
-private:
 	KaiCBFaderControlAudioProcessor& processor;
 	SetupViewLookFeel customLF;
 	

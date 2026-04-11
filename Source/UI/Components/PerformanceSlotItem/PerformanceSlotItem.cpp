@@ -3,7 +3,6 @@
 PerformanceSlotItem::PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex)
 	:processor(p), index(slotIndex)
 {
-
     configComponents();
 }
 

@@ -58,13 +58,11 @@ public:
     //==============================================================================
 
     juce::AudioProcessorValueTreeState apvts;
-
+    std::atomic<float>* isActiveParams[32];
 private:
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
     void addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
-
-	std::atomic<float>* isActiveParams[32];
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KaiCBFaderControlAudioProcessor)

@@ -1,4 +1,5 @@
 #include "PerformanceView.h"
+#include "../../../Main/SlotIDs.h"
 
 PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 	:processor(p)
@@ -6,6 +7,8 @@ PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 	setLookAndFeel(&performanceLF);
 	createFaderSlots();
 
+	registerIsActiveListener();
+	triggerAsyncUpdate();
 }
 
 void PerformanceView::createFaderSlots()
@@ -17,9 +20,36 @@ void PerformanceView::createFaderSlots()
 	}
 }
 
+void PerformanceView::registerIsActiveListener()
+{
+	for (int i = 1; i <= 32; ++i)
+	{
+		processor.apvts.addParameterListener(SlotIDs::isActive(i), this);
+	}
+}
+
 PerformanceView::~PerformanceView()
 {
+	deregisterIsActiveListener();
 	setLookAndFeel(nullptr);
+}
+
+void PerformanceView::deregisterIsActiveListener()
+{
+	for (int i = 1; i <= 32; ++i)
+	{
+		processor.apvts.removeParameterListener(SlotIDs::isActive(i), this);
+	}
+}
+
+void PerformanceView::parameterChanged(const juce::String& parameterID, float newValue)
+{
+	triggerAsyncUpdate();
+}
+
+void PerformanceView::handleAsyncUpdate()
+{
+	resized();
 }
 
 void PerformanceView::paint(juce::Graphics& g)
@@ -35,20 +65,38 @@ void PerformanceView::resized()
 void PerformanceView::setupAndFillArea()
 {
 	auto area = getLocalBounds();
-
-	if (slots.size() > 0)
-	{
-		layoutSlots(area);
-	}
+	juce::FlexBox flexBox = configFlexBox();
+	checkAndAddActiveSlots(flexBox);
+	flexBox.performLayout(area);
 }
 
-void PerformanceView::layoutSlots(juce::Rectangle<int>& area)
+juce::FlexBox PerformanceView::configFlexBox()
 {
-	int slotWidth = area.getWidth() / slots.size();
+	juce::FlexBox flexBox;
+	flexBox.flexDirection = juce::FlexBox::Direction::row;
+	flexBox.flexWrap = juce::FlexBox::Wrap::noWrap;
+	flexBox.justifyContent = juce::FlexBox::JustifyContent::flexStart;
+	return flexBox;
+}
 
-	for (auto* slot : slots)
+void PerformanceView::checkAndAddActiveSlots(juce::FlexBox& flexBox)
+{
+	for (int i = 0; i < slots.size(); ++i)
 	{
-		slot->setBounds(area.removeFromLeft(slotWidth));
+		auto* slot = slots[i];
+
+		bool isActive = *processor.isActiveParams[i] > 0.5f;
+		slot->setVisible(isActive);
+
+		addSlotIfActive(isActive, flexBox, slot);
 	}
 }
 
+void PerformanceView::addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot)
+{
+	if (isActive)
+		flexBox.items.add(juce::FlexItem(*slot)
+			.withMinWidth(60.0f)
+			.withMaxWidth(120.0f)
+			.withFlex(1.0f));
+}
