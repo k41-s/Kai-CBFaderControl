@@ -16,6 +16,7 @@ public:
 
 	void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
 
+	std::function<void()> onNavigateToPerformance;
 private:
 	void configLocalIpLabel();
 	void configLabelEditorPair(juce::String lblTxt,
@@ -27,6 +28,7 @@ private:
 	void configGrid();
 	void configStatusComponents();
 	void configToggleAllBtnText();
+	void configNavBtn();
 	void configComponents();
 
 	void saveNetworkSettings();
@@ -41,6 +43,15 @@ private:
 	void setupLeftPanel(juce::Rectangle<int>& area);
 	void setupSlots(int numColumns, int cellWidth, int cellHeight);
 	void setupGrid(juce::Rectangle<int>& area);
+
+	void refreshControlStates();
+	void handleEmptySlots();
+	void checkSlotActivationStates(bool& allAreActive, bool& atLeastOneActive);
+	void updateToggleAllButton(bool allAreActive);
+	void updateNavigateBtn(bool atLeastOneActive);
+	void setAllSlotsActive(bool shouldBeActive);
+
+	juce::TextButton navigateBtn{ "Go to Performance" };
 
 	KaiCBFaderControlAudioProcessor& processor;
 	SetupViewLookFeel customLF;
@@ -63,8 +74,6 @@ private:
 	juce::String DESELECT_ALL = "Deselect All";
 
 	juce::ToggleButton toggleAllButton{ SELECT_ALL };
-	void updateToggleAllBtnTxt();
-	void setAllSlotsActive(bool shouldBeActive);
 
 	juce::Viewport gridViewport;
 	juce::Component gridContainer;

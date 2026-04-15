@@ -1,12 +1,13 @@
 #include "PerformanceView.h"
 #include "../../../Main/SlotIDs.h"
+#include "../../Components/UIConstants.h"
 
 PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 	:processor(p)
 {
 	setLookAndFeel(&performanceLF);
 	createFaderSlots();
-
+	configSetupButton();
 	registerIsActiveListener();
 	triggerAsyncUpdate();
 }
@@ -18,6 +19,16 @@ void PerformanceView::createFaderSlots()
 		auto* slot = slots.add(new PerformanceSlotItem(processor, i + 1));
 		addAndMakeVisible(slot);
 	}
+}
+
+void PerformanceView::configSetupButton()
+{
+	addAndMakeVisible(setupButton);
+	setupButton.onClick = [this]()
+		{
+			if (onNavigateToSetup)
+				onNavigateToSetup();
+		};
 }
 
 void PerformanceView::registerIsActiveListener()
@@ -50,6 +61,9 @@ void PerformanceView::parameterChanged(const juce::String& parameterID, float ne
 void PerformanceView::handleAsyncUpdate()
 {
 	resized();
+
+	if(onLayoutChangeRequest)
+		onLayoutChangeRequest();
 }
 
 void PerformanceView::paint(juce::Graphics& g)
@@ -65,9 +79,16 @@ void PerformanceView::resized()
 void PerformanceView::setupAndFillArea()
 {
 	auto area = getLocalBounds();
+	placeSetupButton(area);
 	juce::FlexBox flexBox = configFlexBox();
 	checkAndAddActiveSlots(flexBox);
 	flexBox.performLayout(area);
+}
+
+void PerformanceView::placeSetupButton(juce::Rectangle<int>& area)
+{
+	auto headerArea = area.removeFromTop(40);
+	setupButton.setBounds(headerArea.removeFromRight(100).reduced(5));
 }
 
 juce::FlexBox PerformanceView::configFlexBox()
@@ -75,7 +96,8 @@ juce::FlexBox PerformanceView::configFlexBox()
 	juce::FlexBox flexBox;
 	flexBox.flexDirection = juce::FlexBox::Direction::row;
 	flexBox.flexWrap = juce::FlexBox::Wrap::noWrap;
-	flexBox.justifyContent = juce::FlexBox::JustifyContent::flexStart;
+	flexBox.alignContent = juce::FlexBox::AlignContent::stretch;
+	flexBox.justifyContent = juce::FlexBox::JustifyContent::center;
 	return flexBox;
 }
 
@@ -96,7 +118,25 @@ void PerformanceView::addSlotIfActive(bool isActive, juce::FlexBox& flexBox, Per
 {
 	if (isActive)
 		flexBox.items.add(juce::FlexItem(*slot)
-			.withMinWidth(60.0f)
 			.withMaxWidth(120.0f)
 			.withFlex(1.0f));
+}
+
+int PerformanceView::getIdealWidth()
+{
+	int activeCount = 0;
+	for (int i = 0; i < 32; ++i)
+		if (*processor.isActiveParams[i] > 0.5f)
+			activeCount++;
+
+	if (activeCount == 0) 
+		return WindowSizeValues::minWidth;
+
+	int targetWidth = activeCount * 60;
+
+	return juce::jlimit(
+		WindowSizeValues::minWidth,
+		WindowSizeValues::maxWidth,
+		targetWidth
+	);
 }

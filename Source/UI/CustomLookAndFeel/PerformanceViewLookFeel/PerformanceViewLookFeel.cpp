@@ -121,15 +121,15 @@ void PerformanceViewLookFeel::drawButtonBackground(juce::Graphics& g, juce::Butt
 	drawButton(g, bgColour, bounds);
 }
 
-void PerformanceViewLookFeel::getColourFromToggleState(juce::Button& button, juce::Colour& bgColour)
+void PerformanceViewLookFeel::getColourFromToggleState(juce::Button& button, juce::Colour& colourToChange)
 {
 	if (button.getToggleState())
 	{
 		if (button.getName() == UIComponentNames::muteButton)
-			bgColour = juce::Colours::red.withAlpha(0.8f);
+			colourToChange = juce::Colours::red.withAlpha(0.8f);
 		else if (button.getName() == UIComponentNames::soloButton)
-			bgColour = juce::Colours::gold.withAlpha(0.8f);
-		else bgColour = juce::Colours::orange;
+			colourToChange = juce::Colours::gold.withAlpha(0.8f);
+		else colourToChange = juce::Colours::orange;
 	}
 }
 

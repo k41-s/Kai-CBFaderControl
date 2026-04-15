@@ -25,3 +25,76 @@ void SetupViewLookFeel::drawTextEditorOutline(juce::Graphics& g, int width, int 
         g.drawRect(0, 0, width, height, 1);
     }
 }
+
+void SetupViewLookFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button, 
+    const juce::Colour& backgroundColour, bool isMouseOverButton, bool isButtonDown
+) {
+    auto area = button.getLocalBounds().toFloat();
+    auto cornerSize = 4.0f;
+	juce::Colour bgColour = MyColours::unpressedBtn;
+
+    if (!button.isEnabled())
+    {
+        drawDisabledBtn(g, bgColour, area, cornerSize);
+        return;
+    }
+
+    auto fillColour = bgColour;
+    setRelevantFillColour(fillColour, isButtonDown, isMouseOverButton);
+    drawBtn(g, fillColour, area, cornerSize);
+    handleMouseOverButton(isMouseOverButton, isButtonDown, g, area, cornerSize);
+}
+
+
+void SetupViewLookFeel::drawDisabledBtn(juce::Graphics& g, const juce::Colour& backgroundColour, juce::Rectangle<float>& area, float cornerSize)
+{
+    drawDisabledBtnBackground(g, backgroundColour, area, cornerSize);
+    drawDisabledBtnOutline(g, area, cornerSize);
+}
+
+void SetupViewLookFeel::drawDisabledBtnBackground(juce::Graphics& g, const juce::Colour& backgroundColour, juce::Rectangle<float>& area, float cornerSize)
+{
+    g.setColour(backgroundColour.withMultipliedAlpha(0.2f));
+    g.fillRoundedRectangle(area, cornerSize);
+}
+
+void SetupViewLookFeel::drawDisabledBtnOutline(juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize)
+{
+    g.setColour(juce::Colours::white.withAlpha(0.1f));
+    g.drawRoundedRectangle(area.reduced(0.5f), cornerSize, 1.0f);
+}
+
+void SetupViewLookFeel::setRelevantFillColour(juce::Colour& fillColour, bool isButtonDown, bool isMouseOverButton)
+{
+    if (isButtonDown)
+        fillColour = fillColour.darker(0.3f);
+    else if (isMouseOverButton)
+        fillColour = fillColour.brighter(0.1f);
+}
+
+void SetupViewLookFeel::drawBtn(juce::Graphics& g, juce::Colour& fillColour, juce::Rectangle<float>& area, float cornerSize)
+{
+    drawBtnBody(g, fillColour, area, cornerSize);
+    drawBtnOutline(g, area, cornerSize);
+}
+
+void SetupViewLookFeel::drawBtnBody(juce::Graphics& g, const juce::Colour& fillColour, const juce::Rectangle<float>& area, float cornerSize)
+{
+    g.setColour(fillColour);
+    g.fillRoundedRectangle(area, cornerSize);
+}
+
+void SetupViewLookFeel::drawBtnOutline(juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize)
+{
+    g.setColour(MyColours::black.withAlpha(0.8f));
+    g.drawRoundedRectangle(area.reduced(0.5f), cornerSize, 1.0f);
+}
+
+void SetupViewLookFeel::handleMouseOverButton(bool isMouseOverButton, bool isButtonDown, juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize)
+{
+    if (isMouseOverButton && !isButtonDown)
+    {
+        g.setColour(juce::Colours::white.withAlpha(0.05f));
+        g.fillRoundedRectangle(area.reduced(1.0f), cornerSize);
+    }
+}

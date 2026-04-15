@@ -1,7 +1,7 @@
 #include "SetupPageView.h"
 #include "../../../Main/SlotIDs.h"
 
-juce::String getLocalIpAddress() 
+static juce::String getLocalIpAddress()
 {
 	auto addresses = juce::IPAddress::getAllAddresses();
 
@@ -46,7 +46,7 @@ void SetupPageView::configGridContainer()
 	for (int i = 0; i < 32; ++i) {
 		SlotConfigItem* item = new SlotConfigItem(i + 1);
 		item->setupAttachment(processor.apvts, i + 1);
-		item->onToggleChanged = [this] { updateToggleAllBtnTxt(); };
+		item->onToggleChanged = [this] { refreshControlStates(); };
 		slotItems.add(item);
 		gridContainer.addAndMakeVisible(item);
 	}
@@ -76,7 +76,17 @@ void SetupPageView::configToggleAllBtnText()
 			bool newState = toggleAllButton.getToggleState();
 			setAllSlotsActive(newState);
 		};
-	updateToggleAllBtnTxt();
+	refreshControlStates();
+}
+
+void SetupPageView::configNavBtn()
+{
+	addAndMakeVisible(navigateBtn);
+	navigateBtn.onClick = [this]()
+		{
+			if (onNavigateToPerformance)
+				onNavigateToPerformance();
+		};
 }
 
 void SetupPageView::configComponents()
@@ -111,6 +121,8 @@ void SetupPageView::configComponents()
 	configStatusComponents();
 	configGrid();
 	configToggleAllBtnText();
+
+	configNavBtn();
 }
 
 void SetupPageView::saveNetworkSettings()
@@ -124,7 +136,6 @@ void SetupPageView::saveNetworkSettings()
 
 void SetupPageView::bindNetworkEditorCallbacks()
 {
-
 	targetIpEditor.onReturnKey = [this] { saveNetworkSettings(); };
 	incomingPortEditor.onReturnKey = [this] { saveNetworkSettings(); };
 	outgoingPortEditor.onReturnKey = [this] { saveNetworkSettings(); };
@@ -139,6 +150,7 @@ SetupPageView::SetupPageView(KaiCBFaderControlAudioProcessor& p) : processor(p)
 	processor.apvts.state.addListener(this);
 	setLookAndFeel(&customLF);
 	configComponents();
+	refreshControlStates();
 }
 
 SetupPageView::~SetupPageView()
@@ -156,8 +168,9 @@ void SetupPageView::setLabelEditorPairBounds(
 	editor.setBounds(area.removeFromTop(40));
 }
 
-void SetupPageView::setStatusBounds(juce::Rectangle<int>& statusRow)
+void SetupPageView::setStatusBounds(juce::Rectangle<int>& area)
 {
+	auto statusRow = area.removeFromTop(30);
 	statusLabel.setBounds(statusRow.removeFromLeft(100));
 	statusLED.setBounds(statusRow.removeFromLeft(30).reduced(5));
 }
@@ -183,9 +196,10 @@ void SetupPageView::setupLeftPanel(juce::Rectangle<int>& area)
 	toggleAllButton.setBounds(area.removeFromTop(30).reduced(2));
 
 	area.removeFromTop(10);
+	setStatusBounds(area);
 
-	auto statusRow = area.removeFromTop(30);
-	setStatusBounds(statusRow);
+	area.removeFromTop(20);
+	navigateBtn.setBounds(area.removeFromTop(40).reduced(2));
 }
 
 void SetupPageView::setupSlots(int numColumns, int cellWidth, int cellHeight)
@@ -247,26 +261,52 @@ void SetupPageView::valueTreePropertyChanged(juce::ValueTree& tree, const juce::
 		outgoingPortEditor.setText(tree[property], juce::dontSendNotification);
 }
 
-void SetupPageView::updateToggleAllBtnTxt()
+void SetupPageView::refreshControlStates()
 {
 	bool allAreActive = true;
+	bool atLeastOneActive = false;
 
-	if (slotItems.size() == 0)
+	if (slotItems.isEmpty())
 	{
-		toggleAllButton.setButtonText(SELECT_ALL);
+		handleEmptySlots();
 		return;
 	}
 
+	checkSlotActivationStates(allAreActive, atLeastOneActive);
+	updateToggleAllButton(allAreActive);
+	updateNavigateBtn(atLeastOneActive);
+}
+
+void SetupPageView::handleEmptySlots()
+{
+	toggleAllButton.setButtonText(SELECT_ALL);
+	navigateBtn.setEnabled(false);
+}
+
+void SetupPageView::checkSlotActivationStates(bool& allAreActive, bool& atLeastOneActive)
+{
 	for (auto* item : slotItems)
 	{
-		if (item != nullptr && !item->isActive())
+		if (item != nullptr)
 		{
-			allAreActive = false;
-			break;
+			if (!item->isActive())
+				allAreActive = false;
+			else
+				atLeastOneActive = true;
 		}
 	}
+}
+
+void SetupPageView::updateToggleAllButton(bool allAreActive)
+{
 	toggleAllButton.setButtonText(allAreActive ? DESELECT_ALL : SELECT_ALL);
 	toggleAllButton.setToggleState(allAreActive, juce::dontSendNotification);
+}
+
+void SetupPageView::updateNavigateBtn(bool atLeastOneActive)
+{
+	navigateBtn.setEnabled(atLeastOneActive);
+	navigateBtn.setTooltip(atLeastOneActive ? "" : "Select at least one fader to enter Performance Mode");
 }
 
 void SetupPageView::setAllSlotsActive(bool shouldBeActive)
@@ -276,5 +316,5 @@ void SetupPageView::setAllSlotsActive(bool shouldBeActive)
 		if (item != nullptr)
 			item->setToggleState(shouldBeActive, true);
 	}
-	updateToggleAllBtnTxt();
+	refreshControlStates();
 }

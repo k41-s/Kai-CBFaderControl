@@ -26,14 +26,16 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 private:
+    void determineInitialState();
+    void setAppropriateSize();
     void showCurrentView(bool showSetupPage);
+	void updateWindowSize(int width, int height);
 
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     KaiCBFaderControlAudioProcessor& audioProcessor;
-
     SetupPageView setupPage;
 	PerformanceView performanceView;
+
+    bool showSetupPage = true;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KaiCBFaderControlAudioProcessorEditor)
 };

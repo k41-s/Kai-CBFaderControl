@@ -18,16 +18,23 @@ public:
 
 	void paint(juce::Graphics& g) override;
 	void resized() override;
+
+	int getIdealWidth();
+	std::function<void()> onLayoutChangeRequest;
+	std::function<void()> onNavigateToSetup;
 private:
+	void createFaderSlots();
+	void configSetupButton();
 	void registerIsActiveListener();
 	void deregisterIsActiveListener();
 
-	void createFaderSlots();
-
 	void setupAndFillArea();
+	void placeSetupButton(juce::Rectangle<int>& area);
 	juce::FlexBox configFlexBox();
 	void checkAndAddActiveSlots(juce::FlexBox& flexBox);
 	void addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot);
+
+	juce::TextButton setupButton{ "Setup" };
 
 	KaiCBFaderControlAudioProcessor& processor;
 	PerformanceViewLookFeel performanceLF;
