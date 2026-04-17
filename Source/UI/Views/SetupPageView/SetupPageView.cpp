@@ -177,7 +177,7 @@ SetupPageView::~SetupPageView()
 
 void SetupPageView::paint(juce::Graphics& g)
 {
-	g.setColour(MyColours::footerBackground);
+	g.setColour(MyColours::cbBlue);
 	g.fillRoundedRectangle(footerArea.toFloat(), 5.0f);
 }
 

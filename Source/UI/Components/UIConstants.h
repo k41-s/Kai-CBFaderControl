@@ -6,7 +6,7 @@ namespace WindowSizeValues
 	static inline const int minWidth = 750;
     static inline const int minHeight = 400;
     static inline const int defaultWidth = 900;
-    static inline const int defaultHeight = 500;
+    static inline const int defaultHeight = 650;
     static inline const int maxWidth = 1920;
     static inline const int maxHeight = 1200;
 }

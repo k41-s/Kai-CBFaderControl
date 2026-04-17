@@ -88,7 +88,7 @@ void PerformanceView::handleAsyncUpdate()
 
 void PerformanceView::paint(juce::Graphics& g)
 {
-	g.setColour(MyColours::footerBackground);
+	g.setColour(MyColours::cbBlue);
 	g.fillRect(footerArea);
 }
 

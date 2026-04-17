@@ -194,12 +194,14 @@ void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWi
 
 void PerformanceSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea)
 {
+    topArea.removeFromTop(5);
     indexLabel.setFont(sharedFont.boldened());
     indexLabel.setBounds(topArea.removeFromTop(sharedFont.getHeight() + 5));
 }
 
 void PerformanceSlotItem::setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth)
 {
+	topArea.removeFromTop(5);
     const int labelHeight = sharedFont.getHeight() + 5;
     auto nameLabelBounds = topArea.removeFromTop(labelHeight);
 
@@ -219,11 +221,13 @@ void PerformanceSlotItem::showNameLabelIfNeeded(int currentWidth)
 
 void PerformanceSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
 {
+	topArea.removeFromTop(5);
     muteButton.setBounds(topArea.removeFromTop(30).reduced(2));
 }
 
 void PerformanceSlotItem::setupSoloButton(juce::Rectangle<int>& topArea)
 {
+	topArea.removeFromTop(5);
     soloButton.setBounds(topArea.removeFromTop(30).reduced(2));
 }
 
