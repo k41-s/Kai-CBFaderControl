@@ -14,11 +14,13 @@ public:
 	void paint(juce::Graphics& g) override;
 	void resized() override;
 private:
+	void init(int slotIndex);
 	void configComponents();
 	void configVolumeFader();
 	void configMuteButton();
 	void configSoloButton();
 	void configLabels();
+	void configIndexLabel();
 	void configNameLabel();
 	void configValueLabel();
 	void updateValueLabel();
@@ -28,7 +30,9 @@ private:
 	void setupSlotBounds();
 
 	void setupTopArea(juce::Rectangle<int>& area, int currentWidth);
+	void setupIndexLabel(juce::Rectangle<int>& topArea);
 	void setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth);
+	void showNameLabelIfNeeded(int currentWidth);
 	void setupMuteButton(juce::Rectangle<int>& topArea);
 	void setupSoloButton(juce::Rectangle<int>& topArea);
 
@@ -40,6 +44,7 @@ private:
 	int index;
 
 	juce::Label nameLabel;
+	juce::Label indexLabel;
 	juce::Label valueLabel;
 	juce::Slider volumeFader;
 	juce::TextButton muteButton{ UIButtonLabels::mute };

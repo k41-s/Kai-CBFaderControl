@@ -5,13 +5,18 @@
 PerformanceSlotItem::PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex)
 	:processor(p), index(slotIndex)
 {
-	processor.apvts.state.addListener(this);
+    init(slotIndex);
+}
+
+void PerformanceSlotItem::init(int slotIndex)
+{
+    processor.apvts.state.addListener(this);
 
     configComponents();
     volumeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processor.apvts, SlotIDs::volume(slotIndex), volumeFader);
     updateValueLabel();
-	updateNameFromValueTree();
+    updateNameFromValueTree();
 }
 
 void PerformanceSlotItem::configComponents()
@@ -45,9 +50,19 @@ void PerformanceSlotItem::configSoloButton()
 
 void PerformanceSlotItem::configLabels()
 {
+	configIndexLabel();
     configNameLabel();
     configValueLabel();
     volumeFader.onValueChange = [this]() { updateValueLabel(); };
+}
+
+void PerformanceSlotItem::configIndexLabel()
+{
+    addAndMakeVisible(indexLabel);
+    indexLabel.setJustificationType(juce::Justification::centred);
+
+    auto name = "Slot " + juce::String(index);
+    indexLabel.setText(name, juce::dontSendNotification);
 }
 
 void PerformanceSlotItem::configNameLabel()
@@ -55,7 +70,8 @@ void PerformanceSlotItem::configNameLabel()
     addAndMakeVisible(nameLabel);
     nameLabel.setJustificationType(juce::Justification::centred);
 
-    auto name = processor.apvts.state.getProperty(SlotIDs::slotName(index), "Slot " + juce::String(index));
+    auto name = processor.apvts.state.getProperty(SlotIDs::slotName(index), "");
+
     nameLabel.setText(name, juce::dontSendNotification);
 }
 
@@ -76,8 +92,9 @@ void PerformanceSlotItem::updateValueLabel()
 
 void PerformanceSlotItem::updateNameFromValueTree()
 {
-    auto name = processor.apvts.state.getProperty(SlotIDs::slotName(index), "Slot " + juce::String(index));
-    nameLabel.setText(name, juce::dontSendNotification);
+    auto customName = processor.apvts.state.getProperty(SlotIDs::slotName(index), "").toString();
+    nameLabel.setText(customName, juce::dontSendNotification);
+    resized();
 }
 
 void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
@@ -119,29 +136,47 @@ void PerformanceSlotItem::setupSlotBounds()
 
 void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWidth)
 {
-    auto topArea = area.removeFromTop(area.getHeight() * 0.3f);
+    auto topArea = area.removeFromTop(area.getHeight() * 0.25f);
+
+    setupIndexLabel(topArea);
     setupNameLabel(topArea, currentWidth);
     setupMuteButton(topArea);
     setupSoloButton(topArea);
 }
 
+void PerformanceSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea)
+{
+    indexLabel.setFont(sharedFont.boldened());
+    indexLabel.setBounds(topArea.removeFromTop(sharedFont.getHeight() + 5));
+}
+
 void PerformanceSlotItem::setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth)
 {
-    nameLabel.setFont(sharedFont);
-    nameLabel.setBounds(topArea.removeFromTop(sharedFont.getHeight() + 2));
+    const int labelHeight = sharedFont.getHeight() + 5;
+    auto nameLabelBounds = topArea.removeFromTop(labelHeight);
 
-    int requiredNameWidth = sharedFont.getStringWidth(nameLabel.getText());
-    nameLabel.setVisible(currentWidth >= requiredNameWidth);
+    nameLabel.setBounds(nameLabelBounds);
+    nameLabel.setFont(sharedFont);
+    showNameLabelIfNeeded(currentWidth);
+}
+
+void PerformanceSlotItem::showNameLabelIfNeeded(int currentWidth)
+{
+    bool hasCustomName = nameLabel.getText().isNotEmpty();
+    int textWidth = sharedFont.getStringWidth(nameLabel.getText());
+    bool fits = currentWidth >= textWidth;
+
+    nameLabel.setVisible(hasCustomName && fits);
 }
 
 void PerformanceSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
 {
-    muteButton.setBounds(topArea.removeFromTop(35).reduced(2));
+    muteButton.setBounds(topArea.removeFromTop(30).reduced(2));
 }
 
 void PerformanceSlotItem::setupSoloButton(juce::Rectangle<int>& topArea)
 {
-    soloButton.setBounds(topArea.removeFromTop(35).reduced(2));
+    soloButton.setBounds(topArea.removeFromTop(30).reduced(2));
 }
 
 void PerformanceSlotItem::setupBottomArea(juce::Rectangle<int>& area, int currentWidth)
