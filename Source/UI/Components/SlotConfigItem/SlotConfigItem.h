@@ -1,13 +1,14 @@
 #pragma once
 #include<JuceHeader.h>
+#include "../../../Main/PluginProcessor/PluginProcessor.h"
 
-class SlotConfigItem : public juce::Component
+class SlotConfigItem :
+	public juce::Component,
+	public juce::ValueTree::Listener
 {
 public:
-	void configSlotLabel(int slotNumber);
-	void configNameEditor();
 
-	SlotConfigItem(int slotNumber);
+	SlotConfigItem(KaiCBFaderControlAudioProcessor& p, int slotNum);
 	~SlotConfigItem() override;
 
 	void setToggleState(bool shouldBeActive, bool shouldNotify);
@@ -17,8 +18,21 @@ public:
 	void paint(juce::Graphics& g) override;
 	void resized() override;
 
+	void valueTreePropertyChanged(juce::ValueTree& tree,
+		const juce::Identifier& property) override;
+
+
 	void setupAttachment(juce::AudioProcessorValueTreeState& state, int slotNum);
 private:
+	void configSlotLabel(int slotNumber);
+	void configNameEditor(int slotNumber);
+	void configActiveToggle();
+
+	void setNewNameIfDifferent(juce::String& newName);
+
+	KaiCBFaderControlAudioProcessor& processor;
+	int slotNumber;
+
 	juce::Label slotLabel;
 	juce::TextEditor customNameEditor;
 	juce::ToggleButton activeToggle;

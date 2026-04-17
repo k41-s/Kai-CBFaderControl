@@ -5,6 +5,9 @@
               pluginFormats="buildStandalone,buildVST3">
   <MAINGROUP id="f9Ybxx" name="Kai-CBFaderControl">
     <GROUP id="{27F809C4-9955-DA5B-8031-1ABEF1A8F2C3}" name="Source">
+      <GROUP id="{3C361FDD-62F3-F946-F24D-7B6760AA6408}" name="Images">
+        <FILE id="t2YEpw" name="cb-logo.png" compile="0" resource="1" file="Source/Images/cb-logo.png"/>
+      </GROUP>
       <GROUP id="{91035418-0FAE-8302-EAD0-0359EC207AE7}" name="Main">
         <GROUP id="{89ED6CA5-1CE0-9ACC-3855-C2C720CEEB79}" name="PluginEditor">
           <FILE id="zdherh" name="PluginEditor.cpp" compile="1" resource="0"

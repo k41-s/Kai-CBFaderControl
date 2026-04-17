@@ -44,7 +44,7 @@ void SetupPageView::restrictPortEditors()
 void SetupPageView::configGridContainer()
 {
 	for (int i = 0; i < 32; ++i) {
-		SlotConfigItem* item = new SlotConfigItem(i + 1);
+		SlotConfigItem* item = new SlotConfigItem(processor, i + 1);
 		item->setupAttachment(processor.apvts, i + 1);
 		item->onToggleChanged = [this] { refreshControlStates(); };
 		slotItems.add(item);

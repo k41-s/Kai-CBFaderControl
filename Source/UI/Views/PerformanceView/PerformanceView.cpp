@@ -1,6 +1,7 @@
 #include "PerformanceView.h"
 #include "../../../Main/SlotIDs.h"
 #include "../../Components/UIConstants.h"
+#include "../../CustomLookAndFeel/MyColours.h"
 
 PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 	:processor(p)
@@ -10,6 +11,13 @@ PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 	configSetupButton();
 	registerIsActiveListener();
 	triggerAsyncUpdate();
+
+	// Load the image from BinaryData
+	logoImage = juce::ImageCache::getFromMemory(BinaryData::cblogo_png, BinaryData::cblogo_pngSize);
+
+	// Set the image into the component and add it to the view
+	logoComponent.setImage(logoImage, juce::RectanglePlacement::centred);
+	addAndMakeVisible(logoComponent);
 }
 
 void PerformanceView::createFaderSlots()
@@ -68,7 +76,10 @@ void PerformanceView::handleAsyncUpdate()
 
 void PerformanceView::paint(juce::Graphics& g)
 {
-	g.fillAll(juce::Colour(0xFF121212));
+	g.fillAll(MyColours::background);
+
+	g.setColour(MyColours::footerBackground);
+	g.fillRect(footerArea);
 }
 
 void PerformanceView::resized()
@@ -87,8 +98,11 @@ void PerformanceView::setupAndFillArea()
 
 void PerformanceView::placeSetupButton(juce::Rectangle<int>& area)
 {
-	auto headerArea = area.removeFromTop(40);
-	setupButton.setBounds(headerArea.removeFromRight(100).reduced(5));
+	footerArea = area.removeFromBottom(40);
+
+	auto areaToUse = footerArea;
+	setupButton.setBounds(areaToUse.removeFromLeft(100).reduced(5));
+	logoComponent.setBounds(areaToUse.removeFromRight(100).reduced(5));
 }
 
 juce::FlexBox PerformanceView::configFlexBox()

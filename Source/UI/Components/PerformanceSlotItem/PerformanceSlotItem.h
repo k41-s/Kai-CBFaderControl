@@ -3,10 +3,13 @@
 #include "../../../Main/PluginProcessor/PluginProcessor.h"
 #include "../UIConstants.h"
 
-class PerformanceSlotItem : public juce::Component
+class PerformanceSlotItem : public juce::Component, public juce::ValueTree::Listener
 {
 public:
 	PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex);
+	~PerformanceSlotItem() override;
+
+	void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 
 	void paint(juce::Graphics& g) override;
 	void resized() override;
@@ -15,16 +18,34 @@ private:
 	void configVolumeFader();
 	void configMuteButton();
 	void configSoloButton();
+	void configLabels();
+	void configNameLabel();
+	void configValueLabel();
+	void updateValueLabel();
+	
+	void updateNameFromValueTree();
 
 	void setupSlotBounds();
-	void setupTopArea(juce::Rectangle<int>& area);
+
+	void setupTopArea(juce::Rectangle<int>& area, int currentWidth);
+	void setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth);
+	void setupMuteButton(juce::Rectangle<int>& topArea);
+	void setupSoloButton(juce::Rectangle<int>& topArea);
+
+	void setupBottomArea(juce::Rectangle<int>& area, int currentWidth);
+
+	juce::Font sharedFont;
 
 	KaiCBFaderControlAudioProcessor& processor;
 	int index;
 
+	juce::Label nameLabel;
+	juce::Label valueLabel;
 	juce::Slider volumeFader;
 	juce::TextButton muteButton{ UIButtonLabels::mute };
 	juce::TextButton soloButton{ UIButtonLabels::solo };
+
+	std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> volumeAttachment;
 
 	bool minimalListMode = false;
 

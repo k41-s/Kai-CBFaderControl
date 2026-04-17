@@ -40,5 +40,10 @@ private:
 	PerformanceViewLookFeel performanceLF;
 	juce::OwnedArray<PerformanceSlotItem> slots;
 
+	juce::Image logoImage;
+	juce::ImageComponent logoComponent;
+
+	juce::Rectangle<int> footerArea;
+
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PerformanceView)
 };

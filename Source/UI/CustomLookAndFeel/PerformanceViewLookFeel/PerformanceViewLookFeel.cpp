@@ -4,7 +4,7 @@
 
 PerformanceViewLookFeel::PerformanceViewLookFeel()
 {
-	setColour(juce::Slider::trackColourId, MyColours::background);
+	setColour(juce::Slider::trackColourId, MyColours::faderTrack);
 	setColour(juce::Slider::thumbColourId, juce::Colours::lightgrey);
 }
 

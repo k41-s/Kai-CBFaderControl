@@ -1,6 +1,18 @@
 #include "SlotConfigItem.h"
 #include "../../../Main/SlotIDs.h"
 
+
+SlotConfigItem::SlotConfigItem(KaiCBFaderControlAudioProcessor& p, int slotNum)
+	: processor(p), slotNumber(slotNum)
+{
+	processor.apvts.state.addListener(this);
+
+	configSlotLabel(slotNumber);
+	configNameEditor(slotNumber);
+	configActiveToggle();
+}
+
+
 void SlotConfigItem::configSlotLabel(int slotNumber)
 {
 	slotLabel.setText("Slot " + juce::String(slotNumber), juce::dontSendNotification);
@@ -8,21 +20,29 @@ void SlotConfigItem::configSlotLabel(int slotNumber)
 	addAndMakeVisible(slotLabel);
 }
 
-void SlotConfigItem::configNameEditor()
+void SlotConfigItem::configNameEditor(int slotNumber)
 {
+	addAndMakeVisible(customNameEditor);
 	customNameEditor.setTextToShowWhenEmpty("Text here...", juce::Colour::greyLevel(0.6f));
 	customNameEditor.setJustification(juce::Justification::left);
-	addAndMakeVisible(customNameEditor);
+
+	auto currentName = processor.apvts.state.getProperty(SlotIDs::slotName(slotNumber), "");
+	customNameEditor.setText(currentName, juce::dontSendNotification);
+
+	auto saveText = [this, slotNumber]()
+		{
+			processor.apvts.state.setProperty(SlotIDs::slotName(slotNumber),
+				customNameEditor.getText(),
+				nullptr);
+		};
+
+	customNameEditor.onReturnKey = saveText;
+	customNameEditor.onFocusLost = saveText;
 }
 
-SlotConfigItem::SlotConfigItem(int slotNumber)
+void SlotConfigItem::configActiveToggle()
 {
-	configSlotLabel(slotNumber);
-
-	configNameEditor();
-
 	addAndMakeVisible(activeToggle);
-
 	activeToggle.onClick = [this]
 		{
 			if (onToggleChanged != nullptr)
@@ -32,6 +52,7 @@ SlotConfigItem::SlotConfigItem(int slotNumber)
 
 SlotConfigItem::~SlotConfigItem()
 {
+	processor.apvts.state.removeListener(this);
 }
 
 void SlotConfigItem::setToggleState(bool shouldBeActive, bool shouldNotify)
@@ -58,6 +79,23 @@ void SlotConfigItem::resized()
 	activeToggle.setBounds(area.removeFromLeft(25));
 	slotLabel.setBounds(area.removeFromLeft(40));
 	customNameEditor.setBounds(area);
+}
+
+void SlotConfigItem::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
+{
+	if (property == juce::Identifier(SlotIDs::slotName(slotNumber)))
+	{
+		auto newName = tree.getProperty(property).toString();
+		setNewNameIfDifferent(newName);
+	}
+}
+
+void SlotConfigItem::setNewNameIfDifferent(juce::String& newName)
+{
+	if (customNameEditor.getText() != newName)
+	{
+		customNameEditor.setText(newName, juce::dontSendNotification);
+	}
 }
 
 void SlotConfigItem::setupAttachment(juce::AudioProcessorValueTreeState& state, int slotNum)
