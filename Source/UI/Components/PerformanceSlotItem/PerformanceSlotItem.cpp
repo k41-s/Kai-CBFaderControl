@@ -32,6 +32,7 @@ void PerformanceSlotItem::configVolumeFader()
     addAndMakeVisible(volumeFader);
     volumeFader.setSliderStyle(juce::Slider::LinearVertical);
     volumeFader.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    volumeFader.addMouseListener(this, false);
 }
 
 void PerformanceSlotItem::configMuteButton()
@@ -86,15 +87,39 @@ void PerformanceSlotItem::configValueLabel()
 void PerformanceSlotItem::updateValueLabel()
 {
     float val = (float)volumeFader.getValue();
-    juce::String text = (val <= -95.5f) ? "-inf" : juce::String(val, 1);
+    if (std::isnan(val) || std::isinf(val))
+        val = -96.0f;
+    bool isFineMode = false;
+    juce::String text = getValueText(val, isFineMode);
+
     valueLabel.setText(text + " dB", juce::dontSendNotification);
+}
+
+juce::String PerformanceSlotItem::getValueText(float val, bool isFineMode)
+{
+    juce::String text;
+
+    if (val <= -95.5f)
+    {
+        text = "-inf";
+    }
+    else if (isFineMode)
+    {
+        text = juce::String(val, 2);
+    }
+    else
+    {
+        text = juce::String(juce::roundToInt(val));
+    }
+
+	return text;
 }
 
 void PerformanceSlotItem::updateNameFromValueTree()
 {
     auto customName = processor.apvts.state.getProperty(SlotIDs::slotName(index), "").toString();
     nameLabel.setText(customName, juce::dontSendNotification);
-    resized();
+    //resized();
 }
 
 void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
@@ -102,6 +127,23 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
     if (property == juce::Identifier(SlotIDs::slotName(index)))
     {
         updateNameFromValueTree();
+    }
+}
+
+void PerformanceSlotItem::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
+{
+    if (event.eventComponent == &volumeFader)
+    {
+        if (wheel.deltaY != 0)
+        {
+            float currentVal = (float)volumeFader.getValue();
+
+            float increment = (wheel.deltaY > 0) ? 1.0f : -1.0f;
+
+            volumeFader.setValue(currentVal + increment, juce::sendNotificationSync);
+
+            return;
+        }
     }
 }
 

@@ -58,6 +58,10 @@
             <FILE id="P135WL" name="PerformanceSlotItem.h" compile="0" resource="0"
                   file="Source/UI/Components/PerformanceSlotItem/PerformanceSlotItem.h"/>
           </GROUP>
+          <GROUP id="{DD3184E6-5619-9A67-FB9C-96B330527D59}" name="PrecisionSlider">
+            <FILE id="s1uTtH" name="PrecisionSlider.h" compile="0" resource="0"
+                  file="Source/UI/Components/PrecisionSlider/PrecisionSlider.h"/>
+          </GROUP>
           <GROUP id="{9C98ED4C-E73F-ECAF-EB1F-1C38663DD3A6}" name="SlotConfigItem">
             <FILE id="XfWEjL" name="SlotConfigItem.cpp" compile="1" resource="0"
                   file="Source/UI/Components/SlotConfigItem/SlotConfigItem.cpp"/>

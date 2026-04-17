@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "../../../Main/PluginProcessor/PluginProcessor.h"
 #include "../UIConstants.h"
+#include "../PrecisionSlider/PrecisionSlider.h"
 
 class PerformanceSlotItem : public juce::Component, public juce::ValueTree::Listener
 {
@@ -10,6 +11,7 @@ public:
 	~PerformanceSlotItem() override;
 
 	void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
+	void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
 
 	void paint(juce::Graphics& g) override;
 	void resized() override;
@@ -24,7 +26,7 @@ private:
 	void configNameLabel();
 	void configValueLabel();
 	void updateValueLabel();
-	
+	juce::String getValueText(float val, bool isFineMode);
 	void updateNameFromValueTree();
 
 	void setupSlotBounds();
@@ -46,7 +48,7 @@ private:
 	juce::Label nameLabel;
 	juce::Label indexLabel;
 	juce::Label valueLabel;
-	juce::Slider volumeFader;
+	PrecisionSlider volumeFader;
 	juce::TextButton muteButton{ UIButtonLabels::mute };
 	juce::TextButton soloButton{ UIButtonLabels::solo };
 

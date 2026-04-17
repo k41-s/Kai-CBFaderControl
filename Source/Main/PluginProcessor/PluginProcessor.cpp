@@ -25,6 +25,7 @@ void KaiCBFaderControlAudioProcessor::fillIsActiveParamsList()
 {
     for (int i = 0; i < 32; ++i) {
         isActiveParams[i] = apvts.getRawParameterValue(SlotIDs::isActive(i + 1));
+		jassert(isActiveParams[i] != nullptr);
     }
 }
 
@@ -68,7 +69,7 @@ void KaiCBFaderControlAudioProcessor::addParamsForSlot(juce::AudioProcessorValue
     params.add(std::make_unique<juce::AudioParameterFloat>(
         SlotIDs::volume(i),
         "Volume " + juce::String(i),
-        juce::NormalisableRange<float>(-96.0f, 22.0f, 0.0f, 1.0f),
+        juce::NormalisableRange<float>(-96.0f, 22.0f, 1.0f, 1.0f),
         0.0f
     ));
     params.add(std::make_unique<juce::AudioParameterBool>(
