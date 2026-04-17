@@ -8,21 +8,44 @@
 
 #include "PluginEditor.h"
 #include "../../UI/Components/UIConstants.h"
+#include "../../UI/CustomLookAndFeel/MyColours.h"
 
 //==============================================================================
 KaiCBFaderControlAudioProcessorEditor::KaiCBFaderControlAudioProcessorEditor (KaiCBFaderControlAudioProcessor& p)
 	: AudioProcessorEditor(&p), audioProcessor(p), setupPage(p), performanceView(p)
 {
-    addAndMakeVisible(setupPage);
-	addAndMakeVisible(performanceView);
+    init();
+}
 
+void KaiCBFaderControlAudioProcessorEditor::init()
+{
+    addScreens();
+    configSetupPageLambdas();
+    configPerformanceViewLambdas();
+    determineInitialState();
+    configResizing();
+    setAppropriateSize();
+}
+
+void KaiCBFaderControlAudioProcessorEditor::addScreens()
+{
+    addAndMakeVisible(setupPage);
+    addAndMakeVisible(performanceView);
+}
+
+
+void KaiCBFaderControlAudioProcessorEditor::configSetupPageLambdas()
+{
     setupPage.onNavigateToPerformance = [this]()
         {
             showSetupPage = false;
-			updateWindowSize(performanceView.getIdealWidth(), getHeight());
+            updateWindowSize(performanceView.getIdealWidth(), getHeight());
             resized();
         };
+}
 
+void KaiCBFaderControlAudioProcessorEditor::configPerformanceViewLambdas()
+{
     performanceView.onNavigateToSetup = [this]()
         {
             showSetupPage = true;
@@ -37,15 +60,6 @@ KaiCBFaderControlAudioProcessorEditor::KaiCBFaderControlAudioProcessorEditor (Ka
                 updateWindowSize(performanceView.getIdealWidth(), getHeight());
             }
         };
-
-    determineInitialState();
-
-    setResizable(true, true);
-    setResizeLimits(WindowSizeValues::minWidth,
-        WindowSizeValues::minHeight,
-        WindowSizeValues::maxWidth,
-        WindowSizeValues::maxHeight);
-    setAppropriateSize();
 }
 
 void KaiCBFaderControlAudioProcessorEditor::determineInitialState()
@@ -59,6 +73,15 @@ void KaiCBFaderControlAudioProcessorEditor::determineInitialState()
             break;
         }
     }
+}
+
+void KaiCBFaderControlAudioProcessorEditor::configResizing()
+{
+    setResizable(true, true);
+    setResizeLimits(WindowSizeValues::minWidth,
+        WindowSizeValues::minHeight,
+        WindowSizeValues::maxWidth,
+        WindowSizeValues::maxHeight);
 }
 
 void KaiCBFaderControlAudioProcessorEditor::setAppropriateSize()
@@ -75,7 +98,7 @@ KaiCBFaderControlAudioProcessorEditor::~KaiCBFaderControlAudioProcessorEditor()
 //==============================================================================
 void KaiCBFaderControlAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    g.fillAll(juce::Colour::fromRGB(36,36,36));
+    g.fillAll(MyColours::background);
 }
 
 void KaiCBFaderControlAudioProcessorEditor::resized()

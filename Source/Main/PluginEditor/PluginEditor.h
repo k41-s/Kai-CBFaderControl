@@ -20,6 +20,11 @@ class KaiCBFaderControlAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
     KaiCBFaderControlAudioProcessorEditor (KaiCBFaderControlAudioProcessor&);
+    void init();
+    void addScreens();
+    void configResizing();
+    void configSetupPageLambdas();
+    void configPerformanceViewLambdas();
     ~KaiCBFaderControlAudioProcessorEditor() override;
 
     //==============================================================================

@@ -110,15 +110,16 @@ void PerformanceViewLookFeel::drawOuterRing(juce::Graphics& g, float centreX, fl
 }
 
 void PerformanceViewLookFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button, 
-	const juce::Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, 
-	bool shouldDrawButtonAsDown
+	const juce::Colour& backgroundColour, bool isMouseOverButton, bool isButtonDown
 ) {
 	auto bounds = button.getLocalBounds().toFloat().reduced(2.0f);
+	float cornerSize = 4.0f;
 
 	juce::Colour bgColour = MyColours::unpressedBtn;
 
 	getColourFromToggleState(button, bgColour);
-	drawButton(g, bgColour, bounds);
+	drawButton(g, bgColour, bounds, cornerSize);
+	handleMouseOverButton(isMouseOverButton, isButtonDown, g, bounds, cornerSize);
 }
 
 void PerformanceViewLookFeel::getColourFromToggleState(juce::Button& button, juce::Colour& colourToChange)
@@ -133,13 +134,13 @@ void PerformanceViewLookFeel::getColourFromToggleState(juce::Button& button, juc
 	}
 }
 
-void PerformanceViewLookFeel::drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds)
+void PerformanceViewLookFeel::drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds, float cornerSize)
 {
 	g.setColour(bgColour);
-	g.fillRoundedRectangle(bounds, 3.0f);
+	g.fillRoundedRectangle(bounds, cornerSize);
 
 	g.setColour(juce::Colours::black);
-	g.drawRoundedRectangle(bounds, 3.0f, 1.0f);
+	g.drawRoundedRectangle(bounds, cornerSize, 1.0f);
 }
 
 void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton& button, 
@@ -151,4 +152,14 @@ void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton
 	g.setFont(juce::Font(fontSize, juce::Font::bold));
 
 	g.drawText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, false);
+}
+
+void PerformanceViewLookFeel::handleMouseOverButton(bool isMouseOverButton, bool isButtonDown, juce::Graphics& g, 
+	juce::Rectangle<float>& area, float cornerSize
+) {
+	if (isMouseOverButton && !isButtonDown)
+	{
+		g.setColour(MyColours::mouseOverButton);
+		g.fillRoundedRectangle(area.reduced(1.0f), cornerSize);
+	}
 }

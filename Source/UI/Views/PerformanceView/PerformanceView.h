@@ -23,13 +23,16 @@ public:
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
 private:
+	void init();
+	void configComponents();
 	void createFaderSlots();
 	void configSetupButton();
 	void registerIsActiveListener();
 	void deregisterIsActiveListener();
+	void configLogo();
 
 	void setupAndFillArea();
-	void placeSetupButton(juce::Rectangle<int>& area);
+	void setupAndFillFooter(juce::Rectangle<int>& area);
 	juce::FlexBox configFlexBox();
 	void checkAndAddActiveSlots(juce::FlexBox& flexBox);
 	void addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot);

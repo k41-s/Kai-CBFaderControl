@@ -21,11 +21,11 @@ public:
 	void valueTreePropertyChanged(juce::ValueTree& tree,
 		const juce::Identifier& property) override;
 
-
 	void setupAttachment(juce::AudioProcessorValueTreeState& state, int slotNum);
 private:
 	void configSlotLabel(int slotNumber);
 	void configNameEditor(int slotNumber);
+	void configSaveCustomName(int slotNumber);
 	void configActiveToggle();
 
 	void setNewNameIfDifferent(juce::String& newName);

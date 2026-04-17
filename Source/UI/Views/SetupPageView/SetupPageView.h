@@ -18,18 +18,20 @@ public:
 
 	std::function<void()> onNavigateToPerformance;
 private:
+	void init();
 	void configLocalIpLabel();
+	void configComponents();
 	void configLabelEditorPair(juce::String lblTxt,
 		juce::Label& label,
 		juce::String editorTxt,
 		juce::TextEditor& editor);
 	void restrictPortEditors();
-	void configGridContainer();
-	void configGrid();
 	void configStatusComponents();
+	void configGrid();
+	void configGridContainer();
 	void configToggleAllBtnText();
 	void configNavBtn();
-	void configComponents();
+	void configLogo();
 
 	void saveNetworkSettings();
 	void bindNetworkEditorCallbacks();
@@ -78,6 +80,11 @@ private:
 	juce::Viewport gridViewport;
 	juce::Component gridContainer;
 	juce::OwnedArray<SlotConfigItem> slotItems;
+
+	juce::Image logoImage;
+	juce::ImageComponent logoComponent;
+
+	juce::Rectangle<int> footerArea;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SetupPageView);
 };

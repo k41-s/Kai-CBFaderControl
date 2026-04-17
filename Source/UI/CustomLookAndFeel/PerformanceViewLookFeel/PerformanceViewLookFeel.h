@@ -15,7 +15,7 @@ public:
         juce::Slider& slider) override;
 
     void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
-        bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+        bool isMouseOverButton, bool isButtonDown) override;
 
     void drawButtonText(juce::Graphics& g, juce::TextButton& button,
         bool isMouseOverButton, bool isButtonDown) override;
@@ -36,5 +36,7 @@ private:
 
     //Button Helpers
     void getColourFromToggleState(juce::Button& button, juce::Colour& bgColour);
-    void drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds);
+    void drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds, float cornerSize);
+    void handleMouseOverButton(bool isMouseOverButton, bool isButtonDown,
+        juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize);
 };

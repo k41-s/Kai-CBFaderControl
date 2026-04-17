@@ -6,18 +6,22 @@
 PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 	:processor(p)
 {
+	init();
+}
+
+void PerformanceView::init()
+{
 	setLookAndFeel(&performanceLF);
-	createFaderSlots();
-	configSetupButton();
+	configComponents();
 	registerIsActiveListener();
 	triggerAsyncUpdate();
+}
 
-	// Load the image from BinaryData
-	logoImage = juce::ImageCache::getFromMemory(BinaryData::cblogo_png, BinaryData::cblogo_pngSize);
-
-	// Set the image into the component and add it to the view
-	logoComponent.setImage(logoImage, juce::RectanglePlacement::centred);
-	addAndMakeVisible(logoComponent);
+void PerformanceView::configComponents()
+{
+	createFaderSlots();
+	configSetupButton();
+	configLogo();
 }
 
 void PerformanceView::createFaderSlots()
@@ -37,6 +41,14 @@ void PerformanceView::configSetupButton()
 			if (onNavigateToSetup)
 				onNavigateToSetup();
 		};
+}
+
+void PerformanceView::configLogo()
+{
+	logoImage = juce::ImageCache::getFromMemory(BinaryData::cblogo_png, BinaryData::cblogo_pngSize);
+
+	logoComponent.setImage(logoImage, juce::RectanglePlacement::centred);
+	addAndMakeVisible(logoComponent);
 }
 
 void PerformanceView::registerIsActiveListener()
@@ -76,8 +88,6 @@ void PerformanceView::handleAsyncUpdate()
 
 void PerformanceView::paint(juce::Graphics& g)
 {
-	g.fillAll(MyColours::background);
-
 	g.setColour(MyColours::footerBackground);
 	g.fillRect(footerArea);
 }
@@ -90,13 +100,13 @@ void PerformanceView::resized()
 void PerformanceView::setupAndFillArea()
 {
 	auto area = getLocalBounds();
-	placeSetupButton(area);
+	setupAndFillFooter(area);
 	juce::FlexBox flexBox = configFlexBox();
 	checkAndAddActiveSlots(flexBox);
 	flexBox.performLayout(area);
 }
 
-void PerformanceView::placeSetupButton(juce::Rectangle<int>& area)
+void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 {
 	footerArea = area.removeFromBottom(40);
 

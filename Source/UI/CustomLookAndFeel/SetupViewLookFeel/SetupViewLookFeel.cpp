@@ -7,6 +7,7 @@ SetupViewLookFeel::SetupViewLookFeel()
     setColour(juce::TextEditor::textColourId, MyColours::black);
     setColour(juce::TextEditor::outlineColourId, MyColours::black);
     setColour(juce::TextEditor::focusedOutlineColourId, MyColours::white);
+    setColour(juce::TextEditor::highlightedTextColourId, juce::Colours::white);
 
     setColour(juce::TextButton::textColourOffId, MyColours::white);
     setColour(juce::ToggleButton::tickColourId, MyColours::white);
@@ -86,15 +87,15 @@ void SetupViewLookFeel::drawBtnBody(juce::Graphics& g, const juce::Colour& fillC
 
 void SetupViewLookFeel::drawBtnOutline(juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize)
 {
-    g.setColour(MyColours::black.withAlpha(0.8f));
-    g.drawRoundedRectangle(area.reduced(0.5f), cornerSize, 1.0f);
+    g.setColour(juce::Colours::black);
+    g.drawRoundedRectangle(area, cornerSize, 1.0f);
 }
 
 void SetupViewLookFeel::handleMouseOverButton(bool isMouseOverButton, bool isButtonDown, juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize)
 {
     if (isMouseOverButton && !isButtonDown)
     {
-        g.setColour(juce::Colours::white.withAlpha(0.05f));
+        g.setColour(MyColours::mouseOverButton);
         g.fillRoundedRectangle(area.reduced(1.0f), cornerSize);
     }
 }
