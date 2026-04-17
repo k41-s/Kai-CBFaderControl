@@ -33,6 +33,8 @@ void PerformanceSlotItem::configVolumeFader()
     volumeFader.setSliderStyle(juce::Slider::LinearVertical);
     volumeFader.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     volumeFader.addMouseListener(this, false);
+
+    volumeFader.onResolutionChanged = [this]() { updateValueLabel(); };
 }
 
 void PerformanceSlotItem::configMuteButton()
@@ -89,7 +91,8 @@ void PerformanceSlotItem::updateValueLabel()
     float val = (float)volumeFader.getValue();
     if (std::isnan(val) || std::isinf(val))
         val = -96.0f;
-    bool isFineMode = false;
+
+    bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, false);
     juce::String text = getValueText(val, isFineMode);
 
     valueLabel.setText(text + " dB", juce::dontSendNotification);
@@ -119,7 +122,7 @@ void PerformanceSlotItem::updateNameFromValueTree()
 {
     auto customName = processor.apvts.state.getProperty(SlotIDs::slotName(index), "").toString();
     nameLabel.setText(customName, juce::dontSendNotification);
-    //resized();
+    resized();
 }
 
 void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
@@ -138,7 +141,10 @@ void PerformanceSlotItem::mouseWheelMove(const juce::MouseEvent& event, const ju
         {
             float currentVal = (float)volumeFader.getValue();
 
-            float increment = (wheel.deltaY > 0) ? 1.0f : -1.0f;
+            bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, false);
+            float step = isFineMode ? 0.25f : 1.0f;
+
+            float increment = (wheel.deltaY > 0) ? step : -step;
 
             volumeFader.setValue(currentVal + increment, juce::sendNotificationSync);
 

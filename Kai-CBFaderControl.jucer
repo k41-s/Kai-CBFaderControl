@@ -59,6 +59,8 @@
                   file="Source/UI/Components/PerformanceSlotItem/PerformanceSlotItem.h"/>
           </GROUP>
           <GROUP id="{DD3184E6-5619-9A67-FB9C-96B330527D59}" name="PrecisionSlider">
+            <FILE id="FGTCBb" name="PrecisionSlider.cpp" compile="1" resource="0"
+                  file="Source/UI/Components/PrecisionSlider/PrecisionSlider.cpp"/>
             <FILE id="s1uTtH" name="PrecisionSlider.h" compile="0" resource="0"
                   file="Source/UI/Components/PrecisionSlider/PrecisionSlider.h"/>
           </GROUP>
