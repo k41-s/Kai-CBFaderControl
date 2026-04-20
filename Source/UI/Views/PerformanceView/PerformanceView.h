@@ -3,6 +3,7 @@
 #include "../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
 #include "../../Components/PerformanceSlotItem/PerformanceSlotItem.h"
 #include "../../../Main/PluginProcessor/PluginProcessor.h"
+#include "../../../Utils/BinaryImageComponent/BinaryImageComponent.h"
 
 class PerformanceView : 
 	public juce::Component,
@@ -29,8 +30,9 @@ private:
 	void configSetupButton();
 	void registerIsActiveListener();
 	void deregisterIsActiveListener();
-	void configLogo();
+	void configImages();
 
+	void setHeaderArea();
 	void setupAndFillArea();
 	void setupAndFillFooter(juce::Rectangle<int>& area);
 	juce::FlexBox configFlexBox();
@@ -43,9 +45,10 @@ private:
 	PerformanceViewLookFeel performanceLF;
 	juce::OwnedArray<PerformanceSlotItem> slots;
 
-	juce::Image logoImage;
-	juce::ImageComponent logoComponent;
+	BinaryImageComponent logo{ BinaryData::cblogo_png, BinaryData::cblogo_pngSize };
+	BinaryImageComponent xPatchImg{ BinaryData::XPatch_png, BinaryData::XPatch_pngSize };
 
+	juce::Rectangle<int> headerArea;
 	juce::Rectangle<int> footerArea;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PerformanceView)

@@ -50,7 +50,7 @@ void SetupPageView::configComponents()
 
 	configNavBtn();
 
-	configLogo();
+	configImages();
 }
 
 static juce::String getLocalIpAddress()
@@ -142,12 +142,10 @@ void SetupPageView::configNavBtn()
 		};
 }
 
-void SetupPageView::configLogo()
+void SetupPageView::configImages()
 {
-	logoImage = juce::ImageCache::getFromMemory(BinaryData::cblogo_png, BinaryData::cblogo_pngSize);
-
-	logoComponent.setImage(logoImage, juce::RectanglePlacement::centred);
-	addAndMakeVisible(logoComponent);
+	addAndMakeVisible(logo);
+	addAndMakeVisible(xPatchImg);
 }
 
 void SetupPageView::saveNetworkSettings()
@@ -195,23 +193,24 @@ void SetupPageView::resized()
 
 void SetupPageView::setupLeftPanel(juce::Rectangle<int>& area)
 {
+	placeIpComponents(area);
+	placePortComponents(area);
+	placeToggleAllBtn(area);
+	placeStatusComponents(area);
+	placeNavigateBtn(area);
+	placeImages(area);
+}
+
+void SetupPageView::placeIpComponents(juce::Rectangle<int>& area)
+{
 	localIpLabel.setBounds(area.removeFromTop(30));
 	setLabelEditorPairBounds(area, targetIpLabel, targetIpEditor);
+}
+
+void SetupPageView::placePortComponents(juce::Rectangle<int>& area)
+{
 	setLabelEditorPairBounds(area, incomingPortLabel, incomingPortEditor);
 	setLabelEditorPairBounds(area, outgoingPortLabel, outgoingPortEditor);
-
-	area.removeFromTop(20);
-	toggleAllButton.setBounds(area.removeFromTop(30).reduced(2));
-
-	area.removeFromTop(10);
-	setStatusBounds(area);
-
-	area.removeFromTop(20);
-	navigateBtn.setBounds(area.removeFromTop(40).reduced(2));
-
-	footerArea = area.removeFromBottom(50).reduced(5);
-	auto areaToUse = footerArea;
-	logoComponent.setBounds(areaToUse.removeFromLeft(75));
 }
 
 void SetupPageView::setLabelEditorPairBounds(
@@ -225,11 +224,49 @@ void SetupPageView::setLabelEditorPairBounds(
 	editor.setBounds(area.removeFromTop(40));
 }
 
+void SetupPageView::placeToggleAllBtn(juce::Rectangle<int>& area)
+{
+	area.removeFromTop(20);
+	toggleAllButton.setBounds(area.removeFromTop(30).reduced(2));
+}
+
+void SetupPageView::placeStatusComponents(juce::Rectangle<int>& area)
+{
+	area.removeFromTop(10);
+	setStatusBounds(area);
+}
+
 void SetupPageView::setStatusBounds(juce::Rectangle<int>& area)
 {
 	auto statusRow = area.removeFromTop(30);
 	statusLabel.setBounds(statusRow.removeFromLeft(100));
 	statusLED.setBounds(statusRow.removeFromLeft(30).reduced(5));
+}
+
+void SetupPageView::placeNavigateBtn(juce::Rectangle<int>& area)
+{
+	area.removeFromTop(20);
+	navigateBtn.setBounds(area.removeFromTop(40).reduced(2));
+}
+
+void SetupPageView::placeImages(juce::Rectangle<int>& area)
+{
+	footerArea = area.removeFromBottom(50).reduced(5);
+	auto areaToUse = footerArea;
+	placeCBLogo(areaToUse);
+	placeXPatchImg(areaToUse);
+}
+
+void SetupPageView::placeCBLogo(juce::Rectangle<int>& areaToUse)
+{
+	auto logoArea = areaToUse.removeFromLeft(75);
+	logo.setBounds(logoArea.withSizeKeepingCentre(50, logoArea.getHeight()).reduced(5));
+}
+
+void SetupPageView::placeXPatchImg(juce::Rectangle<int>& areaToUse)
+{
+	auto xPatchArea = areaToUse.removeFromRight(90);
+	xPatchImg.setBounds(xPatchArea.withSizeKeepingCentre(90, xPatchArea.getHeight()).reduced(5));
 }
 
 void SetupPageView::setupGrid(juce::Rectangle<int>& area)

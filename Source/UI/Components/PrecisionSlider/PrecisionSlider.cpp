@@ -32,7 +32,7 @@ void PrecisionSlider::detectStationaryClick(const juce::MouseEvent& e, float dis
 {
     if (e.getPosition().getDistanceFrom(mouseDownPos) <= distanceThreshold && timeElapsed <= 300)
     {
-        bool isHighRes = getProperties().getWithDefault(UIProperties::isHighRes, false);
+        bool isHighRes = getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
         getProperties().set(UIProperties::isHighRes, !isHighRes);
 
         repaint();
@@ -44,7 +44,7 @@ void PrecisionSlider::detectStationaryClick(const juce::MouseEvent& e, float dis
 
 double PrecisionSlider::snapValue(double attemptedValue, DragMode dragMode)
 {
-    bool isHighRes = getProperties().getWithDefault(UIProperties::isHighRes, false);
+    bool isHighRes = getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
     double interval = isHighRes ? 0.25 : 1.0;
 
     return juce::roundToInt(attemptedValue / interval) * interval;

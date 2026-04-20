@@ -4,7 +4,7 @@
 namespace WindowSizeValues
 {
 	static inline const int minWidth = 750;
-    static inline const int minHeight = 400;
+    static inline const int minHeight = 550;
     static inline const int defaultWidth = 900;
     static inline const int defaultHeight = 650;
     static inline const int maxWidth = 1920;
@@ -22,6 +22,8 @@ namespace UIProperties
 {
     static inline const juce::Identifier isHighRes = "isHighRes";
     static inline const juce::Identifier customColour = "customColour";
+
+    static constexpr bool defaultHighRes = true;
 }
 
 namespace UIButtonLabels

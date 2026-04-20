@@ -64,7 +64,7 @@ void PerformanceSlotItem::configIndexLabel()
     addAndMakeVisible(indexLabel);
     indexLabel.setJustificationType(juce::Justification::centred);
 
-    auto name = "Slot " + juce::String(index);
+    auto name = juce::String(index);
     indexLabel.setText(name, juce::dontSendNotification);
 }
 
@@ -92,7 +92,7 @@ void PerformanceSlotItem::updateValueLabel()
     if (std::isnan(val) || std::isinf(val))
         val = -96.0f;
 
-    bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, false);
+    bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
     juce::String text = getValueText(val, isFineMode);
 
     valueLabel.setText(text + " dB", juce::dontSendNotification);
@@ -160,7 +160,7 @@ PerformanceSlotItem::~PerformanceSlotItem()
 
 void PerformanceSlotItem::paint(juce::Graphics& g)
 {
-    g.setColour(juce::Colours::black.withAlpha(0.2f));
+    g.setColour(juce::Colours::black.withAlpha(0.6f));
     g.drawRect(getLocalBounds(), 1);
 }
 
@@ -184,10 +184,10 @@ void PerformanceSlotItem::setupSlotBounds()
 
 void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWidth)
 {
-    auto topArea = area.removeFromTop(area.getHeight() * 0.25f);
+	auto topArea = area.removeFromTop(area.getHeight() * 0.25f);
 
-    setupIndexLabel(topArea);
     setupNameLabel(topArea, currentWidth);
+    setupIndexLabel(topArea);
     setupMuteButton(topArea);
     setupSoloButton(topArea);
 }
@@ -195,7 +195,7 @@ void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWi
 void PerformanceSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea)
 {
     topArea.removeFromTop(5);
-    indexLabel.setFont(sharedFont.boldened());
+    indexLabel.setFont(sharedFont);
     indexLabel.setBounds(topArea.removeFromTop(sharedFont.getHeight() + 5));
 }
 
@@ -206,7 +206,7 @@ void PerformanceSlotItem::setupNameLabel(juce::Rectangle<int>& topArea, int curr
     auto nameLabelBounds = topArea.removeFromTop(labelHeight);
 
     nameLabel.setBounds(nameLabelBounds);
-    nameLabel.setFont(sharedFont);
+    nameLabel.setFont(sharedFont.boldened());
     showNameLabelIfNeeded(currentWidth);
 }
 

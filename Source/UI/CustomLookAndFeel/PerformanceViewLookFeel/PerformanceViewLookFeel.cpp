@@ -21,11 +21,15 @@ void PerformanceViewLookFeel::drawFader(int x, int y, int width, int height, juc
 
 	drawFaderTrack(g, slider, area);
 
-	float capWidth = juce::jmin(40.0f, area.getWidth() * 0.8f);
-	float capHeight = 20.0f;
+	float capWidth = juce::jlimit(12.0f, 23.0f, area.getWidth() * 0.6f);
+
+	float targetCapHeight = capWidth * 2.0f;
+	float maxAllowedHeight = area.getHeight() * 0.15f;
+	float capHeight = juce::jmax(16.0f, juce::jmin(targetCapHeight, maxAllowedHeight));
+
 	auto capBounds = juce::Rectangle<float>(0, 0, capWidth, capHeight).withCentre({ area.getCentreX(), sliderPos });
 
-	bool isHighResMode = slider.getProperties().getWithDefault(UIProperties::isHighRes, false);
+	bool isHighResMode = slider.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
 
 	juce::Colour capColour = slider.findColour(juce::Slider::thumbColourId);
 
@@ -52,14 +56,95 @@ void PerformanceViewLookFeel::setCapColour(juce::Slider& slider, juce::Colour& c
 
 void PerformanceViewLookFeel::drawFaderCap(juce::Graphics& g, const juce::Colour& capColour, const juce::Rectangle<float>& capBounds)
 {
-	g.setColour(capColour);
-	g.fillRoundedRectangle(capBounds, 3.0f);
+	drawFaderCapMainGradient(capBounds, capColour, g);
+	drawFaderCapRidges(capBounds, g);
+	drawFaderCapSideShadow(capBounds, g);
+	drawFaderCapOuterBorder(g, capBounds);
+}
+
+void PerformanceViewLookFeel::drawFaderCapMainGradient(const juce::Rectangle<float>& capBounds, const juce::Colour& capColour, juce::Graphics& g)
+{
+	juce::ColourGradient mainGradient = getFaderCapMainGradient(capBounds, capColour);
+
+	g.setGradientFill(mainGradient);
+	g.fillRect(capBounds);
+}
+
+juce::ColourGradient PerformanceViewLookFeel::getFaderCapMainGradient(const juce::Rectangle<float>& capBounds, const juce::Colour& capColour)
+{
+	juce::ColourGradient gradient;
+	gradient.point1 = { capBounds.getX(), capBounds.getY() };
+	gradient.point2 = { capBounds.getX(), capBounds.getBottom() };
+	gradient.isRadial = false;
+
+	gradient.addColour(0.0f, capColour.brighter(0.8f));
+	gradient.addColour(0.48f, capColour.darker(0.3f));
+	gradient.addColour(0.52f, capColour.brighter(0.2f));
+	gradient.addColour(1.0f, capColour.darker(0.9f));
+
+	return gradient;
+}
+
+void PerformanceViewLookFeel::drawFaderCapRidges(const juce::Rectangle<float>& capBounds, juce::Graphics& g)
+{
+	// 2. Draw subtle etched ridges instead of separate stacked blocks
+	int numRidgesTotal = 10;
+	float ridgeSpacing = capBounds.getHeight() / numRidgesTotal;
+
+	for (int i = 1; i < numRidgesTotal; ++i)
+	{
+		// Skip the exact center where the indicator groove goes
+		if (i == numRidgesTotal / 2) continue;
+
+		float ridgeY = capBounds.getY() + (i * ridgeSpacing);
+
+		// Subtle dark indent
+		g.setColour(juce::Colours::black.withAlpha(0.3f));
+		g.drawHorizontalLine(static_cast<int>(ridgeY), capBounds.getX() + 1.0f, capBounds.getRight() - 1.0f);
+
+		// Subtle light highlight below indent to give depth (simulates a physical scratch/etch)
+		g.setColour(juce::Colours::white.withAlpha(0.2f));
+		g.drawHorizontalLine(static_cast<int>(ridgeY + 1.0f), capBounds.getX() + 1.0f, capBounds.getRight() - 1.0f);
+	}
+}
+
+void PerformanceViewLookFeel::drawFaderCapSideShadow(const juce::Rectangle<float>& capBounds, juce::Graphics& g)
+{
+	// 3. Optional: Inner side shadows to give it a slightly rounded 3D cylinder feel on the edges
+	juce::ColourGradient sideShadow;
+	sideShadow.point1 = { capBounds.getX(), 0.0f };
+	sideShadow.point2 = { capBounds.getRight(), 0.0f };
+	sideShadow.addColour(0.0f, juce::Colours::black.withAlpha(0.3f));
+	sideShadow.addColour(0.15f, juce::Colours::transparentBlack);
+	sideShadow.addColour(0.85f, juce::Colours::transparentBlack);
+	sideShadow.addColour(1.0f, juce::Colours::black.withAlpha(0.3f));
+	g.setGradientFill(sideShadow);
+	g.fillRect(capBounds);
+}
+
+void PerformanceViewLookFeel::drawFaderCapOuterBorder(juce::Graphics& g, const juce::Rectangle<float>& capBounds)
+{
+	g.setColour(juce::Colours::black.withAlpha(0.8f));
+	g.drawRect(capBounds, 1.0f);
 }
 
 void PerformanceViewLookFeel::drawIndicatorLine(juce::Graphics& g, juce::Rectangle<float>& capBounds)
 {
+	float cy = capBounds.getCentreY();
+	float left = capBounds.getX();
+	float right = capBounds.getRight();
+
+	float gapHeight = 2.0f;
+	auto gapBounds = juce::Rectangle<float>(left, cy - gapHeight * 0.5f, capBounds.getWidth(), gapHeight);
+
+	g.setColour(juce::Colours::black.withAlpha(0.6f));
+	g.fillRect(gapBounds);
+
 	g.setColour(juce::Colours::black);
-	g.drawHorizontalLine(static_cast<int>(capBounds.getCentreY()), capBounds.getX() + 2, capBounds.getRight() - 2);
+	g.drawHorizontalLine(static_cast<int>(gapBounds.getY()), left, right);
+
+	g.setColour(juce::Colours::white.withAlpha(0.3f));
+	g.drawHorizontalLine(static_cast<int>(gapBounds.getBottom()), left + 1.0f, right - 1.0f);
 }
 
 void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,

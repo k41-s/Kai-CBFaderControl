@@ -21,7 +21,7 @@ void PerformanceView::configComponents()
 {
 	createFaderSlots();
 	configSetupButton();
-	configLogo();
+	configImages();
 }
 
 void PerformanceView::createFaderSlots()
@@ -43,12 +43,10 @@ void PerformanceView::configSetupButton()
 		};
 }
 
-void PerformanceView::configLogo()
+void PerformanceView::configImages()
 {
-	logoImage = juce::ImageCache::getFromMemory(BinaryData::cblogo_png, BinaryData::cblogo_pngSize);
-
-	logoComponent.setImage(logoImage, juce::RectanglePlacement::centred);
-	addAndMakeVisible(logoComponent);
+	addAndMakeVisible(logo);
+	addAndMakeVisible(xPatchImg);
 }
 
 void PerformanceView::registerIsActiveListener()
@@ -89,12 +87,20 @@ void PerformanceView::handleAsyncUpdate()
 void PerformanceView::paint(juce::Graphics& g)
 {
 	g.setColour(MyColours::cbBlue);
+	g.fillRect(headerArea);
 	g.fillRect(footerArea);
 }
 
 void PerformanceView::resized()
 {
 	setupAndFillArea();
+}
+
+void PerformanceView::setHeaderArea()
+{
+	// This was used for colouring the name and index labels, currently not in use
+	auto area = getLocalBounds();
+	headerArea = area.removeFromTop(area.getHeight() * 0.075f);
 }
 
 void PerformanceView::setupAndFillArea()
@@ -109,10 +115,13 @@ void PerformanceView::setupAndFillArea()
 void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 {
 	footerArea = area.removeFromBottom(40);
-
 	auto areaToUse = footerArea;
+
+	xPatchImg.setBounds(footerArea.withSizeKeepingCentre(90, footerArea.getHeight()).reduced(5));
 	setupButton.setBounds(areaToUse.removeFromLeft(100).reduced(5));
-	logoComponent.setBounds(areaToUse.removeFromRight(100).reduced(5));
+
+	auto logoArea = areaToUse.removeFromRight(100);
+	logo.setBounds(logoArea.withSizeKeepingCentre(50, logoArea.getHeight()).reduced(5));
 }
 
 juce::FlexBox PerformanceView::configFlexBox()

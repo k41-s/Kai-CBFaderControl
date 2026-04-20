@@ -4,6 +4,7 @@
 #include "../../Components/SlotConfigItem/SlotConfigItem.h"
 #include "../../Components/StatusLED/StatusLED.h"
 #include "../../CustomLookAndFeel/SetupViewLookFeel/SetupViewLookFeel.h"
+#include "../../../Utils/BinaryImageComponent/BinaryImageComponent.h"
 
 class SetupPageView : public juce::Component, public juce::ValueTree::Listener
 {
@@ -31,7 +32,7 @@ private:
 	void configGridContainer();
 	void configToggleAllBtnText();
 	void configNavBtn();
-	void configLogo();
+	void configImages();
 
 	void saveNetworkSettings();
 	void bindNetworkEditorCallbacks();
@@ -43,6 +44,14 @@ private:
 	);
 	void setStatusBounds(juce::Rectangle<int>& statusRow);
 	void setupLeftPanel(juce::Rectangle<int>& area);
+	void placeStatusComponents(juce::Rectangle<int>& area);
+	void placeToggleAllBtn(juce::Rectangle<int>& area);
+	void placeIpComponents(juce::Rectangle<int>& area);
+	void placePortComponents(juce::Rectangle<int>& area);
+	void placeNavigateBtn(juce::Rectangle<int>& area);
+	void placeImages(juce::Rectangle<int>& area);
+	void placeCBLogo(juce::Rectangle<int>& areaToUse);
+	void placeXPatchImg(juce::Rectangle<int>& areaToUse);
 	void setupSlots(int numColumns, int cellWidth, int cellHeight);
 	void setupGrid(juce::Rectangle<int>& area);
 
@@ -81,8 +90,8 @@ private:
 	juce::Component gridContainer;
 	juce::OwnedArray<SlotConfigItem> slotItems;
 
-	juce::Image logoImage;
-	juce::ImageComponent logoComponent;
+	BinaryImageComponent logo{ BinaryData::cblogo_png, BinaryData::cblogo_pngSize };
+	BinaryImageComponent xPatchImg{ BinaryData::XPatch_png, BinaryData::XPatch_pngSize };
 
 	juce::Rectangle<int> footerArea;
 

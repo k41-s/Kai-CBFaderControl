@@ -25,6 +25,11 @@ private:
     void drawFaderTrack(juce::Graphics& g, juce::Slider& slider, juce::Rectangle<float>& area);
     void setCapColour(juce::Slider& slider, juce::Colour& capColour, bool isHighResMode);
     void drawFaderCap(juce::Graphics& g, const juce::Colour& capColour, const juce::Rectangle<float>& capBounds);
+    void drawFaderCapMainGradient(const juce::Rectangle<float>& capBounds, const juce::Colour& capColour, juce::Graphics& g);
+    juce::ColourGradient getFaderCapMainGradient(const juce::Rectangle<float>& capBounds, const juce::Colour& capColour);
+    void drawFaderCapRidges(const juce::Rectangle<float>& capBounds, juce::Graphics& g);
+    void drawFaderCapSideShadow(const juce::Rectangle<float>& capBounds, juce::Graphics& g);
+    void drawFaderCapOuterBorder(juce::Graphics& g, const juce::Rectangle<float>& capBounds);
     void drawIndicatorLine(juce::Graphics& g, juce::Rectangle<float>& capBounds);
 
 	//Rotary Helpers
