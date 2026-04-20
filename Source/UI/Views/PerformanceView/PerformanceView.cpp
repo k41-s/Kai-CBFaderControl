@@ -93,14 +93,15 @@ void PerformanceView::paint(juce::Graphics& g)
 
 void PerformanceView::resized()
 {
+	setHeaderArea();
 	setupAndFillArea();
 }
 
 void PerformanceView::setHeaderArea()
 {
-	// This was used for colouring the name and index labels, currently not in use
+	// Sets the top area to enable colouring, currently for slot index only
 	auto area = getLocalBounds();
-	headerArea = area.removeFromTop(area.getHeight() * 0.075f);
+	headerArea = area.removeFromTop(area.getHeight() * 0.045f);
 }
 
 void PerformanceView::setupAndFillArea()

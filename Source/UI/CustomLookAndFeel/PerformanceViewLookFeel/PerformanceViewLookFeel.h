@@ -34,6 +34,7 @@ private:
     juce::ColourGradient getFaderCapMainGradient(const juce::Rectangle<float>& capBounds, const juce::Colour& capColour);
     void drawFaderCapRidges(const juce::Rectangle<float>& capBounds, juce::Graphics& g);
     void drawFaderCapSideShadow(const juce::Rectangle<float>& capBounds, juce::Graphics& g);
+    void configSideShadow(juce::ColourGradient& sideShadow, const juce::Rectangle<float>& capBounds);
     void drawFaderCapOuterBorder(juce::Graphics& g, const juce::Rectangle<float>& capBounds);
     void drawIndicatorLine(juce::Graphics& g, juce::Rectangle<float>& capBounds);
 
@@ -50,5 +51,5 @@ private:
     void handleMouseOverButton(bool isMouseOverButton, bool isButtonDown,
         juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize);
 
-    double inf = -95.5;
+    double inf = -95.75;
 };

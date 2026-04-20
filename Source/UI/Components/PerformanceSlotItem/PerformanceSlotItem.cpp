@@ -55,6 +55,7 @@ void PerformanceSlotItem::configLabels()
 {
 	configIndexLabel();
     configNameLabel();
+    configGroupLabel();
     configValueLabel();
     volumeFader.onValueChange = [this]() { updateValueLabel(); };
 }
@@ -64,8 +65,8 @@ void PerformanceSlotItem::configIndexLabel()
     addAndMakeVisible(indexLabel);
     indexLabel.setJustificationType(juce::Justification::centred);
 
-    auto name = juce::String(index);
-    indexLabel.setText(name, juce::dontSendNotification);
+    auto indexStr = juce::String(index);
+    indexLabel.setText(indexStr, juce::dontSendNotification);
 }
 
 void PerformanceSlotItem::configNameLabel()
@@ -76,6 +77,13 @@ void PerformanceSlotItem::configNameLabel()
     auto name = processor.apvts.state.getProperty(SlotIDs::slotName(index), "");
 
     nameLabel.setText(name, juce::dontSendNotification);
+}
+
+void PerformanceSlotItem::configGroupLabel()
+{
+    addAndMakeVisible(groupLabel);
+    groupLabel.setJustificationType(juce::Justification::centred);
+    groupLabel.setText("Grp x", juce::dontSendNotification); // For now until grouping is implemented
 }
 
 void PerformanceSlotItem::configValueLabel()
@@ -102,18 +110,12 @@ juce::String PerformanceSlotItem::getValueText(float val, bool isFineMode)
 {
     juce::String text;
 
-    if (val <= -95.5f)
-    {
+    if (val <= -95.75f)
         text = "-inf";
-    }
     else if (isFineMode)
-    {
         text = juce::String(val, 2);
-    }
     else
-    {
         text = juce::String(juce::roundToInt(val));
-    }
 
 	return text;
 }
@@ -186,10 +188,14 @@ void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWi
 {
 	auto topArea = area.removeFromTop(area.getHeight() * 0.25f);
 
-    setupNameLabel(topArea, currentWidth);
     setupIndexLabel(topArea);
+    setupNameLabel(topArea, currentWidth);
     setupMuteButton(topArea);
     setupSoloButton(topArea);
+
+    topArea.removeFromTop(5);
+    groupLabel.setFont(sharedFont);
+    groupLabel.setBounds(topArea.removeFromTop(sharedFont.getHeight() + 5));
 }
 
 void PerformanceSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea)
