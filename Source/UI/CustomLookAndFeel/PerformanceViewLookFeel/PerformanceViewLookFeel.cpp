@@ -19,18 +19,16 @@ void PerformanceViewLookFeel::drawFader(int x, int y, int width, int height, juc
 {
 	auto area = juce::Rectangle<float>(x, y, width, height);
 
+	float tickAreaWidth = juce::jlimit(20.0f, 40.0f, area.getWidth() * 0.35f);
+	auto tickArea = area.removeFromLeft(tickAreaWidth);
+
+	area.removeFromLeft(2.0f);
+
+	drawFaderScale(g, slider, tickArea);
 	drawFaderTrack(g, slider, area);
 
-	float capWidth = juce::jlimit(12.0f, 23.0f, area.getWidth() * 0.6f);
-
-	float targetCapHeight = capWidth * 2.0f;
-	float maxAllowedHeight = area.getHeight() * 0.15f;
-	float capHeight = juce::jmax(16.0f, juce::jmin(targetCapHeight, maxAllowedHeight));
-
-	auto capBounds = juce::Rectangle<float>(0, 0, capWidth, capHeight).withCentre({ area.getCentreX(), sliderPos });
-
+	auto capBounds = getFaderCapBounds(area, sliderPos);
 	bool isHighResMode = slider.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
-
 	juce::Colour capColour = slider.findColour(juce::Slider::thumbColourId);
 
 	setCapColour(slider, capColour, isHighResMode);
@@ -38,11 +36,68 @@ void PerformanceViewLookFeel::drawFader(int x, int y, int width, int height, juc
 	drawIndicatorLine(g, capBounds);
 }
 
+void PerformanceViewLookFeel::drawFaderScale(juce::Graphics& g, juce::Slider& slider, const juce::Rectangle<float>& tickArea)
+{
+	if (slider.getHeight() <= 0) return;
+
+	std::vector<double> tickValues = { 20.0, 10.0, 5.0, 0.0, -5.0, -10.0, -20.0, -30.0, -40.0, -50.0, -75.0, inf };
+
+	float fontSize = juce::jlimit(10.0f, 13.0f, tickArea.getWidth() * 0.5f);
+	g.setFont(juce::Font(fontSize));
+
+	drawTickValues(tickValues, slider, tickArea, g);
+}
+
+void PerformanceViewLookFeel::drawTickValues(std::vector<double>& tickValues, juce::Slider& slider, const juce::Rectangle<float>& tickArea, juce::Graphics& g)
+{
+	for (double val : tickValues)
+	{
+		float y = (float)slider.getPositionOfValue(val);
+
+		bool isZero = (val == 0.0);
+		bool isInf = (val == inf);
+
+		float lineLength = isZero ? 4.0f : 2.0f;
+		drawTickLine(tickArea, lineLength, g, isZero, y);
+		drawTickText(isZero, isInf, val, tickArea, y, lineLength, g);
+	}
+}
+
+void PerformanceViewLookFeel::drawTickLine(const juce::Rectangle<float>& tickArea, float lineLength, juce::Graphics& g, bool isZero, float y)
+{
+	float lineX = tickArea.getRight() - lineLength;
+	g.setColour(isZero ? juce::Colours::white : juce::Colours::grey);
+	g.drawHorizontalLine(static_cast<int>(y), lineX, tickArea.getRight());
+}
+
+void PerformanceViewLookFeel::drawTickText(bool isZero, bool isInf, double val, const juce::Rectangle<float>& tickArea, float y, float lineLength, juce::Graphics& g)
+{
+	juce::String text;
+	if (isZero) text = "0";
+	else if (isInf) text = juce::String::charToString(0x221E); // inf symbol hex
+	else text = juce::String((int)val);
+
+	auto textBounds = juce::Rectangle<float>(tickArea.getX(), y - 5.0f, tickArea.getWidth() - lineLength - 2.0f, 10.0f);
+
+	g.setColour(isZero ? juce::Colours::white : juce::Colours::lightgrey.withAlpha(0.8f));
+	g.drawText(text, textBounds, juce::Justification::centredRight, false);
+}
+
 void PerformanceViewLookFeel::drawFaderTrack(juce::Graphics& g, juce::Slider& slider, juce::Rectangle<float>& area)
 {
 	auto trackWidth = 4.0f;
 	g.setColour(slider.findColour(juce::Slider::trackColourId));
 	g.fillRoundedRectangle(area.withSizeKeepingCentre(trackWidth, area.getHeight()), 2.0f);
+}
+
+juce::Rectangle<float> PerformanceViewLookFeel::getFaderCapBounds(juce::Rectangle<float>& area, float sliderPos)
+{
+	float capWidth = juce::jlimit(12.0f, 24.0f, area.getWidth() * 0.6f);
+	float targetCapHeight = capWidth * 2.0f;
+	float maxAllowedHeight = area.getHeight() * 0.15f;
+	float capHeight = juce::jmax(16.0f, juce::jmin(targetCapHeight, maxAllowedHeight));
+
+	return juce::Rectangle<float>(0, 0, capWidth, capHeight).withCentre({ area.getCentreX(), sliderPos });
 }
 
 void PerformanceViewLookFeel::setCapColour(juce::Slider& slider, juce::Colour& capColour, bool isHighResMode)

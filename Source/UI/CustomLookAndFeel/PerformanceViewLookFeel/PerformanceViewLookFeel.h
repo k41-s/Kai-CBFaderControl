@@ -22,7 +22,12 @@ public:
 private:
 	//Fader Helpers
     void drawFader(int x, int y, int width, int height, juce::Graphics& g, juce::Slider& slider, float sliderPos);
+    void drawFaderScale(juce::Graphics& g, juce::Slider& slider, const juce::Rectangle<float>& tickArea);
+    void drawTickValues(std::vector<double>& tickValues, juce::Slider& slider, const juce::Rectangle<float>& tickArea, juce::Graphics& g);
+    void drawTickLine(const juce::Rectangle<float>& tickArea, float lineLength, juce::Graphics& g, bool isZero, float y);
+    void drawTickText(bool isZero, bool isInf, double val, const juce::Rectangle<float>& tickArea, float y, float lineLength, juce::Graphics& g);
     void drawFaderTrack(juce::Graphics& g, juce::Slider& slider, juce::Rectangle<float>& area);
+	juce::Rectangle<float> getFaderCapBounds(juce::Rectangle<float>& area, float sliderPos);
     void setCapColour(juce::Slider& slider, juce::Colour& capColour, bool isHighResMode);
     void drawFaderCap(juce::Graphics& g, const juce::Colour& capColour, const juce::Rectangle<float>& capBounds);
     void drawFaderCapMainGradient(const juce::Rectangle<float>& capBounds, const juce::Colour& capColour, juce::Graphics& g);
@@ -44,4 +49,6 @@ private:
     void drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds, float cornerSize);
     void handleMouseOverButton(bool isMouseOverButton, bool isButtonDown,
         juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize);
+
+    double inf = -95.5;
 };
