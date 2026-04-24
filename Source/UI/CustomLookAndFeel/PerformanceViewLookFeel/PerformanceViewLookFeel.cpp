@@ -337,7 +337,6 @@ void PerformanceViewLookFeel::drawButton(juce::Graphics& g, const juce::Colour& 
 {
 	auto buttonArea = bounds;
 
-	// 1. Shift the physical button down when pressed, or draw a drop shadow when raised
 	if (isButtonDown)
 	{
 		buttonArea.translate(0.0f, 1.0f);
@@ -349,38 +348,59 @@ void PerformanceViewLookFeel::drawButton(juce::Graphics& g, const juce::Colour& 
 		g.fillRoundedRectangle(buttonArea.translated(0.0f, 2.0f), cornerSize);
 	}
 
-	// 2. Base Color - using a very subtle gradient for a matte plastic/hardware look
+	drawBtnBaseColour(isButtonDown, bgColour, buttonArea, g, cornerSize);
+	drawBtnHardwareEdges(isButtonDown, g, buttonArea, cornerSize);
+	drawBtnOutline(g, buttonArea, cornerSize);
+}
+
+void PerformanceViewLookFeel::drawBtnBaseColour(bool isButtonDown, const juce::Colour& bgColour, juce::Rectangle<float>& buttonArea, juce::Graphics& g, float cornerSize)
+{
 	juce::Colour baseColour = isButtonDown ? bgColour.darker(0.15f) : bgColour;
 	juce::ColourGradient bgGradient(baseColour.brighter(0.05f), 0.0f, buttonArea.getY(),
 		baseColour.darker(0.05f), 0.0f, buttonArea.getBottom(), false);
 	g.setGradientFill(bgGradient);
 	g.fillRoundedRectangle(buttonArea, cornerSize);
+}
 
-	// 3. Hardware Edges / Bevels
+void PerformanceViewLookFeel::drawBtnHardwareEdges(bool isButtonDown, juce::Graphics& g, juce::Rectangle<float>& buttonArea, float cornerSize)
+{
 	if (!isButtonDown)
 	{
-		// Top/Left rim highlight (light catching the raised edge)
-		g.setColour(juce::Colours::white.withAlpha(0.12f));
-		juce::Path topHighlight;
-		topHighlight.addRoundedRectangle(buttonArea.reduced(1.0f), cornerSize - 1.0f);
-		g.strokePath(topHighlight, juce::PathStrokeType(1.0f));
-
-		// Bottom edge shadow for physical thickness
-		g.setColour(juce::Colours::black.withAlpha(0.25f));
-		g.drawHorizontalLine(static_cast<int>(buttonArea.getBottom() - 1.0f),
-			buttonArea.getX() + cornerSize,
-			buttonArea.getRight() - cornerSize);
+		drawBtnTopRimHighlight(g, buttonArea, cornerSize);
+		drawBtnBottomEdgeShadow(g, buttonArea, cornerSize);
 	}
 	else
 	{
-		// Deep inset shadow when pushed in to show it's below the faceplate
-		g.setColour(juce::Colours::black.withAlpha(0.6f));
-		juce::Path innerShadow;
-		innerShadow.addRoundedRectangle(buttonArea.reduced(0.5f), cornerSize);
-		g.strokePath(innerShadow, juce::PathStrokeType(1.5f));
+		drawBtnInsetShadow(g, buttonArea, cornerSize);
 	}
+}
 
-	// 4. Crisp Outer Outline
+void PerformanceViewLookFeel::drawBtnTopRimHighlight(juce::Graphics& g, juce::Rectangle<float>& buttonArea, float cornerSize)
+{
+	g.setColour(juce::Colours::white.withAlpha(0.12f));
+	juce::Path topHighlight;
+	topHighlight.addRoundedRectangle(buttonArea.reduced(1.0f), cornerSize - 1.0f);
+	g.strokePath(topHighlight, juce::PathStrokeType(1.0f));
+}
+
+void PerformanceViewLookFeel::drawBtnBottomEdgeShadow(juce::Graphics& g, juce::Rectangle<float>& buttonArea, float cornerSize)
+{
+	g.setColour(juce::Colours::black.withAlpha(0.25f));
+	g.drawHorizontalLine(static_cast<int>(buttonArea.getBottom() - 1.0f),
+		buttonArea.getX() + cornerSize,
+		buttonArea.getRight() - cornerSize);
+}
+
+void PerformanceViewLookFeel::drawBtnInsetShadow(juce::Graphics& g, juce::Rectangle<float>& buttonArea, float cornerSize)
+{
+	g.setColour(juce::Colours::black.withAlpha(0.6f));
+	juce::Path innerShadow;
+	innerShadow.addRoundedRectangle(buttonArea.reduced(0.5f), cornerSize);
+	g.strokePath(innerShadow, juce::PathStrokeType(1.5f));
+}
+
+void PerformanceViewLookFeel::drawBtnOutline(juce::Graphics& g, const juce::Rectangle<float>& buttonArea, float cornerSize)
+{
 	g.setColour(juce::Colours::black.withAlpha(0.8f));
 	g.drawRoundedRectangle(buttonArea, cornerSize, 1.0f);
 }
@@ -393,7 +413,6 @@ void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton
 	float fontSize = juce::jmin(14.0f, button.getWidth() * 0.6f);
 	g.setFont(juce::Font(fontSize, juce::Font::bold));
 
-	// Shift text down slightly when pressed for a realistic 3D tactile feel
 	auto textBounds = button.getLocalBounds().toFloat();
 	if (isButtonDown)
 		textBounds.translate(0.0f, 1.0f);

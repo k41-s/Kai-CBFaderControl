@@ -58,6 +58,12 @@ private:
     //Button Helpers
     void getColourFromToggleState(juce::Button& button, juce::Colour& bgColour);
     void drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds, float cornerSize, bool isButtonDown);
+    void drawBtnBaseColour(bool isButtonDown, const juce::Colour& bgColour, juce::Rectangle<float>& buttonArea, juce::Graphics& g, float cornerSize);
+    void drawBtnHardwareEdges(bool isButtonDown, juce::Graphics& g, juce::Rectangle<float>& buttonArea, float cornerSize);
+    void drawBtnTopRimHighlight(juce::Graphics& g, juce::Rectangle<float>& buttonArea, float cornerSize);
+    void drawBtnBottomEdgeShadow(juce::Graphics& g, juce::Rectangle<float>& buttonArea, float cornerSize);
+    void drawBtnInsetShadow(juce::Graphics& g, juce::Rectangle<float>& buttonArea, float cornerSize);
+    void drawBtnOutline(juce::Graphics& g, const juce::Rectangle<float>& buttonArea, float cornerSize);
     void handleMouseOverButton(bool isMouseOverButton, bool isButtonDown,
         juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize);
 
