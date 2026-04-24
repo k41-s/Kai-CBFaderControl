@@ -19,6 +19,14 @@ public:
 
     void drawButtonText(juce::Graphics& g, juce::TextButton& button,
         bool isMouseOverButton, bool isButtonDown) override;
+
+    void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override;
+    void drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int>& area,
+        const bool isSeparator, const bool isActive, const bool isHighlighted, const bool isTicked,
+        const bool hasSubMenu, const juce::String& text, const juce::String& shortcutKeyText,
+        const juce::Drawable* icon, const juce::Colour* textColourToUse) override;
+    void getIdealPopupMenuItemSize(const juce::String& text, bool isSeparator,
+        int standardMenuItemHeight, int& idealWidth, int& idealHeight) override;
 private:
 	//Fader Helpers
     void drawFader(int x, int y, int width, int height, juce::Graphics& g, juce::Slider& slider, float sliderPos);
@@ -40,6 +48,8 @@ private:
 
 	//Rotary Helpers
     void drawKnobBackground(juce::Graphics& g, float centreX, float radius, float centreY);
+    void drawKnobDropShadow(juce::Graphics& g, float centreX, float centreY, float radius);
+    void drawKnobGrip(juce::Graphics& g, float centreX, float centreY, float radius);
     void configAndDrawIndicatorPointer(float radius, float angle, float centreX, float centreY, juce::Graphics& g);
     void configIndicatorPointer(float radius, juce::Path& p, float angle, float centreX, float centreY);
     void drawIndicatorPointer(juce::Graphics& g, juce::Path& p);
@@ -47,9 +57,13 @@ private:
 
     //Button Helpers
     void getColourFromToggleState(juce::Button& button, juce::Colour& bgColour);
-    void drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds, float cornerSize);
+    void drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds, float cornerSize, bool isButtonDown);
     void handleMouseOverButton(bool isMouseOverButton, bool isButtonDown,
         juce::Graphics& g, juce::Rectangle<float>& area, float cornerSize);
+
+	// PopupMenu Helpers
+    void drawSeparator(const juce::Rectangle<int>& area, juce::Graphics& g);
+    void drawSubMenu(const juce::Rectangle<int>& area, juce::Graphics& g);
 
     double inf = -95.75;
 };

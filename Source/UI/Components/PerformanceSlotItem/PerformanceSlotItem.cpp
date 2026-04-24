@@ -20,7 +20,6 @@ void PerformanceSlotItem::init(int slotIndex)
     addMouseListenerToChildren();
 }
 
-
 void PerformanceSlotItem::configComponents()
 {
     configVolumeFader();

@@ -57,7 +57,6 @@ private:
 
 	void doStereoLink(int slotA, int slotB);
 	bool isSlotLinked(int slotIdx) const;
-	//bool isEitherSlotLinked(juce::ValueTree& state, int slotA, int slotB);
 	void setMainSlotProperties(juce::ValueTree& state, int mainIdx, int subIdx);
 	void setSubSlotProperties(juce::ValueTree& state, int subIdx, int mainIdx);
 

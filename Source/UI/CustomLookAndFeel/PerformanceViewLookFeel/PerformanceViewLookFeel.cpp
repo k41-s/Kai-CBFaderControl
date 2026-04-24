@@ -6,6 +6,9 @@ PerformanceViewLookFeel::PerformanceViewLookFeel()
 {
 	setColour(juce::Slider::trackColourId, MyColours::faderTrack);
 	setColour(juce::Slider::thumbColourId, MyColours::faderCap);
+
+	setColour(juce::LassoComponent<int>::lassoFillColourId, MyColours::cbBlue.withAlpha(0.1f));
+	setColour(juce::LassoComponent<int>::lassoOutlineColourId, MyColours::cbBlue.withAlpha(0.8f));
 }
 
 void PerformanceViewLookFeel::drawLinearSlider(juce::Graphics& g, int x, int y, 
@@ -206,7 +209,15 @@ void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, 
 	float sliderPos, const float startAngle, const float endAngle, juce::Slider& slider
 ) {
 	auto outline = juce::Rectangle<float>(x, y, width, height).reduced(2.0f);
-	auto radius = juce::jmin(outline.getWidth(), outline.getHeight()) / 2.0f;
+
+	float maxDiameter = juce::jlimit(24.0f, 36.0f, outline.getWidth() * 0.7f);
+	float diameter = juce::jmin(outline.getWidth(), outline.getHeight(), maxDiameter);
+
+	auto knobArea = outline.withSizeKeepingCentre(diameter, diameter);
+
+	auto radius = knobArea.getWidth() / 2.0f;
+	radius -= 2.0f;
+
 	auto centreX = x + width * 0.5f;
 	auto centreY = y + height * 0.5f;
 	auto angle = startAngle + sliderPos * (endAngle - startAngle);
@@ -218,8 +229,47 @@ void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, 
 
 void PerformanceViewLookFeel::drawKnobBackground(juce::Graphics& g, float centreX, float radius, float centreY)
 {
-	g.setColour(MyColours::unpressedBtn);
+	drawKnobDropShadow(g, centreX, centreY, radius);
+
+	juce::ColourGradient baseGradient(juce::Colour(0xFF3A3A3A), centreX - radius * 0.5f, centreY - radius * 0.5f,
+		juce::Colour(0xFF151515), centreX + radius * 0.5f, centreY + radius * 0.5f, true);
+	g.setGradientFill(baseGradient);
 	g.fillEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f);
+
+	drawKnobGrip(g, centreX, centreY, radius);
+
+	float innerRadius = radius * 0.82f;
+	juce::ColourGradient innerGradient(juce::Colour(0xFF282828), centreX, centreY - innerRadius,
+		juce::Colour(0xFF1A1A1A), centreX, centreY + innerRadius, false);
+	g.setGradientFill(innerGradient);
+	g.fillEllipse(centreX - innerRadius, centreY - innerRadius, innerRadius * 2.0f, innerRadius * 2.0f);
+}
+
+void PerformanceViewLookFeel::drawKnobDropShadow(juce::Graphics& g, float centreX, float centreY, float radius)
+{
+	juce::DropShadow shadow(juce::Colours::black.withAlpha(0.6f), 4, { 0, 3 });
+	juce::Path shadowPath;
+	shadowPath.addEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f);
+	shadow.drawForPath(g, shadowPath);
+}
+
+void PerformanceViewLookFeel::drawKnobGrip(juce::Graphics& g, float centreX, float centreY, float radius)
+{
+	int numGrips = 36;
+	for (int i = 0; i < numGrips; ++i)
+	{
+		float angle = juce::MathConstants<float>::twoPi * i / numGrips;
+		float startX = centreX + (radius * 0.82f) * std::cos(angle);
+		float startY = centreY + (radius * 0.82f) * std::sin(angle);
+		float endX = centreX + radius * std::cos(angle);
+		float endY = centreY + radius * std::sin(angle);
+
+		g.setColour(juce::Colours::white.withAlpha(0.12f));
+		g.drawLine(startX, startY, endX, endY, 1.5f);
+
+		g.setColour(juce::Colours::black.withAlpha(0.4f));
+		g.drawLine(startX + 0.5f, startY + 0.5f, endX + 0.5f, endY + 0.5f, 1.5f);
+	}
 }
 
 void PerformanceViewLookFeel::configAndDrawIndicatorPointer(float radius, float angle, float centreX, float centreY, juce::Graphics& g)
@@ -231,22 +281,31 @@ void PerformanceViewLookFeel::configAndDrawIndicatorPointer(float radius, float 
 
 void PerformanceViewLookFeel::configIndicatorPointer(float radius, juce::Path& p, float angle, float centreX, float centreY)
 {
-	auto pointerLength = radius * 0.8f;
-	auto pointerThickness = 2.0f;
-	p.addRoundedRectangle(-pointerThickness * 0.5f, -radius, pointerThickness, pointerLength, 1.0f);
+	auto pointerLength = radius * 0.65f;
+	auto pointerThickness = 3.0f;
+	p.addRoundedRectangle(-pointerThickness * 0.5f, -radius * 0.78f, pointerThickness, pointerLength, 1.5f);
 	p.applyTransform(juce::AffineTransform::rotation(angle).translated(centreX, centreY));
 }
 
 void PerformanceViewLookFeel::drawIndicatorPointer(juce::Graphics& g, juce::Path& p)
 {
-	g.setColour(juce::Colours::white);
+	g.setColour(juce::Colours::white.withAlpha(0.9f));
 	g.fillPath(p);
+
+	juce::Path highlightPath = p;
+	highlightPath.applyTransform(juce::AffineTransform::translation(0.5f, 0.5f));
+
+	g.setColour(juce::Colours::white.withAlpha(0.2f));
+	g.strokePath(highlightPath, juce::PathStrokeType(1.0f));
 }
 
 void PerformanceViewLookFeel::drawOuterRing(juce::Graphics& g, float centreX, float radius, float centreY)
 {
+	g.setColour(juce::Colours::white.withAlpha(0.08f));
+	g.drawEllipse(centreX - radius - 1.0f, centreY - radius - 1.0f, radius * 2.0f + 2.0f, radius * 2.0f + 2.0f, 1.0f);
+
 	g.setColour(juce::Colours::black.withAlpha(0.5f));
-	g.drawEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f, 1.0f);
+	g.drawEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f, 1.5f);
 }
 
 void PerformanceViewLookFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button, 
@@ -258,7 +317,7 @@ void PerformanceViewLookFeel::drawButtonBackground(juce::Graphics& g, juce::Butt
 	juce::Colour bgColour = MyColours::unpressedBtn;
 
 	getColourFromToggleState(button, bgColour);
-	drawButton(g, bgColour, bounds, cornerSize);
+	drawButton(g, bgColour, bounds, cornerSize, isButtonDown);
 	handleMouseOverButton(isMouseOverButton, isButtonDown, g, bounds, cornerSize);
 }
 
@@ -274,13 +333,56 @@ void PerformanceViewLookFeel::getColourFromToggleState(juce::Button& button, juc
 	}
 }
 
-void PerformanceViewLookFeel::drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds, float cornerSize)
+void PerformanceViewLookFeel::drawButton(juce::Graphics& g, const juce::Colour& bgColour, const juce::Rectangle<float>& bounds, float cornerSize, bool isButtonDown)
 {
-	g.setColour(bgColour);
-	g.fillRoundedRectangle(bounds, cornerSize);
+	auto buttonArea = bounds;
 
-	g.setColour(juce::Colours::black);
-	g.drawRoundedRectangle(bounds, cornerSize, 1.0f);
+	// 1. Shift the physical button down when pressed, or draw a drop shadow when raised
+	if (isButtonDown)
+	{
+		buttonArea.translate(0.0f, 1.0f);
+	}
+	else
+	{
+		// Drop shadow simulating the button sitting above the panel
+		g.setColour(juce::Colours::black.withAlpha(0.4f));
+		g.fillRoundedRectangle(buttonArea.translated(0.0f, 2.0f), cornerSize);
+	}
+
+	// 2. Base Color - using a very subtle gradient for a matte plastic/hardware look
+	juce::Colour baseColour = isButtonDown ? bgColour.darker(0.15f) : bgColour;
+	juce::ColourGradient bgGradient(baseColour.brighter(0.05f), 0.0f, buttonArea.getY(),
+		baseColour.darker(0.05f), 0.0f, buttonArea.getBottom(), false);
+	g.setGradientFill(bgGradient);
+	g.fillRoundedRectangle(buttonArea, cornerSize);
+
+	// 3. Hardware Edges / Bevels
+	if (!isButtonDown)
+	{
+		// Top/Left rim highlight (light catching the raised edge)
+		g.setColour(juce::Colours::white.withAlpha(0.12f));
+		juce::Path topHighlight;
+		topHighlight.addRoundedRectangle(buttonArea.reduced(1.0f), cornerSize - 1.0f);
+		g.strokePath(topHighlight, juce::PathStrokeType(1.0f));
+
+		// Bottom edge shadow for physical thickness
+		g.setColour(juce::Colours::black.withAlpha(0.25f));
+		g.drawHorizontalLine(static_cast<int>(buttonArea.getBottom() - 1.0f),
+			buttonArea.getX() + cornerSize,
+			buttonArea.getRight() - cornerSize);
+	}
+	else
+	{
+		// Deep inset shadow when pushed in to show it's below the faceplate
+		g.setColour(juce::Colours::black.withAlpha(0.6f));
+		juce::Path innerShadow;
+		innerShadow.addRoundedRectangle(buttonArea.reduced(0.5f), cornerSize);
+		g.strokePath(innerShadow, juce::PathStrokeType(1.5f));
+	}
+
+	// 4. Crisp Outer Outline
+	g.setColour(juce::Colours::black.withAlpha(0.8f));
+	g.drawRoundedRectangle(buttonArea, cornerSize, 1.0f);
 }
 
 void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton& button, 
@@ -291,8 +393,14 @@ void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton
 	float fontSize = juce::jmin(14.0f, button.getWidth() * 0.6f);
 	g.setFont(juce::Font(fontSize, juce::Font::bold));
 
-	g.drawText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, false);
+	// Shift text down slightly when pressed for a realistic 3D tactile feel
+	auto textBounds = button.getLocalBounds().toFloat();
+	if (isButtonDown)
+		textBounds.translate(0.0f, 1.0f);
+
+	g.drawText(button.getButtonText(), textBounds, juce::Justification::centred, false);
 }
+
 
 void PerformanceViewLookFeel::handleMouseOverButton(bool isMouseOverButton, bool isButtonDown, juce::Graphics& g, 
 	juce::Rectangle<float>& area, float cornerSize
@@ -301,5 +409,79 @@ void PerformanceViewLookFeel::handleMouseOverButton(bool isMouseOverButton, bool
 	{
 		g.setColour(MyColours::mouseOverButton);
 		g.fillRoundedRectangle(area.reduced(1.0f), cornerSize);
+	}
+}
+
+void PerformanceViewLookFeel::drawPopupMenuBackground(juce::Graphics& g, int width, int height)
+{
+	g.fillAll(MyColours::background.brighter(0.05f));
+
+	g.setColour(juce::Colours::black);
+	g.drawRect(0, 0, width, height, 1);
+
+	g.setColour(juce::Colours::white.withAlpha(0.05f));
+	g.drawRect(1, 1, width - 2, height - 2, 1);
+}
+
+void PerformanceViewLookFeel::drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int>& area, 
+	const bool isSeparator, const bool isActive, const bool isHighlighted, const bool isTicked, 
+	const bool hasSubMenu, const juce::String& text, const juce::String& shortcutKeyText, 
+	const juce::Drawable* icon, const juce::Colour* textColourToUse
+) {
+	if (isSeparator)
+	{
+		drawSeparator(area, g);
+		return;
+	}
+
+	if (isHighlighted && isActive)
+	{
+		g.setColour(MyColours::black.brighter(0.4f));
+		g.fillRect(area.reduced(2, 1));
+	}
+
+	g.setColour(isActive ? juce::Colours::white : juce::Colours::grey.withAlpha(0.5f));
+	g.setFont(juce::Font(14.0f));
+
+	auto r = area.reduced(12, 0);
+	g.drawText(text, r, juce::Justification::centredLeft, true);
+
+	if (hasSubMenu)
+		drawSubMenu(area, g);
+}
+
+void PerformanceViewLookFeel::drawSeparator(const juce::Rectangle<int>& area, juce::Graphics& g)
+{
+	auto r = area.reduced(5, 0);
+	r.removeFromTop(juce::roundToInt(((float)r.getHeight() * 0.5f) - 0.5f));
+	g.setColour(juce::Colours::black.withAlpha(0.5f));
+	g.fillRect(r.removeFromTop(1));
+	g.setColour(juce::Colours::white.withAlpha(0.05f));
+	g.fillRect(r.removeFromTop(1));
+}
+
+void PerformanceViewLookFeel::drawSubMenu(const juce::Rectangle<int>& area, juce::Graphics& g)
+{
+	auto localArea = area;
+	auto arrowZone = localArea.removeFromRight(15).reduced(2);
+	juce::Path path;
+	path.addTriangle(arrowZone.getX(), arrowZone.getY() + 4.0f,
+		arrowZone.getRight() - 4.0f, arrowZone.getCentreY(),
+		arrowZone.getX(), arrowZone.getBottom() - 4.0f);
+	g.fillPath(path);
+}
+
+void PerformanceViewLookFeel::getIdealPopupMenuItemSize(const juce::String& text, bool isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight)
+{
+	if (isSeparator)
+	{
+		idealWidth = 50;
+		idealHeight = 8;
+	}
+	else
+	{
+		juce::Font font(14.0f);
+		idealWidth = font.getStringWidth(text) + 40;
+		idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : 28;
 	}
 }

@@ -196,7 +196,7 @@ void PerformanceView::handleSlotMouseUp(const juce::MouseEvent& e, PerformanceSl
 
 void PerformanceView::showContextMenu()
 {
-	juce::PopupMenu menu; // implement a look&feel for the menu
+	juce::PopupMenu menu;
 	auto& selectedArr = selectedItems.getItemArray();
 
 	addMenuItems(selectedArr, menu);
@@ -225,7 +225,7 @@ void PerformanceView::addMenuItems(const juce::Array<int>& selectedArr, juce::Po
 void PerformanceView::showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr)
 {
 	if (menu.getNumItems() > 0) {
-		menu.showMenuAsync(juce::PopupMenu::Options(), [this, selectedArr](int result) {
+		menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this), [this, selectedArr](int result) {
 			if (result == 1 && selectedArr.size() == 2) {
 				doStereoLink(selectedArr[0], selectedArr[1]);
 			}
@@ -361,8 +361,8 @@ void PerformanceView::addSlotIfActive(bool isActive, juce::FlexBox& flexBox, Per
 	if (isActive) {
 		bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(slot->getIndex())), false);
 
-		float flexGrow = isMain ? 2.0f : 1.0f;
-		float maxWidth = isMain ? 200.0f : 120.0f;
+		float flexGrow = isMain ? 1.75f : 1.0f;
+		float maxWidth = isMain ? 160.0f : 120.0f;
 
 		flexBox.items.add(juce::FlexItem(*slot)
 			.withMaxWidth(maxWidth)
@@ -383,7 +383,7 @@ int PerformanceView::getIdealWidth()
 			if (isLinked && !isMain) continue;
 
 			activeCount++;
-			targetWidth += (isLinked && isMain) ? 120 : 60;
+			targetWidth += (isLinked && isMain) ? 100 : 60;
 		}
 	}
 
