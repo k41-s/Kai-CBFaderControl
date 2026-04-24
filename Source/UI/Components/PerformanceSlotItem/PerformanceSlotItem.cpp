@@ -278,7 +278,9 @@ void PerformanceSlotItem::setupSlotBounds()
     auto area = getLocalBounds().reduced(2);
     int currentWidth = area.getWidth();
 
-    float sharedFontSize = juce::jlimit(10.0f, 16.0f, (float)currentWidth * 0.25f);
+    float referenceWidth = isStereoMain ? (currentWidth / SlotSizeValues::stereoSlotFlexGrowFactor) : currentWidth;
+
+    float sharedFontSize = juce::jlimit(10.0f, 16.0f, referenceWidth * 0.25f);
 	sharedFont = juce::Font(sharedFontSize);
 
     setupTopArea(area, currentWidth);
@@ -331,19 +333,29 @@ void PerformanceSlotItem::showNameLabelIfNeeded(int currentWidth)
 void PerformanceSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
 {
 	topArea.removeFromTop(5);
-    muteButton.setBounds(topArea.removeFromTop(30).reduced(2));
+    auto btnArea = topArea.removeFromTop(30).reduced(2);
+    //calcBtnArea(btnArea);
+    muteButton.setBounds(btnArea);
 }
 
 void PerformanceSlotItem::setupSoloButton(juce::Rectangle<int>& topArea)
 {
 	topArea.removeFromTop(5);
-    soloButton.setBounds(topArea.removeFromTop(30).reduced(2));
+    auto btnArea = topArea.removeFromTop(30).reduced(2);
+    //calcBtnArea(btnArea);
+    soloButton.setBounds(btnArea);
+}
+
+void PerformanceSlotItem::calcBtnArea(juce::Rectangle<int>& btnArea)
+{
+    if (isStereoMain)
+        btnArea = btnArea.withSizeKeepingCentre(btnArea.getWidth() / 2, btnArea.getHeight());
 }
 
 void PerformanceSlotItem::injectPanControl(juce::Rectangle<int>& area)
 {
     if (isStereoMain) {
-        int panHeight = juce::jmax(45, (int)(area.getHeight() * 0.15f));
+        int panHeight = juce::jmax(35, (int)(area.getHeight() * 0.12f));
         auto panArea = area.removeFromTop(panHeight);
         panSlider.setBounds(panArea.reduced(10, 5));
     }

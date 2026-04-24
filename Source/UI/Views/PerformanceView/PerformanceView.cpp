@@ -361,8 +361,8 @@ void PerformanceView::addSlotIfActive(bool isActive, juce::FlexBox& flexBox, Per
 	if (isActive) {
 		bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(slot->getIndex())), false);
 
-		float flexGrow = isMain ? 1.75f : 1.0f;
-		float maxWidth = isMain ? 160.0f : 120.0f;
+		float flexGrow = isMain ? SlotSizeValues::stereoSlotFlexGrowFactor : SlotSizeValues::monoSlotFlexGrowFactor;
+		float maxWidth = isMain ? SlotSizeValues::stereoSlotMaxWidth : SlotSizeValues::monoSlotMaxWidth;
 
 		flexBox.items.add(juce::FlexItem(*slot)
 			.withMaxWidth(maxWidth)
@@ -383,7 +383,7 @@ int PerformanceView::getIdealWidth()
 			if (isLinked && !isMain) continue;
 
 			activeCount++;
-			targetWidth += (isLinked && isMain) ? 100 : 60;
+			targetWidth += (isLinked && isMain) ? SlotSizeValues::stereoSlotTargetWidth : SlotSizeValues::monoSlotTargetWidth;
 		}
 	}
 

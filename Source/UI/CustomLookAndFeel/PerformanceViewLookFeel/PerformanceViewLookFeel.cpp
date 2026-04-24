@@ -326,9 +326,9 @@ void PerformanceViewLookFeel::getColourFromToggleState(juce::Button& button, juc
 	if (button.getToggleState())
 	{
 		if (button.getName() == UIComponentNames::muteButton)
-			colourToChange = juce::Colours::red.withAlpha(0.8f);
+			colourToChange = MyColours::muteBtnPressed;
 		else if (button.getName() == UIComponentNames::soloButton)
-			colourToChange = juce::Colours::gold.withAlpha(0.8f);
+			colourToChange = MyColours::soloBtnPressed;
 		else colourToChange = juce::Colours::orange;
 	}
 }
@@ -343,7 +343,6 @@ void PerformanceViewLookFeel::drawButton(juce::Graphics& g, const juce::Colour& 
 	}
 	else
 	{
-		// Drop shadow simulating the button sitting above the panel
 		g.setColour(juce::Colours::black.withAlpha(0.4f));
 		g.fillRoundedRectangle(buttonArea.translated(0.0f, 2.0f), cornerSize);
 	}

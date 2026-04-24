@@ -59,9 +59,10 @@ private:
 	void setupIndexLabel(juce::Rectangle<int>& topArea);
 	void setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth);
 	void showNameLabelIfNeeded(int currentWidth);
+
 	void setupMuteButton(juce::Rectangle<int>& topArea);
 	void setupSoloButton(juce::Rectangle<int>& topArea);
-
+	void calcBtnArea(juce::Rectangle<int>& btnArea);
 	void setupBottomArea(juce::Rectangle<int>& area, int currentWidth);
 
 	juce::Font sharedFont;
