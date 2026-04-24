@@ -8,14 +8,26 @@
 class PerformanceView : 
 	public juce::Component,
 	public juce::AudioProcessorValueTreeState::Listener,
-	public juce::AsyncUpdater
+	public juce::ValueTree::Listener,
+	public juce::AsyncUpdater,
+	public juce::LassoSource<int>,
+	public juce::ChangeListener
 {
 public:
 	PerformanceView(KaiCBFaderControlAudioProcessor& p);
 	~PerformanceView();
 
 	void parameterChanged(const juce::String& parameterID, float newValue) override;
+	void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
 	void handleAsyncUpdate() override;
+
+	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+	void findLassoItemsInArea(juce::Array<int>& itemsFound, const juce::Rectangle<int>& area) override;
+	juce::SelectedItemSet<int>& getLassoSelection() override;
+
+	void mouseDown(const juce::MouseEvent& e) override;
+	void mouseDrag(const juce::MouseEvent& e) override;
+	void mouseUp(const juce::MouseEvent& e) override;
 
 	void paint(juce::Graphics& g) override;
 	void resized() override;
@@ -27,10 +39,30 @@ private:
 	void init();
 	void configComponents();
 	void createFaderSlots();
+	void setSlotMouseEvents(PerformanceSlotItem* slot);
 	void configSetupButton();
-	void registerIsActiveListener();
-	void deregisterIsActiveListener();
+	void registerListeners();
+	void deregisterListeners();
 	void configImages();
+
+	void handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot);
+	void handleSlotMouseDrag(const juce::MouseEvent& e, PerformanceSlotItem* slot);
+	void handleSlotMouseUp(const juce::MouseEvent& e, PerformanceSlotItem* slot);
+
+	bool handleIsPopupMenuEvent(const juce::MouseEvent& e);
+
+	void showContextMenu();
+	void addMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
+	void showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr);
+
+	void doStereoLink(int slotA, int slotB);
+	bool isSlotLinked(int slotIdx) const;
+	//bool isEitherSlotLinked(juce::ValueTree& state, int slotA, int slotB);
+	void setMainSlotProperties(juce::ValueTree& state, int mainIdx, int subIdx);
+	void setSubSlotProperties(juce::ValueTree& state, int subIdx, int mainIdx);
+
+	void doStereoUnlink(int slotIdx);
+	void unlinkSlot(juce::ValueTree& state, int idx);
 
 	void setHeaderArea();
 	void setupAndFillArea();
@@ -45,7 +77,10 @@ private:
 	PerformanceViewLookFeel performanceLF;
 	juce::OwnedArray<PerformanceSlotItem> slots;
 
-	BinaryImageComponent logo{ BinaryData::cblogo_png, BinaryData::cblogo_pngSize };
+	juce::LassoComponent<int> lasso;
+	juce::SelectedItemSet<int> selectedItems;
+
+	BinaryImageComponent cbLogo{ BinaryData::cblogo_png, BinaryData::cblogo_pngSize };
 	BinaryImageComponent xPatchImg{ BinaryData::XPatch_png, BinaryData::XPatch_pngSize };
 
 	juce::Rectangle<int> headerArea;

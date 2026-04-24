@@ -13,15 +13,18 @@ void PerformanceSlotItem::init(int slotIndex)
     processor.apvts.state.addListener(this);
 
     configComponents();
-    volumeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.apvts, SlotIDs::volume(slotIndex), volumeFader);
+    configAttachments(slotIndex);
     updateValueLabel();
     updateNameFromValueTree();
+    updateStereoState();
+    addMouseListenerToChildren();
 }
+
 
 void PerformanceSlotItem::configComponents()
 {
     configVolumeFader();
+    configPanSlider();
     configMuteButton();
     configSoloButton();
     configLabels();
@@ -35,6 +38,13 @@ void PerformanceSlotItem::configVolumeFader()
     volumeFader.addMouseListener(this, false);
 
     volumeFader.onResolutionChanged = [this]() { updateValueLabel(); };
+}
+
+void PerformanceSlotItem::configPanSlider()
+{
+    addChildComponent(panSlider);
+    panSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    panSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 }
 
 void PerformanceSlotItem::configMuteButton()
@@ -94,6 +104,24 @@ void PerformanceSlotItem::configValueLabel()
     valueLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 }
 
+void PerformanceSlotItem::configAttachments(int slotIndex)
+{
+    configVolumeAttachment(slotIndex);
+    configPanAttachment(slotIndex);
+}
+
+void PerformanceSlotItem::configVolumeAttachment(int slotIndex)
+{
+    volumeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        processor.apvts, SlotIDs::volume(slotIndex), volumeFader);
+}
+
+void PerformanceSlotItem::configPanAttachment(int slotIndex)
+{
+    panAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        processor.apvts, SlotIDs::pan(slotIndex), panSlider);
+}
+
 void PerformanceSlotItem::updateValueLabel()
 {
     float val = (float)volumeFader.getValue();
@@ -127,11 +155,46 @@ void PerformanceSlotItem::updateNameFromValueTree()
     resized();
 }
 
+void PerformanceSlotItem::updateStereoState()
+{
+    isStereoLinked = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoLinked(index)), false);
+    isStereoMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(index)), false);
+    panSlider.setVisible(isStereoMain);
+
+    setAppropriateIndexLabelText();
+    resized();
+}
+
+void PerformanceSlotItem::setAppropriateIndexLabelText()
+{
+    if (isStereoMain) {
+        int linkedIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(index)), index);
+        indexLabel.setText(juce::String(index) + "-" + juce::String(linkedIdx), juce::dontSendNotification);
+    }
+    else {
+        indexLabel.setText(juce::String(index), juce::dontSendNotification);
+    }
+}
+
+void PerformanceSlotItem::addMouseListenerToChildren()
+{
+    for (auto* child : getChildren())
+    {
+        child->addMouseListener(this, false);
+    }
+}
+
 void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
     if (property == juce::Identifier(SlotIDs::slotName(index)))
     {
         updateNameFromValueTree();
+    }
+    else if (property == juce::Identifier(SlotIDs::isStereoLinked(index)) ||
+        property == juce::Identifier(SlotIDs::isStereoMain(index)) ||
+        property == juce::Identifier(SlotIDs::linkedSlotId(index)))
+    {
+        updateStereoState();
     }
 }
 
@@ -155,6 +218,38 @@ void PerformanceSlotItem::mouseWheelMove(const juce::MouseEvent& event, const ju
     }
 }
 
+void PerformanceSlotItem::mouseDown(const juce::MouseEvent& e)
+{
+    if (e.originalComponent == this || e.mods.isPopupMenu() || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown()) {
+        if (onBackgroundMouseDown)
+            onBackgroundMouseDown(e.getEventRelativeTo(this), this);
+    }
+}
+
+void PerformanceSlotItem::mouseDrag(const juce::MouseEvent& e)
+{
+    if (e.originalComponent == this || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown()) {
+        if (onBackgroundMouseDrag)
+            onBackgroundMouseDrag(e.getEventRelativeTo(this), this);
+    }
+}
+
+void PerformanceSlotItem::mouseUp(const juce::MouseEvent& e)
+{
+    if (e.originalComponent == this || e.mods.isPopupMenu() || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown()) {
+        if (onBackgroundMouseUp)
+            onBackgroundMouseUp(e.getEventRelativeTo(this), this);
+    }
+}
+
+void PerformanceSlotItem::setSelected(bool selected)
+{
+    if (isSelected != selected) {
+        isSelected = selected;
+        repaint();
+    }
+}
+
 PerformanceSlotItem::~PerformanceSlotItem()
 {
     processor.apvts.state.removeListener(this);
@@ -162,8 +257,16 @@ PerformanceSlotItem::~PerformanceSlotItem()
 
 void PerformanceSlotItem::paint(juce::Graphics& g)
 {
-    g.setColour(juce::Colours::black.withAlpha(0.6f));
-    g.drawRect(getLocalBounds(), 1);
+    if (isSelected) {
+        g.setColour(juce::Colours::white.withAlpha(0.15f));
+        g.fillRect(getLocalBounds());
+        g.setColour(juce::Colours::white.withAlpha(0.6f));
+        g.drawRect(getLocalBounds(), 2);
+    }
+    else {
+        g.setColour(juce::Colours::black.withAlpha(0.6f));
+        g.drawRect(getLocalBounds(), 1);
+    }
 }
 
 void PerformanceSlotItem::resized()
@@ -180,6 +283,7 @@ void PerformanceSlotItem::setupSlotBounds()
 	sharedFont = juce::Font(sharedFontSize);
 
     setupTopArea(area, currentWidth);
+    injectPanControl(area);
     setupBottomArea(area, currentWidth);
     volumeFader.setBounds(area.reduced(2));
 }
@@ -235,6 +339,15 @@ void PerformanceSlotItem::setupSoloButton(juce::Rectangle<int>& topArea)
 {
 	topArea.removeFromTop(5);
     soloButton.setBounds(topArea.removeFromTop(30).reduced(2));
+}
+
+void PerformanceSlotItem::injectPanControl(juce::Rectangle<int>& area)
+{
+    if (isStereoMain) {
+        int panHeight = juce::jmax(45, (int)(area.getHeight() * 0.15f));
+        auto panArea = area.removeFromTop(panHeight);
+        panSlider.setBounds(panArea.reduced(10, 5));
+    }
 }
 
 void PerformanceSlotItem::setupBottomArea(juce::Rectangle<int>& area, int currentWidth)

@@ -13,12 +13,30 @@ public:
 	void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 	void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
 
+	void mouseDown(const juce::MouseEvent& e) override;
+	void mouseDrag(const juce::MouseEvent& e) override;
+	void mouseUp(const juce::MouseEvent& e) override;
+
 	void paint(juce::Graphics& g) override;
 	void resized() override;
+
+	void setSelected(bool selected);
+	bool getSelected() const { return isSelected; }
+	int getIndex() const { return index; }
+
+	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDown;
+	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDrag;
+	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseUp;
+
 private:
 	void init(int slotIndex);
+	void addMouseListenerToChildren();
+	void configAttachments(int slotIndex);
+	void configVolumeAttachment(int slotIndex);
+	void configPanAttachment(int slotIndex);
 	void configComponents();
 	void configVolumeFader();
+	void configPanSlider();
 	void configMuteButton();
 	void configSoloButton();
 	void configLabels();
@@ -29,8 +47,13 @@ private:
 	void updateValueLabel();
 	juce::String getValueText(float val, bool isFineMode);
 	void updateNameFromValueTree();
+	void updateStereoState();
+
+	void setAppropriateIndexLabelText();
 
 	void setupSlotBounds();
+
+	void injectPanControl(juce::Rectangle<int>& area);
 
 	void setupTopArea(juce::Rectangle<int>& area, int currentWidth);
 	void setupIndexLabel(juce::Rectangle<int>& topArea);
@@ -46,15 +69,21 @@ private:
 	KaiCBFaderControlAudioProcessor& processor;
 	int index;
 
+	bool isSelected = false;
+	bool isStereoMain = false;
+	bool isStereoLinked = false;
+
 	juce::Label nameLabel;
 	juce::Label indexLabel;
 	juce::Label groupLabel;
 	juce::Label valueLabel;
 	PrecisionSlider volumeFader;
+	juce::Slider panSlider;
 	juce::TextButton muteButton{ UIButtonLabels::mute };
 	juce::TextButton soloButton{ UIButtonLabels::solo };
 
 	std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> volumeAttachment;
+	std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> panAttachment;
 
 	bool minimalListMode = false;
 

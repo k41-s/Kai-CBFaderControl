@@ -5,6 +5,20 @@ PrecisionSlider::PrecisionSlider()
 	setSliderSnapsToMousePosition(false);
 }
 
+bool PrecisionSlider::hitTest(int x, int y)
+{
+    float capY = (float)getPositionOfValue(getValue());
+    float capX = getWidth() * 0.5f;
+
+    float dx = std::abs(x - capX);
+    float dy = std::abs(y - capY);
+
+    float maxDx = getWidth() * 0.5f;
+    float maxDy = juce::jmax(25.0f, getHeight() * 0.08f);
+
+    return (dx <= maxDx && dy <= maxDy);
+}
+
 void PrecisionSlider::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
 {
     // Intentionally left blank to override default 4dB JUCE jump
@@ -13,9 +27,31 @@ void PrecisionSlider::mouseWheelMove(const juce::MouseEvent& event, const juce::
 
 void PrecisionSlider::mouseDown(const juce::MouseEvent& e)
 {
-    juce::Slider::mouseDown(e);
-    mouseDownPos = e.getPosition();
+    isDragIntentDetermined = false;
+    isVerticalDrag = false;
+    dragStartPos = e.getPosition();
     mouseDownTime = juce::Time::getMillisecondCounter();
+
+    juce::Slider::mouseDown(e);
+}
+
+void PrecisionSlider::mouseDrag(const juce::MouseEvent& e)
+{
+    if (!isDragIntentDetermined)
+    {
+        int dx = std::abs(e.x - dragStartPos.x);
+        int dy = std::abs(e.y - dragStartPos.y);
+
+        if (dx > 3 || dy > 3)
+        {
+            isDragIntentDetermined = true;
+            isVerticalDrag = dy > (dx * 1.5f);
+        }
+    }
+
+    if (isDragIntentDetermined && !isVerticalDrag) return;
+
+    juce::Slider::mouseDrag(e);
 }
 
 void PrecisionSlider::mouseUp(const juce::MouseEvent& e)
@@ -30,7 +66,7 @@ void PrecisionSlider::mouseUp(const juce::MouseEvent& e)
 
 void PrecisionSlider::detectStationaryClick(const juce::MouseEvent& e, float distanceThreshold, unsigned int timeElapsed)
 {
-    if (e.getPosition().getDistanceFrom(mouseDownPos) <= distanceThreshold && timeElapsed <= 300)
+    if (e.getPosition().getDistanceFrom(dragStartPos) <= distanceThreshold && timeElapsed <= 300)
     {
         bool isHighRes = getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
         getProperties().set(UIProperties::isHighRes, !isHighRes);
