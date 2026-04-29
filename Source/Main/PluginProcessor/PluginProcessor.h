@@ -7,8 +7,8 @@
 */
 
 #pragma once
-
 #include <JuceHeader.h>
+#include "../LinkManager/LinkManager.h"
 
 //==============================================================================
 /**
@@ -18,8 +18,6 @@ class KaiCBFaderControlAudioProcessor  : public juce::AudioProcessor
 public:
     //==============================================================================
     KaiCBFaderControlAudioProcessor();
-    void fillIsActiveParamsList();
-    void InitialiseNetworkingDefaults();
     ~KaiCBFaderControlAudioProcessor() override;
 
     //==============================================================================
@@ -59,7 +57,14 @@ public:
 
     juce::AudioProcessorValueTreeState apvts;
     std::atomic<float>* isActiveParams[32];
+
+	std::unique_ptr<LinkManager> linkManager;
 private:
+    void init();
+    void InitialiseNetworkingDefaults();
+    void fillIsActiveParamsList();
+    void initLinkManager();
+
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
     void addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);

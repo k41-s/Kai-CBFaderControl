@@ -48,6 +48,7 @@ private:
 	juce::String getValueText(float val, bool isFineMode);
 	void updateNameFromValueTree();
 	void updateStereoState();
+	void updateGroupState();
 
 	void setAppropriateIndexLabelText();
 

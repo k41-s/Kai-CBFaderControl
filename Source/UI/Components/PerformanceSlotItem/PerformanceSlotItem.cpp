@@ -17,6 +17,7 @@ void PerformanceSlotItem::init(int slotIndex)
     updateValueLabel();
     updateNameFromValueTree();
     updateStereoState();
+	updateGroupState();
     addMouseListenerToChildren();
 }
 
@@ -92,7 +93,7 @@ void PerformanceSlotItem::configGroupLabel()
 {
     addAndMakeVisible(groupLabel);
     groupLabel.setJustificationType(juce::Justification::centred);
-    groupLabel.setText("Grp x", juce::dontSendNotification); // For now until grouping is implemented
+	groupLabel.setColour(juce::Label::textColourId, juce::Colours::cyan.withAlpha(0.8f));
 }
 
 void PerformanceSlotItem::configValueLabel()
@@ -161,6 +162,25 @@ void PerformanceSlotItem::updateStereoState()
     panSlider.setVisible(isStereoMain);
 
     setAppropriateIndexLabelText();
+    resized();
+}
+
+void PerformanceSlotItem::updateGroupState()
+{
+    int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(index)), 0);
+    int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(index)), 0);
+
+    if (grpId > 0) {
+        juce::String prefix = "GRP ";
+        if (role == 1) prefix = "LDR ";
+        else if (role == 2) prefix = "VCA ";
+
+        groupLabel.setText(prefix + juce::String(grpId), juce::dontSendNotification);
+        groupLabel.setVisible(true);
+    }
+    else {
+        groupLabel.setVisible(false);
+    }
     resized();
 }
 

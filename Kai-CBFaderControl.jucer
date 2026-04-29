@@ -10,6 +10,10 @@
         <FILE id="IoOh4c" name="XPatch.png" compile="0" resource="1" file="Source/Images/XPatch.png"/>
       </GROUP>
       <GROUP id="{91035418-0FAE-8302-EAD0-0359EC207AE7}" name="Main">
+        <GROUP id="{20DB90BC-C8DE-4E61-487B-8EE99EC9445C}" name="LinkManager">
+          <FILE id="SmxDnf" name="LinkManager.cpp" compile="1" resource="0" file="Source/Main/LinkManager/LinkManager.cpp"/>
+          <FILE id="rKx0C0" name="LinkManager.h" compile="0" resource="0" file="Source/Main/LinkManager/LinkManager.h"/>
+        </GROUP>
         <GROUP id="{89ED6CA5-1CE0-9ACC-3855-C2C720CEEB79}" name="PluginEditor">
           <FILE id="zdherh" name="PluginEditor.cpp" compile="1" resource="0"
                 file="Source/Main/PluginEditor/PluginEditor.cpp"/>

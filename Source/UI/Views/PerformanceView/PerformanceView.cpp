@@ -220,6 +220,29 @@ void PerformanceView::addMenuItems(const juce::Array<int>& selectedArr, juce::Po
 			menu.addItem(2, "Unlink Stereo Pair");
 		}
 	}
+
+	menu.addSeparator();
+
+	juce::PopupMenu groupMenu;
+	for (int i = 1; i <= 8; ++i) {
+		groupMenu.addItem(10 + i, "Assign to Group " + juce::String(i));
+	}
+	groupMenu.addSeparator();
+	groupMenu.addItem(20, "Remove from Group");
+	menu.addSubMenu("Grouping", groupMenu);
+
+	if (selectedArr.size() == 1) {
+		int slotIdx = selectedArr[0];
+		int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
+		int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), 0);
+
+		if (grpId > 0) {
+			menu.addSeparator();
+			menu.addItem(30, "Set as Group Leader", true, role == 1);
+			menu.addItem(31, "Set as VCA Master", true, role == 2);
+			menu.addItem(32, "Set as Standard Member", true, role == 0);
+		}
+	}
 }
 
 void PerformanceView::showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr)
@@ -232,7 +255,25 @@ void PerformanceView::showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce:
 			else if (result == 2 && selectedArr.size() == 1) {
 				doStereoUnlink(selectedArr[0]);
 			}
-			});
+			else if (result >= 11 && result <= 18) {
+				int grp = result - 10;
+				for (int idx : selectedArr) 
+					setSlotGroup(idx, grp, 0);
+			}
+			else if (result == 20) {
+				for (int idx : selectedArr)
+					setSlotGroup(idx, 0, 0);
+			}
+			else if (result == 30 && selectedArr.size() == 1) {
+				setSlotGroup(selectedArr[0], processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(selectedArr[0]))), 1);
+			}
+			else if (result == 31 && selectedArr.size() == 1) {
+				setSlotGroup(selectedArr[0], processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(selectedArr[0]))), 2);
+			}
+			else if (result == 32 && selectedArr.size() == 1) {
+				setSlotGroup(selectedArr[0], processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(selectedArr[0]))), 0);
+			}
+		});
 	}
 }
 
@@ -284,6 +325,13 @@ void PerformanceView::unlinkSlot(juce::ValueTree& state, int idx)
 	state.removeProperty(juce::Identifier(SlotIDs::isStereoLinked(idx)), nullptr);
 	state.removeProperty(juce::Identifier(SlotIDs::isStereoMain(idx)), nullptr);
 	state.removeProperty(juce::Identifier(SlotIDs::linkedSlotId(idx)), nullptr);
+}
+
+void PerformanceView::setSlotGroup(int slotIdx, int groupId, int role)
+{
+	auto& state = processor.apvts.state;
+	state.setProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), groupId, nullptr);
+	state.setProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), role, nullptr);
 }
 
 void PerformanceView::paint(juce::Graphics& g)

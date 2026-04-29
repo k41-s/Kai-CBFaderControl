@@ -17,16 +17,14 @@ KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
      ),
     apvts(*this, nullptr, "Parameters", createParameterLayout())
 {
-    InitialiseNetworkingDefaults();
-    fillIsActiveParamsList();
+    init();
 }
 
-void KaiCBFaderControlAudioProcessor::fillIsActiveParamsList()
+void KaiCBFaderControlAudioProcessor::init()
 {
-    for (int i = 0; i < 32; ++i) {
-        isActiveParams[i] = apvts.getRawParameterValue(SlotIDs::isActive(i + 1));
-		jassert(isActiveParams[i] != nullptr);
-    }
+    InitialiseNetworkingDefaults();
+    fillIsActiveParamsList();
+    initLinkManager();
 }
 
 void KaiCBFaderControlAudioProcessor::InitialiseNetworkingDefaults()
@@ -41,6 +39,19 @@ void KaiCBFaderControlAudioProcessor::InitialiseNetworkingDefaults()
 
     if (!state.hasProperty(SlotIDs::outgoingPort()))
         state.setProperty(SlotIDs::outgoingPort(), 8001, nullptr);
+}
+
+void KaiCBFaderControlAudioProcessor::fillIsActiveParamsList()
+{
+    for (int i = 0; i < 32; ++i) {
+        isActiveParams[i] = apvts.getRawParameterValue(SlotIDs::isActive(i + 1));
+		jassert(isActiveParams[i] != nullptr);
+    }
+}
+
+void KaiCBFaderControlAudioProcessor::initLinkManager()
+{
+    linkManager = std::make_unique<LinkManager>(*this);
 }
 
 KaiCBFaderControlAudioProcessor::~KaiCBFaderControlAudioProcessor()

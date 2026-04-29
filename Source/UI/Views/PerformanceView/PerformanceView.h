@@ -59,9 +59,10 @@ private:
 	bool isSlotLinked(int slotIdx) const;
 	void setMainSlotProperties(juce::ValueTree& state, int mainIdx, int subIdx);
 	void setSubSlotProperties(juce::ValueTree& state, int subIdx, int mainIdx);
-
 	void doStereoUnlink(int slotIdx);
 	void unlinkSlot(juce::ValueTree& state, int idx);
+
+	void setSlotGroup(int slotIdx, int groupId, int role);
 
 	void setHeaderArea();
 	void setupAndFillArea();
