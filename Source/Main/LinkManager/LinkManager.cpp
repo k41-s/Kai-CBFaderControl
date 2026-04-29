@@ -34,26 +34,10 @@ void LinkManager::parameterChanged(const juce::String& parameterID, float newVal
 		float delta = newValue - lastVolume[slotIdx - 1];
 		lastVolume[slotIdx - 1] = newValue;
 
-        if (grpId > 0 && role > 0)
+        if (isSlotLeaderOrMaster(grpId, role))
         {
             isUpdating = true;
-            for (int i = 1; i <= 32; ++i)
-            {
-                if (i == slotIdx) continue;
-
-                int otherGrpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
-                int otherRoleId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(i)), 0);
-
-                if (otherGrpId == grpId && otherRoleId == 0) {
-                    float targetVol = lastVolume[i - 1] + delta;
-                    targetVol = juce::jlimit(-96.0f, 22.0f, targetVol);
-
-                    if (auto* param = processor.apvts.getParameter(SlotIDs::volume(i))) {
-                        param->setValueNotifyingHost(param->convertTo0to1(targetVol));
-                    }
-                    lastVolume[i - 1] = targetVol;
-                }
-            }
+            applyDeltaToGroupMembers(slotIdx, grpId, delta);
 			isUpdating = false;
         }
     }
@@ -63,21 +47,52 @@ void LinkManager::parameterChanged(const juce::String& parameterID, float newVal
         int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
         int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), 0);
 
-        if (grpId > 0 && role > 0) {
+        if (isSlotLeaderOrMaster(grpId, role)) {
             isUpdating = true;
-            for (int i = 1; i <= 32; ++i) {
-                if (i == slotIdx) continue;
-
-                int otherGrpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
-                int otherRoleId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(i)), 0);
-
-                if (otherGrpId == grpId && otherRoleId == 0) {
-                    if (auto* param = processor.apvts.getParameter(SlotIDs::mute(i))) {
-                        param->setValueNotifyingHost(newValue);
-                    }
-                }
-            }
+            syncMutesWithinGroup(slotIdx, grpId, newValue);
             isUpdating = false;
+        }
+    }
+}
+
+bool LinkManager::isSlotLeaderOrMaster(int grpId, int role)
+{
+    return grpId > 0 && role > 0;
+}
+
+void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
+{
+    for (int i = 1; i <= 32; ++i)
+    {
+        if (i == slotIdx) continue;
+
+        int otherGrpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
+        int otherRoleId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(i)), 0);
+
+        if (otherGrpId == grpId && otherRoleId == 0) {
+            float targetVol = lastVolume[i - 1] + delta;
+            targetVol = juce::jlimit(-96.0f, 22.0f, targetVol);
+
+            if (auto* param = processor.apvts.getParameter(SlotIDs::volume(i))) {
+                param->setValueNotifyingHost(param->convertTo0to1(targetVol));
+            }
+            lastVolume[i - 1] = targetVol;
+        }
+    }
+}
+
+void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
+{
+    for (int i = 1; i <= 32; ++i) {
+        if (i == slotIdx) continue;
+
+        int otherGrpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
+        int otherRoleId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(i)), 0);
+
+        if (otherGrpId == grpId && otherRoleId == 0) {
+            if (auto* param = processor.apvts.getParameter(SlotIDs::mute(i))) {
+                param->setValueNotifyingHost(newValue);
+            }
         }
     }
 }

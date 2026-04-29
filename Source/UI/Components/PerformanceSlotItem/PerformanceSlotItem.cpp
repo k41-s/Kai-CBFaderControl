@@ -171,17 +171,22 @@ void PerformanceSlotItem::updateGroupState()
     int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(index)), 0);
 
     if (grpId > 0) {
-        juce::String prefix = "GRP ";
-        if (role == 1) prefix = "LDR ";
-        else if (role == 2) prefix = "VCA ";
-
-        groupLabel.setText(prefix + juce::String(grpId), juce::dontSendNotification);
-        groupLabel.setVisible(true);
+        setGroupLblText(role, grpId);
     }
     else {
         groupLabel.setVisible(false);
     }
     resized();
+}
+
+void PerformanceSlotItem::setGroupLblText(int role, int grpId)
+{
+    juce::String prefix = "GRP ";
+    if (role == 1) prefix = "LDR ";
+    else if (role == 2) prefix = "VCA ";
+
+    groupLabel.setText(prefix + juce::String(grpId), juce::dontSendNotification);
+    groupLabel.setVisible(true);
 }
 
 void PerformanceSlotItem::setAppropriateIndexLabelText()

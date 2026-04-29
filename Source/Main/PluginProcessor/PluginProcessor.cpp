@@ -74,34 +74,34 @@ void KaiCBFaderControlAudioProcessor::addParamsForSlot(juce::AudioProcessorValue
 {
     params.add(std::make_unique<juce::AudioParameterBool>(
         SlotIDs::isActive(i),
-        "Is Active " + juce::String(i),
+        ParamSlotNames::isActive(i),
         false
     ));
     params.add(std::make_unique<juce::AudioParameterFloat>(
         SlotIDs::volume(i),
-        "Volume " + juce::String(i),
+        ParamSlotNames::volume(i),
         juce::NormalisableRange<float>(-96.0f, 22.0f, 0.25f, 1.0f),
         0.0f
     ));
     params.add(std::make_unique<juce::AudioParameterBool>(
         SlotIDs::mute(i),
-        "Mute " + juce::String(i),
+        ParamSlotNames::mute(i),
         false
     ));
     params.add(std::make_unique<juce::AudioParameterFloat>(
         SlotIDs::pan(i),
-        "Pan " + juce::String(i),
+        ParamSlotNames::pan(i),
         juce::NormalisableRange<float>(-1.0f, 1.0f, 0.0f),
         0.0f
     ));
     params.add(std::make_unique<juce::AudioParameterBool>(
         SlotIDs::solo(i),
-        "Solo " + juce::String(i),
+        ParamSlotNames::solo(i),
         false
     ));
     params.add(std::make_unique<juce::AudioParameterBool>(
         SlotIDs::soloSafe(i),
-        "Solo Safe " + juce::String(i),
+        ParamSlotNames::soloSafe(i),
         false
     ));
 }

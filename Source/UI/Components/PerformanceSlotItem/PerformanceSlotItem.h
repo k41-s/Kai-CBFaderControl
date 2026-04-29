@@ -50,6 +50,7 @@ private:
 	void updateStereoState();
 	void updateGroupState();
 
+	void setGroupLblText(int role, int grpId);
 	void setAppropriateIndexLabelText();
 
 	void setupSlotBounds();

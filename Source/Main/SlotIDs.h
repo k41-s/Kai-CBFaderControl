@@ -42,3 +42,23 @@ struct SlotIDs
     static juce::Identifier incomingPort() { return "incomingPort"; }
     static juce::Identifier outgoingPort() { return "outgoingPort"; }
 };
+
+namespace ParamSlotNameStringPrefixes
+{
+	static const juce::String isActive = "Is Active ";
+    static const juce::String volume = "Volume ";
+    static const juce::String mute = "Mute ";
+    static const juce::String pan = "Pan ";
+    static const juce::String solo = "Solo ";
+    static const juce::String soloSafe = "Solo Safe ";
+}
+
+struct ParamSlotNames
+{
+    static juce::String isActive(int i) { return ParamSlotNameStringPrefixes::isActive + juce::String(i); }
+    static juce::String volume(int i) { return ParamSlotNameStringPrefixes::volume + juce::String(i); }
+    static juce::String mute(int i) { return ParamSlotNameStringPrefixes::mute + juce::String(i); }
+    static juce::String pan(int i) { return ParamSlotNameStringPrefixes::pan + juce::String(i); }
+    static juce::String solo(int i) { return ParamSlotNameStringPrefixes::solo + juce::String(i); }
+    static juce::String soloSafe(int i) { return ParamSlotNameStringPrefixes::soloSafe + juce::String(i); }
+};
