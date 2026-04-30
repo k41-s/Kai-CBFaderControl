@@ -171,22 +171,15 @@ void PerformanceSlotItem::updateGroupState()
     int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(index)), 0);
 
     if (grpId > 0) {
-        setGroupLblText(role, grpId);
+        juce::String labelText = (role == 1) ? "LDR " : "GRP ";
+        labelText += juce::String(grpId);
+        groupLabel.setText(labelText, juce::dontSendNotification);
     }
     else {
-        groupLabel.setVisible(false);
+        groupLabel.setText("", juce::dontSendNotification);
     }
-    resized();
-}
-
-void PerformanceSlotItem::setGroupLblText(int role, int grpId)
-{
-    juce::String prefix = "GRP ";
-    if (role == 1) prefix = "LDR ";
-    else if (role == 2) prefix = "VCA ";
-
-    groupLabel.setText(prefix + juce::String(grpId), juce::dontSendNotification);
     groupLabel.setVisible(true);
+    repaint();
 }
 
 void PerformanceSlotItem::setAppropriateIndexLabelText()
@@ -210,15 +203,16 @@ void PerformanceSlotItem::addMouseListenerToChildren()
 
 void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
-    if (property == juce::Identifier(SlotIDs::slotName(index)))
-    {
+    juce::String propName = property.toString();
+
+    if (propName == SlotIDs::slotName(index)) {
         updateNameFromValueTree();
     }
-    else if (property == juce::Identifier(SlotIDs::isStereoLinked(index)) ||
-        property == juce::Identifier(SlotIDs::isStereoMain(index)) ||
-        property == juce::Identifier(SlotIDs::linkedSlotId(index)))
-    {
+    else if (propName.startsWith("isStereo") || propName.startsWith("linkedSlotId")) {
         updateStereoState();
+    }
+    else if (propName.startsWith("groupId") || propName.startsWith("groupRole")) {
+        updateGroupState();
     }
 }
 
@@ -302,10 +296,7 @@ void PerformanceSlotItem::setupSlotBounds()
 {
     auto area = getLocalBounds().reduced(2);
     int currentWidth = area.getWidth();
-
-    float referenceWidth = isStereoMain ? (currentWidth / SlotSizeValues::stereoSlotFlexGrowFactor) : currentWidth;
-
-    float sharedFontSize = juce::jlimit(10.0f, 16.0f, referenceWidth * 0.25f);
+    float sharedFontSize = juce::jlimit(10.0f, 16.0f, (float)currentWidth * 0.25f);
 	sharedFont = juce::Font(sharedFontSize);
 
     setupTopArea(area, currentWidth);
@@ -316,29 +307,29 @@ void PerformanceSlotItem::setupSlotBounds()
 
 void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWidth)
 {
-	auto topArea = area.removeFromTop(area.getHeight() * 0.25f);
+    juce::Font maxFont(16.0f);
+    int labelHeight = maxFont.getHeight() + 5;
 
-    setupIndexLabel(topArea);
-    setupNameLabel(topArea, currentWidth);
+    int topAreaHeight = (labelHeight + 5) * 3 + (30 + 5) * 2;
+    auto topArea = area.removeFromTop(topAreaHeight);
+
+    setupIndexLabel(topArea, labelHeight);
+    setupNameLabel(topArea, currentWidth, labelHeight);
     setupMuteButton(topArea);
     setupSoloButton(topArea);
-
-    topArea.removeFromTop(5);
-    groupLabel.setFont(sharedFont);
-    groupLabel.setBounds(topArea.removeFromTop(sharedFont.getHeight() + 5));
+    setupGroupLabel(topArea, labelHeight);
 }
 
-void PerformanceSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea)
+void PerformanceSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight)
 {
     topArea.removeFromTop(5);
     indexLabel.setFont(sharedFont);
-    indexLabel.setBounds(topArea.removeFromTop(sharedFont.getHeight() + 5));
+    indexLabel.setBounds(topArea.removeFromTop(labelHeight));
 }
 
-void PerformanceSlotItem::setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth)
+void PerformanceSlotItem::setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth, int labelHeight)
 {
 	topArea.removeFromTop(5);
-    const int labelHeight = sharedFont.getHeight() + 5;
     auto nameLabelBounds = topArea.removeFromTop(labelHeight);
 
     nameLabel.setBounds(nameLabelBounds);
@@ -359,7 +350,6 @@ void PerformanceSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
 {
 	topArea.removeFromTop(5);
     auto btnArea = topArea.removeFromTop(30).reduced(2);
-    //calcBtnArea(btnArea);
     muteButton.setBounds(btnArea);
 }
 
@@ -367,22 +357,27 @@ void PerformanceSlotItem::setupSoloButton(juce::Rectangle<int>& topArea)
 {
 	topArea.removeFromTop(5);
     auto btnArea = topArea.removeFromTop(30).reduced(2);
-    //calcBtnArea(btnArea);
     soloButton.setBounds(btnArea);
 }
 
-void PerformanceSlotItem::calcBtnArea(juce::Rectangle<int>& btnArea)
+void PerformanceSlotItem::setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight)
 {
-    if (isStereoMain)
-        btnArea = btnArea.withSizeKeepingCentre(btnArea.getWidth() / 2, btnArea.getHeight());
+    topArea.removeFromTop(5);
+    groupLabel.setFont(sharedFont);
+    groupLabel.setBounds(topArea.removeFromTop(labelHeight));
 }
 
 void PerformanceSlotItem::injectPanControl(juce::Rectangle<int>& area)
 {
     if (isStereoMain) {
-        int panHeight = juce::jmax(35, (int)(area.getHeight() * 0.12f));
+        int panHeight = juce::jmax(35, (int)(getLocalBounds().getHeight() * 0.09f));
         auto panArea = area.removeFromTop(panHeight);
-        panSlider.setBounds(panArea.reduced(10, 5));
+
+        panSlider.setBounds(panArea.reduced(5));
+        panSlider.setVisible(true);
+    }
+    else {
+        panSlider.setVisible(false);
     }
 }
 

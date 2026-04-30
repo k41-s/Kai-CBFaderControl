@@ -8,17 +8,35 @@ class LinkManager : public juce::AudioProcessorValueTreeState::Listener
 public:
     LinkManager(KaiCBFaderControlAudioProcessor& processor);
     ~LinkManager() override;
-
     void parameterChanged(const juce::String& parameterID, float newValue) override;
 
 private:
-    bool isSlotLeaderOrMaster(int grpId, int role);
+    void init();
+
+    void addRegularSlotListeners();
+    void addVcaMasterListeners();
+
+    void removeRegularSlotListeners();
+    void removeVcaMasterListeners();
+
+    void handleVcaVolumeParameterChanged(const juce::String& parameterID, float newValue);
+    void applyDeltaToGroupFromVca(int grpIdx, float delta);
+
+    void handleVcaMuteParameterChanged(const juce::String& parameterID, float newValue);
+    void syncGroupMutesWithVca(int vcaIdx, float newValue);
+    
+    void handleVolumeParameterChanged(const juce::String& parameterID, float newValue);
     void applyDeltaToGroupMembers(int slotIdx, int grpId, float delta);
+    
+    void handleMuteParameterChanged(const juce::String& parameterID, float newValue);
     void syncMutesWithinGroup(int slotIdx, int grpId, float newValue);
+
+    bool isSlotLeader(int grpId, int role);
 
     KaiCBFaderControlAudioProcessor& processor;
 
     std::array<float, 32> lastVolume;
+    std::array<float, 8> lastVcaVolume;
 
     std::atomic<bool> isUpdating{ false };
 

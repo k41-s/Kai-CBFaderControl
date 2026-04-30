@@ -66,8 +66,8 @@ private:
     void initLinkManager();
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-
     void addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
+    void addParamsForVca(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KaiCBFaderControlAudioProcessor)

@@ -3,6 +3,7 @@
 
 namespace SlotIdStringPrefixes
 {
+	// Regular slot parameters
     static const juce::String isActive = "isActive_";
     static const juce::String slotName = "slotName_";
     static const juce::String volume = "volume_";
@@ -10,11 +11,21 @@ namespace SlotIdStringPrefixes
     static const juce::String pan = "pan_";
     static const juce::String solo = "solo_";
     static const juce::String soloSafe = "soloSafe_";
+
+	// Stereo linking parameters
     static const juce::String isStereoLinked = "isStereoLinked_";
     static const juce::String isStereoMain = "isStereoMain_";
     static const juce::String linkedSlotId = "linkedSlotId_";
+
+	// Grouping parameters
     static const juce::String groupId = "groupId_";
     static const juce::String groupRole = "groupRole_";
+
+	// VCA parameters
+    static const juce::String vcaEnabled = "vcaEnabled_";
+    static const juce::String vcaVolume = "vcaVolume_";
+    static const juce::String vcaMute = "vcaMute_";
+    static const juce::String vcaName = "vcaName_";
     static const juce::String isVcaExpanded = "isVcaExpanded_";
 }
 
@@ -32,11 +43,14 @@ struct SlotIDs
     static juce::String isStereoMain(int i) { return SlotIdStringPrefixes::isStereoMain + juce::String(i); }
     static juce::String linkedSlotId(int i) { return SlotIdStringPrefixes::linkedSlotId + juce::String(i); }
     
-    // 0 is no group
     static juce::String groupId(int i) { return SlotIdStringPrefixes::groupId + juce::String(i); }
-    // 0 = Member, 1 = Leader, 2 = VCA Master
     static juce::String groupRole(int i) { return SlotIdStringPrefixes::groupRole + juce::String(i); }
-    static juce::String isVcaExpanded(int g) { return SlotIdStringPrefixes::isVcaExpanded + juce::String(g); }
+
+    static juce::String vcaEnabled(int grp) { return SlotIdStringPrefixes::vcaEnabled + juce::String(grp); }
+    static juce::String vcaVolume(int vca) { return SlotIdStringPrefixes::vcaVolume + juce::String(vca); }
+    static juce::String vcaMute(int vca) { return SlotIdStringPrefixes::vcaMute + juce::String(vca); }
+    static juce::String vcaName(int vca) { return SlotIdStringPrefixes::vcaName + juce::String(vca); }
+    static juce::String isVcaExpanded(int vca) { return SlotIdStringPrefixes::isVcaExpanded + juce::String(vca); }
 
     static juce::Identifier targetIP() { return "targetIP"; }
     static juce::Identifier incomingPort() { return "incomingPort"; }
@@ -51,6 +65,11 @@ namespace ParamSlotNameStringPrefixes
     static const juce::String pan = "Pan ";
     static const juce::String solo = "Solo ";
     static const juce::String soloSafe = "Solo Safe ";
+
+	static const juce::String vcaEnabled = "VCA Enabled ";
+    static const juce::String vcaVolume = "VCA Volume ";
+    static const juce::String vcaMute = "VCA Mute ";
+    static const juce::String isVcaExpanded = "VCA Expanded ";
 }
 
 struct ParamSlotNames
@@ -61,4 +80,9 @@ struct ParamSlotNames
     static juce::String pan(int i) { return ParamSlotNameStringPrefixes::pan + juce::String(i); }
     static juce::String solo(int i) { return ParamSlotNameStringPrefixes::solo + juce::String(i); }
     static juce::String soloSafe(int i) { return ParamSlotNameStringPrefixes::soloSafe + juce::String(i); }
+
+    static juce::String vcaEnabled(int i) { return ParamSlotNameStringPrefixes::vcaEnabled + juce::String(i); }
+    static juce::String vcaVolume(int i) { return ParamSlotNameStringPrefixes::vcaVolume + juce::String(i); }
+    static juce::String vcaMute(int i) { return ParamSlotNameStringPrefixes::vcaMute + juce::String(i); }
+    static juce::String isVcaExpanded(int i) { return ParamSlotNameStringPrefixes::isVcaExpanded + juce::String(i); }
 };

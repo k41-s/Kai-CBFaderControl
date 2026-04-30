@@ -36,11 +36,14 @@ namespace UIComponentNames
 namespace SlotSizeValues
 {
     static inline const float stereoSlotFlexGrowFactor = 1.75f;
+    static inline const float vcaSlotFlexGrowFactor = 1.4f;
     static inline const float monoSlotFlexGrowFactor = 1.0f;
 
     static inline const float stereoSlotMaxWidth = 160.0f;
+    static inline const float vcaSlotMaxWidth = 140.0f;
     static inline const float monoSlotMaxWidth = 120.0f;
 
     static inline const float stereoSlotTargetWidth = 100.0f;
+    static inline const float vcaSlotTargetWidth = 80.0f;
     static inline const float monoSlotTargetWidth = 60.0f;
 }

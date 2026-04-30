@@ -31,14 +31,17 @@ public:
 private:
 	void init(int slotIndex);
 	void addMouseListenerToChildren();
+
 	void configAttachments(int slotIndex);
 	void configVolumeAttachment(int slotIndex);
 	void configPanAttachment(int slotIndex);
+
 	void configComponents();
 	void configVolumeFader();
 	void configPanSlider();
 	void configMuteButton();
 	void configSoloButton();
+
 	void configLabels();
 	void configIndexLabel();
 	void configNameLabel();
@@ -46,11 +49,11 @@ private:
 	void configValueLabel();
 	void updateValueLabel();
 	juce::String getValueText(float val, bool isFineMode);
+
 	void updateNameFromValueTree();
 	void updateStereoState();
 	void updateGroupState();
 
-	void setGroupLblText(int role, int grpId);
 	void setAppropriateIndexLabelText();
 
 	void setupSlotBounds();
@@ -58,8 +61,9 @@ private:
 	void injectPanControl(juce::Rectangle<int>& area);
 
 	void setupTopArea(juce::Rectangle<int>& area, int currentWidth);
-	void setupIndexLabel(juce::Rectangle<int>& topArea);
-	void setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth);
+	void setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight);
+	void setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight);
+	void setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth, int labelHeight);
 	void showNameLabelIfNeeded(int currentWidth);
 
 	void setupMuteButton(juce::Rectangle<int>& topArea);

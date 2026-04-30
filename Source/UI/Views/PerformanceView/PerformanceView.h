@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
 #include "../../Components/PerformanceSlotItem/PerformanceSlotItem.h"
+#include "../../Components/VcaSlotItem/VcaSlotItem.h"
 #include "../../../Main/PluginProcessor/PluginProcessor.h"
 #include "../../../Utils/BinaryImageComponent/BinaryImageComponent.h"
 
@@ -38,11 +39,16 @@ public:
 private:
 	void init();
 	void configComponents();
+	void createVcaFaderSlots();
 	void createFaderSlots();
 	void setSlotMouseEvents(PerformanceSlotItem* slot);
 	void configSetupButton();
 	void registerListeners();
+	void addRegularSlotListeners();
+	void addVcaListeners();
 	void deregisterListeners();
+	void removeRegularSlotListeners();
+	void removeVcaListeners();
 	void configImages();
 
 	void handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot);
@@ -62,20 +68,22 @@ private:
 	void doStereoUnlink(int slotIdx);
 	void unlinkSlot(juce::ValueTree& state, int idx);
 
-	void setSlotGroup(int slotIdx, int groupId, int role);
+	void setSlotStandardGroup(int slotIdx, int groupId, int role);
 
 	void setHeaderArea();
 	void setupAndFillArea();
 	void setupAndFillFooter(juce::Rectangle<int>& area);
 	juce::FlexBox configFlexBox();
 	void checkAndAddActiveSlots(juce::FlexBox& flexBox);
-	void addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot);
+	void addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot, bool isMainStereo);
 
 	juce::TextButton setupButton{ "Setup" };
 
 	KaiCBFaderControlAudioProcessor& processor;
 	PerformanceViewLookFeel performanceLF;
+
 	juce::OwnedArray<PerformanceSlotItem> slots;
+	juce::OwnedArray<VcaSlotItem> vcaSlots;
 
 	juce::LassoComponent<int> lasso;
 	juce::SelectedItemSet<int> selectedItems;

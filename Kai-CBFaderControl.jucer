@@ -79,6 +79,10 @@
             <FILE id="Rtjcyd" name="StatusLED.cpp" compile="1" resource="0" file="Source/UI/Components/StatusLED/StatusLED.cpp"/>
             <FILE id="a2TSHr" name="StatusLED.h" compile="0" resource="0" file="Source/UI/Components/StatusLED/StatusLED.h"/>
           </GROUP>
+          <GROUP id="{F159346B-F3DF-A11A-E461-E9B5D9471C18}" name="VcaSlotItem">
+            <FILE id="wm4cqQ" name="VcaSlotItem.cpp" compile="1" resource="0" file="Source/UI/Components/VcaSlotItem/VcaSlotItem.cpp"/>
+            <FILE id="JqEtcG" name="VcaSlotItem.h" compile="0" resource="0" file="Source/UI/Components/VcaSlotItem/VcaSlotItem.h"/>
+          </GROUP>
           <FILE id="a5Oun4" name="UIConstants.h" compile="0" resource="0" file="Source/UI/Components/UIConstants.h"/>
         </GROUP>
       </GROUP>
