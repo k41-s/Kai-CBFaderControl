@@ -30,7 +30,6 @@ void PrecisionSlider::mouseDown(const juce::MouseEvent& e)
     isDragIntentDetermined = false;
     isVerticalDrag = false;
     dragStartPos = e.getPosition();
-    mouseDownTime = juce::Time::getMillisecondCounter();
 
     juce::Slider::mouseDown(e);
 }
@@ -57,29 +56,13 @@ void PrecisionSlider::mouseDrag(const juce::MouseEvent& e)
 void PrecisionSlider::mouseUp(const juce::MouseEvent& e)
 {
     juce::Slider::mouseUp(e);
-
-    auto timeElapsed = juce::Time::getMillisecondCounter() - mouseDownTime;
-    float distanceThreshold = getHeight() * 0.01f;
-
-    detectStationaryClick(e, distanceThreshold, timeElapsed);
-}
-
-void PrecisionSlider::detectStationaryClick(const juce::MouseEvent& e, float distanceThreshold, unsigned int timeElapsed)
-{
-    if (e.getPosition().getDistanceFrom(dragStartPos) <= distanceThreshold && timeElapsed <= 300)
-    {
-        bool isHighRes = getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
-        getProperties().set(UIProperties::isHighRes, !isHighRes);
-
-        repaint();
-
-        if (onResolutionChanged != nullptr)
-            onResolutionChanged();
-    }
 }
 
 double PrecisionSlider::snapValue(double attemptedValue, DragMode dragMode)
 {
+    if (dragMode == juce::Slider::DragMode::notDragging)
+        return attemptedValue;
+
     bool isHighRes = getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
     double interval = isHighRes ? 0.25 : 1.0;
 

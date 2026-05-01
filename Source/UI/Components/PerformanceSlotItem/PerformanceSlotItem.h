@@ -13,6 +13,8 @@ public:
 	void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 	void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
 
+	void moveFader(const juce::MouseWheelDetails& wheel);
+
 	void mouseDown(const juce::MouseEvent& e) override;
 	void mouseDrag(const juce::MouseEvent& e) override;
 	void mouseUp(const juce::MouseEvent& e) override;

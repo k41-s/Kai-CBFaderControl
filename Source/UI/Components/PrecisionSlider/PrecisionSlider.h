@@ -18,10 +18,7 @@ public:
     std::function<void()> onResolutionChanged;
 
 private:
-    void detectStationaryClick(const juce::MouseEvent& e, float distanceThreshold, unsigned int timeElapsed);
-
     juce::Point<int> dragStartPos;
-    juce::uint32 mouseDownTime = 0;
 
     bool isDragIntentDetermined = false;
     bool isVerticalDrag = false;

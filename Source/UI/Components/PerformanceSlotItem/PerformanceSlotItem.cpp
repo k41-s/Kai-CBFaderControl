@@ -129,10 +129,9 @@ void PerformanceSlotItem::updateValueLabel()
 
     bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
     juce::String text = UIUtils::getValueText(val, isFineMode);
-    bool isInf = (text == UIStringConstants::inf);
-    
+   
+    bool isInf = (val <= -95.75f);
     unitLabel.setVisible(!isInf);
-
     valueLabel.setText(isInf ? text : text + " ", juce::dontSendNotification);
 }
 
@@ -214,22 +213,27 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
 
 void PerformanceSlotItem::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
 {
-    if (event.eventComponent == &volumeFader)
+    auto pos = event.getEventRelativeTo(this).position.toInt();
+
+    if (volumeFader.getBounds().contains(pos))
     {
         if (wheel.deltaY != 0)
         {
-            float currentVal = (float)volumeFader.getValue();
-
-            bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, false);
-            float step = isFineMode ? 0.25f : 1.0f;
-
-            float increment = (wheel.deltaY > 0) ? step : -step;
-
-            volumeFader.setValue(currentVal + increment, juce::sendNotificationSync);
-
-            return;
+            moveFader(wheel);
         }
     }
+}
+
+void PerformanceSlotItem::moveFader(const juce::MouseWheelDetails& wheel)
+{
+    float currentVal = (float)volumeFader.getValue();
+
+    bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, false);
+    float step = isFineMode ? 0.25f : 1.0f;
+
+    float increment = (wheel.deltaY > 0) ? step : -step;
+
+    volumeFader.setValue(currentVal + increment, juce::sendNotificationSync);
 }
 
 void PerformanceSlotItem::mouseDown(const juce::MouseEvent& e)

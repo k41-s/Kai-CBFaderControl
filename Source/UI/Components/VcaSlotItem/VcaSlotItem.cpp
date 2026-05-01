@@ -27,6 +27,9 @@ void VcaSlotItem::configVolumeFader()
     volumeFader.getProperties().set(UIProperties::customColour, juce::Colours::darkred.brighter(0.2f).toString());
     volumeFader.setSliderStyle(juce::Slider::LinearVertical);
     volumeFader.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+
+	volumeFader.addMouseListener(this, false);
+
     volumeFader.onResolutionChanged = [this]() { updateValueLabel(); };
     volumeFader.onValueChange = [this]() { updateValueLabel(); };
     addAndMakeVisible(volumeFader);
@@ -101,8 +104,8 @@ void VcaSlotItem::updateValueLabel()
     bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
     juce::String text = UIUtils::getValueText(val, isFineMode);
 	
-    bool isInf = (text == UIStringConstants::inf);
-	unitLabel.setVisible(!isInf);
+    bool isInf = (val <= -95.75f);
+    unitLabel.setVisible(!isInf);
     valueLabel.setText(isInf ? text : text + " ", juce::dontSendNotification);
 }
 
@@ -200,4 +203,24 @@ void VcaSlotItem::setupBottomArea(juce::Rectangle<int>& area)
 
     unitLabel.setBounds(bounds.removeFromRight(unitWidth));
     valueLabel.setBounds(bounds);
+}
+
+void VcaSlotItem::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
+{
+    auto pos = event.getEventRelativeTo(this).position.toInt();
+
+    if (volumeFader.getBounds().contains(pos))
+    {
+        if (wheel.deltaY != 0)
+        {
+            float currentVal = (float)volumeFader.getValue();
+
+            bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
+            float step = isFineMode ? 0.25f : 1.0f;
+
+            float increment = (wheel.deltaY > 0) ? step : -step;
+
+            volumeFader.setValue(currentVal + increment, juce::sendNotificationSync);
+        }
+    }
 }

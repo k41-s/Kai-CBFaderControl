@@ -107,9 +107,6 @@ void PerformanceViewLookFeel::setCapColour(juce::Slider& slider, juce::Colour& c
 {
 	if (slider.getProperties().contains(UIProperties::customColour))
 		capColour = juce::Colour::fromString(slider.getProperties()[UIProperties::customColour].toString());
-
-	if (isHighResMode)
-		capColour = capColour.darker(0.7f);
 }
 
 void PerformanceViewLookFeel::drawFaderCap(juce::Graphics& g, const juce::Colour& capColour, const juce::Rectangle<float>& capBounds)

@@ -12,7 +12,7 @@ public:
 	void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 	void paint(juce::Graphics& g) override;
 	void resized() override;
-
+	void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
 	int getIndex() const { return index; }
 
 private:
