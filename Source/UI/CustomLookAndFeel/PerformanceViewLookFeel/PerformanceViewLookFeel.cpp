@@ -329,6 +329,8 @@ void PerformanceViewLookFeel::getColourFromToggleState(juce::Button& button, juc
 			colourToChange = MyColours::muteBtnPressed;
 		else if (button.getName() == UIComponentNames::soloButton)
 			colourToChange = MyColours::soloBtnPressed;
+		else if (button.getName() == UIComponentNames::expandButton)
+			colourToChange = MyColours::expandBtnPressed;
 		else colourToChange = juce::Colours::orange;
 	}
 }

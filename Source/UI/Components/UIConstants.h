@@ -31,6 +31,7 @@ namespace UIComponentNames
     static inline const juce::String muteButton = "MuteButton";
     static inline const juce::String soloButton = "SoloButton";
     static inline const juce::String activeToggle = "ActiveToggle";
+    static inline const juce::String expandButton = "ExpandButton";
 }
 
 namespace SlotSizeValues
@@ -46,4 +47,6 @@ namespace SlotSizeValues
     static inline const float stereoSlotTargetWidth = 100.0f;
     static inline const float vcaSlotTargetWidth = 80.0f;
     static inline const float monoSlotTargetWidth = 60.0f;
+
+    static inline const int targetBtnWidth = 45;
 }

@@ -34,6 +34,8 @@ public:
 	void resized() override;
 
 	int getIdealWidth();
+	void calculateRegularSlotWidth(int& targetWidth, int& activeCount);
+	void calculateVcaWidth(int& targetWidth, int& activeCount);
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
 private:
@@ -59,7 +61,13 @@ private:
 
 	void showContextMenu();
 	void addMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
+	void addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
+	void addGroupMenu(juce::PopupMenu& menu);
+	void addSingleSlotGroupOptions(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
+
 	void showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr);
+	void handlePopupMenuResult(int result, const juce::Array<int>& selectedArr);
+	void handleGroupAssignment(int result, const juce::Array<int>& selectedArr);
 
 	void doStereoLink(int slotA, int slotB);
 	bool isSlotLinked(int slotIdx) const;
@@ -69,12 +77,18 @@ private:
 	void unlinkSlot(juce::ValueTree& state, int idx);
 
 	void setSlotStandardGroup(int slotIdx, int groupId, int role);
+	void promoteToGroupLeader(int slotIdx);
+	void demoteToStandardMember(int slotIdx);
+	void toggleVcaMaster(int slotIdx);
 
 	void setHeaderArea();
 	void setupAndFillArea();
 	void setupAndFillFooter(juce::Rectangle<int>& area);
 	juce::FlexBox configFlexBox();
 	void checkAndAddActiveSlots(juce::FlexBox& flexBox);
+	void plotRegularSlots(juce::FlexBox& flexBox);
+	void hideSlotIfVcaCollapsed(int grpId, bool& shouldShow);
+	void plotVcaMasters(juce::FlexBox& flexBox);
 	void addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot, bool isMainStereo);
 
 	juce::TextButton setupButton{ "Setup" };

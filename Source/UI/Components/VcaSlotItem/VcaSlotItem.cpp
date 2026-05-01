@@ -1,6 +1,7 @@
 #include "VcaSlotItem.h"
 #include "../../../Main/SlotIDs.h"
 #include "../../CustomLookAndFeel/MyColours.h"
+#include "../../../Utils/LayoutUtils/LayoutUtils.h"
 
 VcaSlotItem::VcaSlotItem(KaiCBFaderControlAudioProcessor& p, int vcaIndex)
 	: processor(p), index(vcaIndex)
@@ -38,12 +39,14 @@ void VcaSlotItem::configButtons()
 
 void VcaSlotItem::configMuteBtn()
 {
+	muteButton.setName(UIComponentNames::muteButton);
     muteButton.setClickingTogglesState(true);
     addAndMakeVisible(muteButton);
 }
 
 void VcaSlotItem::configExpandBtn()
 {
+	expandButton.setName(UIComponentNames::expandButton);
     expandButton.setClickingTogglesState(true);
     addAndMakeVisible(expandButton);
 }
@@ -154,23 +157,42 @@ void VcaSlotItem::setupTopArea(juce::Rectangle<int>& area, int labelHeight)
     int topAreaHeight = (labelHeight + 5) * 3 + (30 + 5) * 2;
     auto topArea = area.removeFromTop(topAreaHeight);
 
-    topArea.removeFromTop(5);
-    indexLabel.setFont(sharedFont);
-    indexLabel.setBounds(topArea.removeFromTop(labelHeight));
-
-    topArea.removeFromTop(5);
-    nameLabel.setFont(sharedFont.boldened());
-    nameLabel.setBounds(topArea.removeFromTop(labelHeight));
-
-    topArea.removeFromTop(5);
-    muteButton.setBounds(topArea.removeFromTop(30).reduced(2));
-
-    topArea.removeFromTop(5);
-    expandButton.setBounds(topArea.removeFromTop(30).reduced(2));
+    setupIndexLabel(topArea, labelHeight);
+    setupNameLabel(topArea, labelHeight);
+    setupMuteButton(topArea);
+    setupExpandButton(topArea);
 
     // Allocate blank space matching where groupLabel sits in regular slots
     topArea.removeFromTop(5);
     topArea.removeFromTop(labelHeight);
+}
+
+void VcaSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight)
+{
+    topArea.removeFromTop(5);
+    indexLabel.setFont(sharedFont);
+    indexLabel.setBounds(topArea.removeFromTop(labelHeight));
+}
+
+void VcaSlotItem::setupNameLabel(juce::Rectangle<int>& topArea, int labelHeight)
+{
+    topArea.removeFromTop(5);
+    nameLabel.setFont(sharedFont.boldened());
+    nameLabel.setBounds(topArea.removeFromTop(labelHeight));
+}
+
+void VcaSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
+{
+    topArea.removeFromTop(5);
+    auto muteArea = topArea.removeFromTop(30).reduced(2);
+    LayoutUtils::setCenteredMaxWidthBounds(muteButton, muteArea, SlotSizeValues::targetBtnWidth);
+}
+
+void VcaSlotItem::setupExpandButton(juce::Rectangle<int>& topArea)
+{
+    topArea.removeFromTop(5);
+    auto expandArea = topArea.removeFromTop(30).reduced(2);
+    LayoutUtils::setCenteredMaxWidthBounds(expandButton, expandArea, SlotSizeValues::targetBtnWidth);
 }
 
 void VcaSlotItem::setupBottomArea(juce::Rectangle<int>& area)

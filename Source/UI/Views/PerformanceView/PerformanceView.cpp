@@ -2,6 +2,7 @@
 #include "../../../Main/SlotIDs.h"
 #include "../../Components/UIConstants.h"
 #include "../../CustomLookAndFeel/MyColours.h"
+#include "../../../Utils/Enums/ContextMenuId.h"
 
 PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 	:processor(p)
@@ -253,19 +254,31 @@ bool PerformanceView::isSlotLinked(int slotIdx) const
 
 void PerformanceView::addMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
 {
-	if (selectedArr.size() == 2) {
-		if (!isSlotLinked(selectedArr[0]) && !isSlotLinked(selectedArr[1])) {
-			menu.addItem(1, "Stereo Link Pairs");
-		}
-	}
-	else if (selectedArr.size() == 1) {
-		if (isSlotLinked(selectedArr[0])) {
-			menu.addItem(2, "Unlink Stereo Pair");
-		}
-	}
+	addStereoMenuItems(selectedArr, menu);
 
 	menu.addSeparator();
+	addGroupMenu(menu);
 
+	if (selectedArr.size() == 1)
+		addSingleSlotGroupOptions(selectedArr, menu);
+}
+
+void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
+{
+	if (selectedArr.size() == 2)
+	{
+		if (!isSlotLinked(selectedArr[0]) && !isSlotLinked(selectedArr[1]))
+			menu.addItem(1, "Stereo Link Pairs");
+	}
+	else if (selectedArr.size() == 1)
+	{
+		if (isSlotLinked(selectedArr[0]))
+			menu.addItem(2, "Unlink Stereo Pair");
+	}
+}
+
+void PerformanceView::addGroupMenu(juce::PopupMenu& menu)
+{
 	juce::PopupMenu groupMenu;
 	for (int i = 1; i <= 8; ++i)
 		groupMenu.addItem(30 + i, "Assign to Group " + juce::String(i));
@@ -273,54 +286,79 @@ void PerformanceView::addMenuItems(const juce::Array<int>& selectedArr, juce::Po
 	groupMenu.addSeparator();
 	groupMenu.addItem(40, "Remove from Group");
 	menu.addSubMenu("Grouping", groupMenu);
+}
 
-	if (selectedArr.size() == 1) 
-	{
-		int slotIdx = selectedArr[0];
-		int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
-		int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), 0);
+void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
+{
+	int slotIdx = selectedArr[0];
+	int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
+	int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), 0);
 
-		if (grpId > 0) {
-			menu.addSeparator();
-			menu.addItem(50, "Promote to Group Leader", true, role == 1);
-			menu.addItem(51, "Demote to Standard Member", true, role == 0);
+	if (grpId > 0) {
+		menu.addSeparator();
+		menu.addItem(50, "Promote to Group Leader", true, role == 1);
+		menu.addItem(51, "Demote to Standard Member", true, role == 0);
 
-			menu.addSeparator();
-			bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
-			menu.addItem(60, vcaEnabled ? "Disable VCA Master" : "Enable VCA Master", true, false);
-		}
+		menu.addSeparator();
+		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
+		menu.addItem(60, vcaEnabled ? "Disable VCA Master" : "Enable VCA Master", true, false);
 	}
 }
 
 void PerformanceView::showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr)
 {
 	if (menu.getNumItems() > 0) {
-		menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this), [this, selectedArr](int result) {
-			if (result == 1 && selectedArr.size() == 2) 
-				doStereoLink(selectedArr[0], selectedArr[1]);
-			else if (result == 2 && selectedArr.size() == 1) 
-				doStereoUnlink(selectedArr[0]);
-
-			else if (result >= 31 && result <= 38)
-				for (int idx : selectedArr) 
-					setSlotStandardGroup(idx, result - 30, 0);
-			else if (result == 40) 
-				for (int idx : selectedArr) 
-					setSlotStandardGroup(idx, 0, 0);
-
-			else if (result == 50 && selectedArr.size() == 1) 
-				setSlotStandardGroup(selectedArr[0], processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(selectedArr[0]))), 1);
-			else if (result == 51 && selectedArr.size() == 1) 
-				setSlotStandardGroup(selectedArr[0], processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(selectedArr[0]))), 0);
-
-			else if (result == 60 && selectedArr.size() == 1) 
-			{
-				int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(selectedArr[0])), 0);
-				if (auto* param = processor.apvts.getParameter(SlotIDs::vcaEnabled(grpId)))
-					param->setValueNotifyingHost(param->getValue() > 0.5f ? 0.0f : 1.0f);
-			}
+		menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this), 
+			[this, selectedArr](int result) {
+				handlePopupMenuResult(result, selectedArr);
 		});
 	}
+}
+
+void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& selectedArr)
+{
+	if (result == 0 || selectedArr.isEmpty()) return;
+
+	if (result > AssignGroupBase && result <= AssignGroupBase + 8) {
+		handleGroupAssignment(result, selectedArr);
+		return;
+	}
+
+	switch (result) {
+		case StereoLink:
+			if (selectedArr.size() == 2) doStereoLink(selectedArr[0], selectedArr[1]);
+			break;
+
+		case StereoUnlink:
+			if (selectedArr.size() == 1) doStereoUnlink(selectedArr[0]);
+			break;
+
+		case RemoveGroup:
+			for (int idx : selectedArr) setSlotStandardGroup(idx, 0, 0);
+			break;
+
+		case PromoteLeader:
+			if (selectedArr.size() == 1) promoteToGroupLeader(selectedArr[0]);
+			break;
+
+		case DemoteMember:
+			if (selectedArr.size() == 1) demoteToStandardMember(selectedArr[0]);
+			break;
+
+		case ToggleVCA:
+			if (selectedArr.size() == 1) toggleVcaMaster(selectedArr[0]);
+			break;
+
+		default:
+			break;
+	}
+}
+
+void PerformanceView::handleGroupAssignment(int result, const juce::Array<int>& selectedArr)
+{
+	int groupId = result - AssignGroupBase;
+	for (int idx : selectedArr)
+		setSlotStandardGroup(idx, groupId, 0);
 }
 
 void PerformanceView::doStereoLink(int slotA, int slotB)
@@ -380,6 +418,25 @@ void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, int role)
 	state.setProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), role, nullptr);
 }
 
+void PerformanceView::promoteToGroupLeader(int slotIdx)
+{
+	int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
+	setSlotStandardGroup(slotIdx, grpId, 1);
+}
+
+void PerformanceView::demoteToStandardMember(int slotIdx)
+{
+	int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
+	setSlotStandardGroup(slotIdx, grpId, 0);
+}
+
+void PerformanceView::toggleVcaMaster(int slotIdx)
+{
+	int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
+	if (auto* param = processor.apvts.getParameter(SlotIDs::vcaEnabled(grpId)))
+		param->setValueNotifyingHost(param->getValue() > 0.5f ? 0.0f : 1.0f);
+}
+
 void PerformanceView::paint(juce::Graphics& g)
 {
 	g.setColour(MyColours::cbBlue);
@@ -432,61 +489,68 @@ juce::FlexBox PerformanceView::configFlexBox()
 
 void PerformanceView::checkAndAddActiveSlots(juce::FlexBox& flexBox)
 {
-	juce::Array<int> unassignedSlots;
-	juce::Array<int> groupMembers[8];
+	plotRegularSlots(flexBox);
+	plotVcaMasters(flexBox);
+}
 
-	for (int i = 0; i < 32; ++i) 
+void PerformanceView::plotRegularSlots(juce::FlexBox& flexBox)
+{
+	for (int i = 0; i < 32; ++i)
 	{
-		if (*processor.isActiveParams[i] > 0.5f) 
+		if (*processor.isActiveParams[i] > 0.5f)
 		{
 			bool isLinked = isSlotLinked(i + 1);
 			bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(i + 1)), false);
-			
-			if (isLinked && !isMain) 
+
+			if (isLinked && !isMain)
 			{
 				slots[i]->setVisible(false);
 				continue;
 			}
 
 			int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i + 1)), 0);
-			if (grpId >= 1 && grpId <= 8)
-				groupMembers[grpId - 1].add(i);
-			else
-				unassignedSlots.add(i);
-		}
-		else
-			slots[i]->setVisible(false);
-	}
+			bool shouldShow = true;
 
-	// 1. Plot Unassigned channels
-	for (int idx : unassignedSlots) {
-		slots[idx]->setVisible(true);
-		bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(idx + 1)), false);
-		addSlotIfActive(true, flexBox, slots[idx], isMain);
-	}
+			hideSlotIfVcaCollapsed(grpId, shouldShow);
 
-	// 2. Plot Groups and their VCA Masters
-	for (int g = 0; g < 8; ++g) {
-		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(g + 1)) > 0.5f;
-		bool isExpanded = *processor.apvts.getRawParameterValue(SlotIDs::isVcaExpanded(g + 1)) > 0.5f;
+			slots[i]->setVisible(shouldShow);
 
-		if (!groupMembers[g].isEmpty()) {
-			for (int idx : groupMembers[g]) {
-				// If VCA is enabled AND collapsed, hide members. Otherwise show them.
-				bool shouldShow = !(vcaEnabled && !isExpanded);
-				slots[idx]->setVisible(shouldShow);
-
-				if (shouldShow) {
-					bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(idx + 1)), false);
-					addSlotIfActive(true, flexBox, slots[idx], isMain);
-				}
+			if (shouldShow) {
+				addSlotIfActive(true, flexBox, slots[i], isMain);
 			}
 		}
+		else
+		{
+			slots[i]->setVisible(false);
+		}
+	}
+}
 
-		// Show Dedicated VCA Master if it is enabled for this Group
+void PerformanceView::hideSlotIfVcaCollapsed(int grpId, bool& shouldShow)
+{
+	if (grpId >= 1 && grpId <= 8)
+	{
+		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
+		bool isExpanded = *processor.apvts.getRawParameterValue(SlotIDs::isVcaExpanded(grpId)) > 0.5f;
+
+		// Hide if the group's VCA is enabled AND collapsed
+		if (vcaEnabled && !isExpanded) {
+			shouldShow = false;
+		}
+	}
+}
+
+void PerformanceView::plotVcaMasters(juce::FlexBox& flexBox)
+{
+	for (int g = 0; g < 8; ++g)
+	{
+		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(g + 1)) > 0.5f;
+
 		if (vcaEnabled) {
 			vcaSlots[g]->setVisible(true);
-			flexBox.items.add(juce::FlexItem(*vcaSlots[g]).withMaxWidth(140.0f).withFlex(1.4f));
+			flexBox.items.add(juce::FlexItem(*vcaSlots[g])
+				.withMaxWidth(SlotSizeValues::vcaSlotMaxWidth)
+				.withFlex(SlotSizeValues::vcaSlotFlexGrowFactor));
 		}
 		else {
 			vcaSlots[g]->setVisible(false);
@@ -510,55 +574,9 @@ int PerformanceView::getIdealWidth()
 {
 	int targetWidth = 0;
 	int activeCount = 0;
-	juce::Array<int> groupMembers[8];
 
-	for (int i = 0; i < 32; ++i) 
-	{
-		if (*processor.isActiveParams[i] > 0.5f) 
-		{
-			bool isLinked = isSlotLinked(i + 1);
-			bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(i + 1)), false);
-			if (isLinked && !isMain) continue;
-
-			int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i + 1)), 0);
-			if (grpId >= 1 && grpId <= 8) 
-			{
-				groupMembers[grpId - 1].add(i);
-			}
-			else 
-			{
-				activeCount++;
-				targetWidth += (isLinked && isMain) 
-					? SlotSizeValues::stereoSlotTargetWidth 
-					: SlotSizeValues::monoSlotTargetWidth;
-			}
-		}
-	}
-
-	for (int g = 0; g < 8; ++g) 
-	{
-		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(g + 1)) > 0.5f;
-		bool isExpanded = *processor.apvts.getRawParameterValue(SlotIDs::isVcaExpanded(g + 1)) > 0.5f;
-
-		if (!groupMembers[g].isEmpty()) 
-		{
-			bool shouldShowMembers = !(vcaEnabled && !isExpanded);
-			if (shouldShowMembers)
-			{
-				for (int idx : groupMembers[g])
-				{
-					bool isLinked = isSlotLinked(idx + 1);
-					bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(idx + 1)), false);
-					targetWidth += (isLinked && isMain) ? SlotSizeValues::stereoSlotTargetWidth : SlotSizeValues::monoSlotTargetWidth;
-					activeCount++;
-				}
-			}
-		}
-		if (vcaEnabled) {
-			targetWidth += SlotSizeValues::vcaSlotTargetWidth;
-			activeCount++;
-		}
-	}
+	calculateRegularSlotWidth(targetWidth, activeCount);
+	calculateVcaWidth(targetWidth, activeCount);
 
 	if (activeCount == 0)
 		return WindowSizeValues::minWidth;
@@ -568,4 +586,52 @@ int PerformanceView::getIdealWidth()
 		WindowSizeValues::maxWidth,
 		targetWidth
 	);
+}
+
+void PerformanceView::calculateRegularSlotWidth(int& targetWidth, int& activeCount)
+{
+	for (int i = 0; i < 32; ++i)
+	{
+		if (*processor.isActiveParams[i] > 0.5f)
+		{
+			bool isLinked = isSlotLinked(i + 1);
+			bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(i + 1)), false);
+
+			if (isLinked && !isMain) continue;
+
+			int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i + 1)), 0);
+			bool shouldShow = true;
+
+			if (grpId >= 1 && grpId <= 8)
+			{
+				bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
+				bool isExpanded = *processor.apvts.getRawParameterValue(SlotIDs::isVcaExpanded(grpId)) > 0.5f;
+
+				if (vcaEnabled && !isExpanded) {
+					shouldShow = false;
+				}
+			}
+
+			if (shouldShow)
+			{
+				targetWidth += (isLinked && isMain)
+					? SlotSizeValues::stereoSlotTargetWidth
+					: SlotSizeValues::monoSlotTargetWidth;
+				activeCount++;
+			}
+		}
+	}
+}
+
+void PerformanceView::calculateVcaWidth(int& targetWidth, int& activeCount)
+{
+	for (int g = 0; g < 8; ++g)
+	{
+		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(g + 1)) > 0.5f;
+
+		if (vcaEnabled) {
+			targetWidth += SlotSizeValues::vcaSlotTargetWidth;
+			activeCount++;
+		}
+	}
 }

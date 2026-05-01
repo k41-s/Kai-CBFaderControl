@@ -1,6 +1,7 @@
 #include "PerformanceSlotItem.h"
 #include "../../../Main/SlotIDs.h"
 #include "../../CustomLookAndFeel/MyColours.h"
+#include "../../../Utils/LayoutUtils/LayoutUtils.h"
 
 PerformanceSlotItem::PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex)
 	:processor(p), index(slotIndex)
@@ -170,12 +171,14 @@ void PerformanceSlotItem::updateGroupState()
     int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(index)), 0);
     int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(index)), 0);
 
-    if (grpId > 0) {
+    if (grpId > 0) 
+    {
         juce::String labelText = (role == 1) ? "LDR " : "GRP ";
         labelText += juce::String(grpId);
         groupLabel.setText(labelText, juce::dontSendNotification);
     }
-    else {
+    else 
+    {
         groupLabel.setText("", juce::dontSendNotification);
     }
     groupLabel.setVisible(true);
@@ -275,16 +278,24 @@ PerformanceSlotItem::~PerformanceSlotItem()
 
 void PerformanceSlotItem::paint(juce::Graphics& g)
 {
-    if (isSelected) {
-        g.setColour(juce::Colours::white.withAlpha(0.15f));
-        g.fillRect(getLocalBounds());
-        g.setColour(juce::Colours::white.withAlpha(0.6f));
-        g.drawRect(getLocalBounds(), 2);
-    }
-    else {
-        g.setColour(juce::Colours::black.withAlpha(0.6f));
-        g.drawRect(getLocalBounds(), 1);
-    }
+    if (isSelected)
+        drawSelectedSlotItem(g);
+    else
+        drawSlotItem(g);
+}
+
+void PerformanceSlotItem::drawSelectedSlotItem(juce::Graphics& g)
+{
+    g.setColour(juce::Colours::white.withAlpha(0.15f));
+    g.fillRect(getLocalBounds());
+    g.setColour(juce::Colours::white.withAlpha(0.6f));
+    g.drawRect(getLocalBounds(), 2);
+}
+
+void PerformanceSlotItem::drawSlotItem(juce::Graphics& g)
+{
+    g.setColour(juce::Colours::black.withAlpha(0.6f));
+    g.drawRect(getLocalBounds(), 1);
 }
 
 void PerformanceSlotItem::resized()
@@ -350,14 +361,16 @@ void PerformanceSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
 {
 	topArea.removeFromTop(5);
     auto btnArea = topArea.removeFromTop(30).reduced(2);
-    muteButton.setBounds(btnArea);
+
+    LayoutUtils::setCenteredMaxWidthBounds(muteButton, btnArea, SlotSizeValues::targetBtnWidth);
 }
 
 void PerformanceSlotItem::setupSoloButton(juce::Rectangle<int>& topArea)
 {
 	topArea.removeFromTop(5);
     auto btnArea = topArea.removeFromTop(30).reduced(2);
-    soloButton.setBounds(btnArea);
+
+    LayoutUtils::setCenteredMaxWidthBounds(soloButton, btnArea, SlotSizeValues::targetBtnWidth);
 }
 
 void PerformanceSlotItem::setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight)

@@ -17,4 +17,7 @@ namespace MyColours
     const juce::Colour mouseOverButton = juce::Colours::white.withAlpha(0.05f);
 	const juce::Colour muteBtnPressed = juce::Colour(0xFFD24242).withAlpha(0.8f);
 	const juce::Colour soloBtnPressed = juce::Colour(0xFFF4EB66).withAlpha(0.8f);
+	const juce::Colour expandBtnPressed = juce::Colour(0xFFBAE361).withAlpha(0.8f); // pastel green original
+
+	//const juce::Colour expandBtnPressed = juce::Colour(0xFF7DC5C8).withAlpha(0.8f); // pastel blue
 }

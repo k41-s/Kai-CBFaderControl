@@ -34,6 +34,10 @@ private:
 	void setupSlotBounds();
 	void setupFont(int currentWidth);
 	void setupTopArea(juce::Rectangle<int>& area, int labelHeight);
+	void setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight);
+	void setupNameLabel(juce::Rectangle<int>& topArea, int labelHeight);
+	void setupMuteButton(juce::Rectangle<int>& topArea);
+	void setupExpandButton(juce::Rectangle<int>& topArea);
 	void setupBottomArea(juce::Rectangle<int>& area);
 
 	juce::Font sharedFont;

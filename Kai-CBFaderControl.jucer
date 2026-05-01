@@ -93,6 +93,12 @@
           <FILE id="ezSlTD" name="BinaryImageComponent.h" compile="0" resource="0"
                 file="Source/Utils/BinaryImageComponent/BinaryImageComponent.h"/>
         </GROUP>
+        <GROUP id="{D4DE0E00-C7C6-8602-3529-26D1C61414B2}" name="Enums">
+          <FILE id="eXWIsZ" name="ContextMenuId.h" compile="0" resource="0" file="Source/Utils/Enums/ContextMenuId.h"/>
+        </GROUP>
+        <GROUP id="{6641C19B-C8BE-D82C-67FD-49F295D718F0}" name="LayoutUtils">
+          <FILE id="rCd6Fe" name="LayoutUtils.h" compile="0" resource="0" file="Source/Utils/LayoutUtils/LayoutUtils.h"/>
+        </GROUP>
       </GROUP>
     </GROUP>
   </MAINGROUP>
