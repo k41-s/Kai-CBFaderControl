@@ -25,7 +25,14 @@ private:
 	void configIndexLabel();
 	void configNameLabel();
 	void configValueLabel();
+	void updateColours();
+
 	void configAttachments();
+	void configVolumeAttachment();
+	void configMuteAttachment();
+	void configExpandAttachment();
+
+	void preSeedSlider(juce::RangedAudioParameter* param);
 
 	void updateValueLabel();
 	void updateNameFromValueTree();

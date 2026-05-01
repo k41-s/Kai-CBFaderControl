@@ -36,7 +36,7 @@ void PerformanceViewLookFeel::drawFader(int x, int y, int width, int height, juc
 
 	setCapColour(slider, capColour, isHighResMode);
 	drawFaderCap(g, capColour, capBounds);
-	drawIndicatorLine(g, capBounds);
+	drawIndicatorLine(g, capBounds, slider);
 }
 
 void PerformanceViewLookFeel::drawFaderScale(juce::Graphics& g, juce::Slider& slider, const juce::Rectangle<float>& tickArea)
@@ -183,7 +183,7 @@ void PerformanceViewLookFeel::drawFaderCapOuterBorder(juce::Graphics& g, const j
 	g.drawRect(capBounds, 1.0f);
 }
 
-void PerformanceViewLookFeel::drawIndicatorLine(juce::Graphics& g, juce::Rectangle<float>& capBounds)
+void PerformanceViewLookFeel::drawIndicatorLine(juce::Graphics& g, juce::Rectangle<float>& capBounds, juce::Slider& slider)
 {
 	float cy = capBounds.getCentreY();
 	float left = capBounds.getX();
@@ -191,15 +191,29 @@ void PerformanceViewLookFeel::drawIndicatorLine(juce::Graphics& g, juce::Rectang
 
 	float gapHeight = 2.0f;
 	auto gapBounds = juce::Rectangle<float>(left, cy - gapHeight * 0.5f, capBounds.getWidth(), gapHeight);
+	if (slider.getProperties().contains(UIProperties::indicatorColour))
+	{
+		juce::Colour indColour = juce::Colour::fromString(slider.getProperties()[UIProperties::indicatorColour].toString());
 
-	g.setColour(juce::Colours::black.withAlpha(0.6f));
-	g.fillRect(gapBounds);
+		g.setColour(indColour);
+		g.fillRect(gapBounds);
 
-	g.setColour(juce::Colours::black);
-	g.drawHorizontalLine(static_cast<int>(gapBounds.getY()), left, right);
+		g.setColour(juce::Colours::black.withAlpha(0.4f));
+		g.drawHorizontalLine(static_cast<int>(gapBounds.getY()), left, right);
+		g.setColour(juce::Colours::white.withAlpha(0.2f));
+		g.drawHorizontalLine(static_cast<int>(gapBounds.getBottom()), left, right);
+	}
+	else 
+	{
+		g.setColour(juce::Colours::black.withAlpha(0.6f));
+		g.fillRect(gapBounds);
 
-	g.setColour(juce::Colours::white.withAlpha(0.3f));
-	g.drawHorizontalLine(static_cast<int>(gapBounds.getBottom()), left + 1.0f, right - 1.0f);
+		g.setColour(juce::Colours::black);
+		g.drawHorizontalLine(static_cast<int>(gapBounds.getY()), left, right);
+
+		g.setColour(juce::Colours::white.withAlpha(0.3f));
+		g.drawHorizontalLine(static_cast<int>(gapBounds.getBottom()), left + 1.0f, right - 1.0f);
+	}
 }
 
 void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,

@@ -296,8 +296,11 @@ void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selected
 
 	if (grpId > 0) {
 		menu.addSeparator();
-		menu.addItem(50, "Promote to Group Leader", role == 0, role == 1);
-		menu.addItem(51, "Demote to Standard Member", role > 0, role == 0);
+
+		if (role == 0)
+			menu.addItem(PromoteLeader, "Promote to Group Leader");
+		else if (role == 1)
+			menu.addItem(DemoteMember, "Demote to Standard Member");
 
 		menu.addSeparator();
 		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
@@ -447,7 +450,24 @@ void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, int role)
 void PerformanceView::promoteToGroupLeader(int slotIdx)
 {
 	int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
+
+	if (grpId == 0) return;
+
+	demoteExistingGroupLeaders(grpId);
 	setSlotStandardGroup(slotIdx, grpId, 1);
+}
+
+void PerformanceView::demoteExistingGroupLeaders(int grpId)
+{
+	for (int i = 1; i <= 32; ++i)
+	{
+		int otherGrpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
+		int otherRole = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(i)), 0);
+
+		if (otherGrpId == grpId && otherRole == 1) {
+			setSlotStandardGroup(i, grpId, 0);
+		}
+	}
 }
 
 void PerformanceView::demoteToStandardMember(int slotIdx)
@@ -530,8 +550,15 @@ void PerformanceView::plotRegularSlots(juce::FlexBox& flexBox)
 
 			if (isLinked && !isMain)
 			{
-				slots[i]->setVisible(false);
-				continue;
+				int linkedIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(i + 1)), -1);
+
+				if (linkedIdx != -1 && *processor.isActiveParams[linkedIdx - 1] < 0.5f)
+					isLinked = false;
+				else 
+				{
+					slots[i]->setVisible(false);
+					continue;
+				}
 			}
 
 			int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i + 1)), 0);
@@ -541,9 +568,8 @@ void PerformanceView::plotRegularSlots(juce::FlexBox& flexBox)
 
 			slots[i]->setVisible(shouldShow);
 
-			if (shouldShow) {
+			if (shouldShow)
 				addSlotIfActive(true, flexBox, slots[i], isMain);
-			}
 		}
 		else
 		{
@@ -559,7 +585,6 @@ void PerformanceView::hideSlotIfVcaCollapsed(int grpId, bool& shouldShow)
 		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
 		bool isExpanded = *processor.apvts.getRawParameterValue(SlotIDs::isVcaExpanded(grpId)) > 0.5f;
 
-		// Hide if the group's VCA is enabled AND collapsed
 		if (vcaEnabled && !isExpanded) {
 			shouldShow = false;
 		}
@@ -623,8 +648,15 @@ void PerformanceView::calculateRegularSlotWidth(int& targetWidth, int& activeCou
 			bool isLinked = isSlotLinked(i + 1);
 			bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(i + 1)), false);
 
-			if (isLinked && !isMain) continue;
+			if (isLinked && !isMain)
+			{
+				int linkedIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(i + 1)), -1);
 
+				if (linkedIdx != -1 && *processor.isActiveParams[linkedIdx - 1] < 0.5f)
+					isLinked = false;
+				else 
+					continue;
+			}
 			int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i + 1)), 0);
 			bool shouldShow = true;
 

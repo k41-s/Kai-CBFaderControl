@@ -79,6 +79,7 @@ private:
 
 	void setSlotStandardGroup(int slotIdx, int groupId, int role);
 	void promoteToGroupLeader(int slotIdx);
+	void demoteExistingGroupLeaders(int grpId);
 	void demoteToStandardMember(int slotIdx);
 	void toggleVcaMaster(int slotIdx);
 

@@ -19,6 +19,7 @@ private:
     void removeRegularSlotListeners();
     void removeVcaMasterListeners();
 
+    void handleProcessorRestoringState(const juce::String& parameterID, float newValue);
     void handleVcaVolumeParameterChanged(const juce::String& parameterID, float newValue);
     void applyDeltaToGroupFromVca(int grpIdx, float delta);
 
@@ -38,7 +39,7 @@ private:
     std::array<float, 32> lastVolume;
     std::array<float, 8> lastVcaVolume;
 
-    std::atomic<bool> isUpdating{ false };
+    std::atomic<bool> isPropagating{ false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LinkManager)
 };

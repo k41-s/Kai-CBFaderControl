@@ -262,11 +262,13 @@ void KaiCBFaderControlAudioProcessor::getStateInformation (juce::MemoryBlock& de
 
 void KaiCBFaderControlAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
+    isRestoringState = true;
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
 
     if (xmlState.get() != nullptr)
         if (xmlState->hasTagName(apvts.state.getType()))
             apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+	isRestoringState = false;
 }
 
 //==============================================================================

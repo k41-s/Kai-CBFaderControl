@@ -20,19 +20,19 @@ void VcaSlotItem::init()
     configAttachments();
     updateNameFromValueTree();
     updateValueLabel();
+    updateColours();
 }
 
 void VcaSlotItem::configVolumeFader()
 {
-    volumeFader.getProperties().set(UIProperties::customColour, juce::Colours::darkred.brighter(0.2f).toString());
+    addAndMakeVisible(volumeFader);
     volumeFader.setSliderStyle(juce::Slider::LinearVertical);
     volumeFader.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 
 	volumeFader.addMouseListener(this, false);
-
+    volumeFader.getProperties().set(UIProperties::isHighRes, true);
     volumeFader.onResolutionChanged = [this]() { updateValueLabel(); };
     volumeFader.onValueChange = [this]() { updateValueLabel(); };
-    addAndMakeVisible(volumeFader);
 }
 
 void VcaSlotItem::configButtons()
@@ -81,11 +81,49 @@ void VcaSlotItem::configValueLabel()
     UIUtils::setupValueBoxLabel(*this, unitLabel, juce::Justification::centredLeft, "dB");
 }
 
+void VcaSlotItem::updateColours()
+{
+    int colourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(index)), 0);
+    juce::Colour groupColour = GroupColours::palette[colourIdx];
+
+    volumeFader.getProperties().set(UIProperties::customColour, groupColour.toString());
+    volumeFader.repaint();
+
+    repaint();
+}
+
+void VcaSlotItem::preSeedSlider(juce::RangedAudioParameter* param)
+{
+    volumeFader.setRange(param->getNormalisableRange().start, param->getNormalisableRange().end, param->getNormalisableRange().interval);
+    volumeFader.setValue(param->convertFrom0to1(param->getValue()), juce::dontSendNotification);
+}
+
 void VcaSlotItem::configAttachments()
 {
-    volumeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.apvts, SlotIDs::vcaVolume(index), volumeFader);
-    muteAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(processor.apvts, SlotIDs::vcaMute(index), muteButton);
-    expandAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(processor.apvts, SlotIDs::isVcaExpanded(index), expandButton);
+    configVolumeAttachment();
+    configMuteAttachment();
+    configExpandAttachment();
+}
+
+void VcaSlotItem::configVolumeAttachment()
+{
+    if (auto* param = processor.apvts.getParameter(SlotIDs::vcaVolume(index)))
+        preSeedSlider(param);
+
+    volumeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        processor.apvts, SlotIDs::vcaVolume(index), volumeFader);
+}
+
+void VcaSlotItem::configMuteAttachment()
+{
+    muteAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        processor.apvts, SlotIDs::vcaMute(index), muteButton);
+}
+
+void VcaSlotItem::configExpandAttachment()
+{
+    expandAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        processor.apvts, SlotIDs::isVcaExpanded(index), expandButton);
 }
 
 void VcaSlotItem::updateNameFromValueTree()
@@ -118,13 +156,19 @@ void VcaSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHas
 {
     if (property == juce::Identifier(SlotIDs::vcaName(index)))
         updateNameFromValueTree();
+    else if (property == juce::Identifier(SlotIDs::groupColour(index)))
+        updateColours();
 }
 
 void VcaSlotItem::paint(juce::Graphics& g)
 {
+    int colourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(index)), 0);
+    juce::Colour groupColour = GroupColours::palette[colourIdx];
+
     g.setColour(juce::Colours::black.withAlpha(0.8f));
     g.fillAll();
-    g.setColour(juce::Colours::darkred.withAlpha(0.6f));
+
+    g.setColour(groupColour.withAlpha(0.6f));
     g.drawRect(getLocalBounds(), 1);
 }
 

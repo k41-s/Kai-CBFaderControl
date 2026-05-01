@@ -36,6 +36,7 @@ private:
 
 	void configAttachments(int slotIndex);
 	void configVolumeAttachment(int slotIndex);
+	void preSeedSlider(juce::RangedAudioParameter* param);
 	void configPanAttachment(int slotIndex);
 
 	void configComponents();

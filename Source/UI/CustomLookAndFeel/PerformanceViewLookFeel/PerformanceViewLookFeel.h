@@ -44,7 +44,7 @@ private:
     void drawFaderCapSideShadow(const juce::Rectangle<float>& capBounds, juce::Graphics& g);
     void configSideShadow(juce::ColourGradient& sideShadow, const juce::Rectangle<float>& capBounds);
     void drawFaderCapOuterBorder(juce::Graphics& g, const juce::Rectangle<float>& capBounds);
-    void drawIndicatorLine(juce::Graphics& g, juce::Rectangle<float>& capBounds);
+    void drawIndicatorLine(juce::Graphics& g, juce::Rectangle<float>& capBounds, juce::Slider& slider);
 
 	//Rotary Helpers
     void drawKnobBackground(juce::Graphics& g, float centreX, float radius, float centreY);

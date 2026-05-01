@@ -38,7 +38,7 @@ void PerformanceSlotItem::configVolumeFader()
     volumeFader.setSliderStyle(juce::Slider::LinearVertical);
     volumeFader.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     volumeFader.addMouseListener(this, false);
-
+    volumeFader.getProperties().set(UIProperties::isHighRes, true);
     volumeFader.onResolutionChanged = [this]() { updateValueLabel(); };
 }
 
@@ -111,8 +111,17 @@ void PerformanceSlotItem::configAttachments(int slotIndex)
 
 void PerformanceSlotItem::configVolumeAttachment(int slotIndex)
 {
+    if (auto* param = processor.apvts.getParameter(SlotIDs::volume(slotIndex)))
+        preSeedSlider(param);
+
     volumeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processor.apvts, SlotIDs::volume(slotIndex), volumeFader);
+}
+
+void PerformanceSlotItem::preSeedSlider(juce::RangedAudioParameter* param)
+{
+    volumeFader.setRange(param->getNormalisableRange().start, param->getNormalisableRange().end, param->getNormalisableRange().interval);
+    volumeFader.setValue(param->convertFrom0to1(param->getValue()), juce::dontSendNotification);
 }
 
 void PerformanceSlotItem::configPanAttachment(int slotIndex)
@@ -164,12 +173,17 @@ void PerformanceSlotItem::updateGroupState()
         groupLabel.setText(labelText, juce::dontSendNotification);
 
         int colourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(grpId)), 0);
-        groupLabel.setColour(juce::Label::textColourId, GroupColours::palette[colourIdx]);
+        juce::Colour groupColour = GroupColours::palette[colourIdx];
+
+        groupLabel.setColour(juce::Label::textColourId, groupColour);
+        volumeFader.getProperties().set(UIProperties::indicatorColour, groupColour.toString());
     }
     else 
     {
         groupLabel.setText("", juce::dontSendNotification);
+        volumeFader.getProperties().remove(UIProperties::indicatorColour);
     }
+	volumeFader.repaint();
     groupLabel.setVisible(true);
     repaint();
 }

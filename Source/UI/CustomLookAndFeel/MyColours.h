@@ -28,9 +28,9 @@ namespace GroupColours
     const juce::Colour cyan = juce::Colour(0xFF56FFF9);
 	const juce::Colour red = juce::Colour(0xFFFF0000).brighter(0.3f);
     const juce::Colour blue = juce::Colour(0xFF0A2AFF).brighter(0.5f);
-    const juce::Colour pink = juce::Colour(0xFFFE019A).brighter(0.2f);
+    const juce::Colour pink = juce::Colour(0xFFFE019A);
     const juce::Colour green = juce::Colour(0xFF21FA90);
-    const juce::Colour purple = juce::Colour(0xFFF200FF).brighter(0.3f);
+    const juce::Colour purple = juce::Colour(0xFF9A00D7).brighter(0.4f);
     const juce::Colour orange = juce::Colour(0xFFFF8000);
     const juce::Colour yellow = juce::Colour(0xFFFFD500);
 

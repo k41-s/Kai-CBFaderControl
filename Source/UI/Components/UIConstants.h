@@ -5,6 +5,7 @@ namespace UIProperties
 {
     static inline const juce::Identifier isHighRes = "isHighRes";
     static inline const juce::Identifier customColour = "customColour";
+    static inline const juce::Identifier indicatorColour = "indicatorColour";
 
     static constexpr bool defaultHighRes = true;
 }

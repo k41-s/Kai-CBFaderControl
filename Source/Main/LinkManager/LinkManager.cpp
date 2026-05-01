@@ -57,7 +57,11 @@ void LinkManager::removeVcaMasterListeners()
 
 void LinkManager::parameterChanged(const juce::String& parameterID, float newValue)
 {
-    if (isUpdating) return;
+    if (processor.isRestoringState || isPropagating)
+    {
+        handleProcessorRestoringState(parameterID, newValue);
+        return;
+    }
 
     if (parameterID.startsWith(SlotIdStringPrefixes::vcaVolume)) 
         handleVcaVolumeParameterChanged(parameterID, newValue);
@@ -72,19 +76,30 @@ void LinkManager::parameterChanged(const juce::String& parameterID, float newVal
         handleMuteParameterChanged(parameterID, newValue);
 }
 
+void LinkManager::handleProcessorRestoringState(const juce::String& parameterID, float newValue)
+{
+    if (parameterID.startsWith(SlotIdStringPrefixes::volume)) {
+        int slotIdx = parameterID.substring(7).getIntValue();
+        lastVolume[slotIdx - 1] = newValue;
+    }
+    else if (parameterID.startsWith(SlotIdStringPrefixes::vcaVolume)) {
+        int grpIdx = parameterID.substring(10).getIntValue();
+        lastVcaVolume[grpIdx - 1] = newValue;
+    }
+}
+
 void LinkManager::handleVcaVolumeParameterChanged(const juce::String& parameterID, float newValue)
 {
     int grpIdx = parameterID.substring(10).getIntValue();
     float delta = newValue - lastVcaVolume[grpIdx - 1];
     lastVcaVolume[grpIdx - 1] = newValue;
 
-    isUpdating = true;
     applyDeltaToGroupFromVca(grpIdx, delta);
-    isUpdating = false;
 }
 
 void LinkManager::applyDeltaToGroupFromVca(int grpIdx, float delta)
 {
+	isPropagating = true;
     for (int i = 1; i <= 32; ++i) {
         int assignedGrp = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
         if (assignedGrp == grpIdx) {
@@ -96,18 +111,18 @@ void LinkManager::applyDeltaToGroupFromVca(int grpIdx, float delta)
             lastVolume[i - 1] = targetVol;
         }
     }
+	isPropagating = false;
 }
 
 void LinkManager::handleVcaMuteParameterChanged(const juce::String& parameterID, float newValue)
 {
     int grpIdx = parameterID.substring(8).getIntValue();
-    isUpdating = true;
     syncGroupMutesWithVca(grpIdx, newValue);
-    isUpdating = false;
 }
 
 void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
 {
+	isPropagating = true;
     for (int i = 1; i <= 32; ++i) {
         int assignedGrp = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
         if (assignedGrp == grpIdx) 
@@ -118,6 +133,7 @@ void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
             }
         }
     }
+	isPropagating = false;
 }
 
 void LinkManager::handleVolumeParameterChanged(const juce::String& parameterID, float newValue)
@@ -130,15 +146,12 @@ void LinkManager::handleVolumeParameterChanged(const juce::String& parameterID, 
     lastVolume[slotIdx - 1] = newValue;
 
     if (isSlotLeader(grpId, role))
-    {
-        isUpdating = true;
         applyDeltaToGroupMembers(slotIdx, grpId, delta);
-        isUpdating = false;
-    }
 }
 
 void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
 {
+	isPropagating = true;
     for (int i = 1; i <= 32; ++i)
     {
         if (i == slotIdx) continue;
@@ -156,6 +169,7 @@ void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
             lastVolume[i - 1] = targetVol;
         }
     }
+	isPropagating = false;
 }
 
 void LinkManager::handleMuteParameterChanged(const juce::String& parameterID, float newValue)
@@ -164,15 +178,13 @@ void LinkManager::handleMuteParameterChanged(const juce::String& parameterID, fl
     int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
     int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), 0);
 
-    if (isSlotLeader(grpId, role)) {
-        isUpdating = true;
+    if (isSlotLeader(grpId, role))
         syncMutesWithinGroup(slotIdx, grpId, newValue);
-        isUpdating = false;
-    }
 }
 
 void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
 {
+	isPropagating = true;
     for (int i = 1; i <= 32; ++i) {
         if (i == slotIdx) continue;
 
@@ -186,6 +198,7 @@ void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
             
         }
     }
+	isPropagating = false;
 }
 
 bool LinkManager::isSlotLeader(int grpId, int role)

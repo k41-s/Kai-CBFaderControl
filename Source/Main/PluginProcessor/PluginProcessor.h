@@ -59,6 +59,8 @@ public:
     std::atomic<float>* isActiveParams[32];
 
 	std::unique_ptr<LinkManager> linkManager;
+
+    std::atomic<bool> isRestoringState{ false };
 private:
     void init();
     void InitialiseNetworkingDefaults();
