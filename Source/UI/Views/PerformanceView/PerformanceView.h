@@ -67,6 +67,7 @@ private:
 
 	void showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr);
 	void handlePopupMenuResult(int result, const juce::Array<int>& selectedArr);
+	void handleColourAssignment(const juce::Array<int>& selectedArr, int result);
 	void handleGroupAssignment(int result, const juce::Array<int>& selectedArr);
 
 	void doStereoLink(int slotA, int slotB);

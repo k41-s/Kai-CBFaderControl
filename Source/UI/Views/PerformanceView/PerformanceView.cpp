@@ -296,12 +296,21 @@ void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selected
 
 	if (grpId > 0) {
 		menu.addSeparator();
-		menu.addItem(50, "Promote to Group Leader", true, role == 1);
-		menu.addItem(51, "Demote to Standard Member", true, role == 0);
+		menu.addItem(50, "Promote to Group Leader", role == 0, role == 1);
+		menu.addItem(51, "Demote to Standard Member", role > 0, role == 0);
 
 		menu.addSeparator();
 		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
 		menu.addItem(60, vcaEnabled ? "Disable VCA Master" : "Enable VCA Master", true, false);
+
+		menu.addSeparator();
+		juce::PopupMenu colourMenu;
+		int currentColourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(grpId)), 0);
+
+		for (int i = 0; i < GroupColours::numColours; ++i)
+			colourMenu.addItem(AssignColourBase + i, GroupColours::names[i], true, currentColourIdx == i);
+
+		menu.addSubMenu("Group Colour", colourMenu);
 	}
 }
 
@@ -319,8 +328,13 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 {
 	if (result == 0 || selectedArr.isEmpty()) return;
 
-	if (result > AssignGroupBase && result <= AssignGroupBase + 8) {
+	if (result > AssignGroupBase && result <= AssignGroupBase + GroupColours::numColours) {
 		handleGroupAssignment(result, selectedArr);
+		return;
+	}
+
+	if (result >= AssignColourBase && result < AssignColourBase + GroupColours::numColours) {
+		handleColourAssignment(selectedArr, result);
 		return;
 	}
 
@@ -359,6 +373,18 @@ void PerformanceView::handleGroupAssignment(int result, const juce::Array<int>& 
 	int groupId = result - AssignGroupBase;
 	for (int idx : selectedArr)
 		setSlotStandardGroup(idx, groupId, 0);
+}
+
+void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr, int result)
+{
+	if (selectedArr.size() == 1)
+	{
+		int colourIdx = result - AssignColourBase;
+		int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(selectedArr[0])), 0);
+
+		if (grpId > 0)
+			processor.apvts.state.setProperty(juce::Identifier(SlotIDs::groupColour(grpId)), colourIdx, nullptr);
+	}
 }
 
 void PerformanceView::doStereoLink(int slotA, int slotB)

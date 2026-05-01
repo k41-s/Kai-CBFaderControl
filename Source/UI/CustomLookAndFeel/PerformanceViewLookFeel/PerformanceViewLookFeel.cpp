@@ -22,7 +22,7 @@ void PerformanceViewLookFeel::drawFader(int x, int y, int width, int height, juc
 {
 	auto area = juce::Rectangle<float>(x, y, width, height);
 
-	float tickAreaWidth = juce::jlimit(20.0f, 30.0f, area.getWidth() * 0.30f);
+	float tickAreaWidth = juce::jlimit(20.0f, 30.0f, area.getWidth() * 0.28f);
 	auto tickArea = area.removeFromLeft(tickAreaWidth);
 
 	area.removeFromLeft(2.0f);

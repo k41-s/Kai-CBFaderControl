@@ -2,6 +2,7 @@
 #include "../../../Main/SlotIDs.h"
 #include "../../CustomLookAndFeel/MyColours.h"
 #include "../../../Utils/LayoutUtils/LayoutUtils.h"
+#include "../../../Utils/UIUtils/UIUtils.h"
 
 PerformanceSlotItem::PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex)
 	:processor(p), index(slotIndex)
@@ -94,15 +95,12 @@ void PerformanceSlotItem::configGroupLabel()
 {
     addAndMakeVisible(groupLabel);
     groupLabel.setJustificationType(juce::Justification::centred);
-	groupLabel.setColour(juce::Label::textColourId, juce::Colours::cyan.withAlpha(0.8f));
 }
 
 void PerformanceSlotItem::configValueLabel()
 {
-    addAndMakeVisible(valueLabel);
-    valueLabel.setJustificationType(juce::Justification::centred);
-    valueLabel.setColour(juce::Label::backgroundColourId, MyColours::unpressedBtn);
-    valueLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+    UIUtils::setupValueBoxLabel(*this, valueLabel, juce::Justification::centredRight);
+    UIUtils::setupValueBoxLabel(*this, unitLabel, juce::Justification::centredLeft, "dB");
 }
 
 void PerformanceSlotItem::configAttachments(int slotIndex)
@@ -130,23 +128,12 @@ void PerformanceSlotItem::updateValueLabel()
         val = -96.0f;
 
     bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
-    juce::String text = getValueText(val, isFineMode);
+    juce::String text = UIUtils::getValueText(val, isFineMode);
+    bool isInf = (text == UIStringConstants::inf);
+    
+    unitLabel.setVisible(!isInf);
 
-    valueLabel.setText(text + " dB", juce::dontSendNotification);
-}
-
-juce::String PerformanceSlotItem::getValueText(float val, bool isFineMode)
-{
-    juce::String text;
-
-    if (val <= -95.75f)
-        text = "-inf";
-    else if (isFineMode)
-        text = juce::String(val, 2);
-    else
-        text = juce::String(juce::roundToInt(val));
-
-	return text;
+    valueLabel.setText(isInf ? text : text + " ", juce::dontSendNotification);
 }
 
 void PerformanceSlotItem::updateNameFromValueTree()
@@ -176,6 +163,9 @@ void PerformanceSlotItem::updateGroupState()
         juce::String labelText = (role == 1) ? "LDR " : "GRP ";
         labelText += juce::String(grpId);
         groupLabel.setText(labelText, juce::dontSendNotification);
+
+        int colourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(grpId)), 0);
+        groupLabel.setColour(juce::Label::textColourId, GroupColours::palette[colourIdx]);
     }
     else 
     {
@@ -214,7 +204,10 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
     else if (propName.startsWith("isStereo") || propName.startsWith("linkedSlotId")) {
         updateStereoState();
     }
-    else if (propName.startsWith("groupId") || propName.startsWith("groupRole")) {
+    else if (propName.startsWith("groupId") 
+        || propName.startsWith("groupRole") 
+        || propName.startsWith("groupColour")
+    ) {
         updateGroupState();
     }
 }
@@ -307,8 +300,8 @@ void PerformanceSlotItem::setupSlotBounds()
 {
     auto area = getLocalBounds().reduced(2);
     int currentWidth = area.getWidth();
-    float sharedFontSize = juce::jlimit(10.0f, 16.0f, (float)currentWidth * 0.25f);
-	sharedFont = juce::Font(sharedFontSize);
+
+    UIUtils::setSharedFont(sharedFont, currentWidth);
 
     setupTopArea(area, currentWidth);
     injectPanControl(area);
@@ -318,7 +311,7 @@ void PerformanceSlotItem::setupSlotBounds()
 
 void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWidth)
 {
-    juce::Font maxFont(16.0f);
+    juce::Font maxFont(UISizeConstants::maxFontSize);
     int labelHeight = maxFont.getHeight() + 5;
 
     int topAreaHeight = (labelHeight + 5) * 3 + (30 + 5) * 2;
@@ -382,23 +375,35 @@ void PerformanceSlotItem::setupGroupLabel(juce::Rectangle<int>& topArea, int lab
 
 void PerformanceSlotItem::injectPanControl(juce::Rectangle<int>& area)
 {
-    if (isStereoMain) {
+    if (isStereoMain) 
+    {
         int panHeight = juce::jmax(35, (int)(getLocalBounds().getHeight() * 0.09f));
         auto panArea = area.removeFromTop(panHeight);
 
         panSlider.setBounds(panArea.reduced(5));
         panSlider.setVisible(true);
     }
-    else {
+    else
         panSlider.setVisible(false);
-    }
 }
 
 void PerformanceSlotItem::setupBottomArea(juce::Rectangle<int>& area, int currentWidth)
 {
     auto bottomArea = area.removeFromBottom(25);
     valueLabel.setFont(sharedFont);
-    int requiredWidth = sharedFont.getStringWidth("-88.8 dB");
-    valueLabel.setVisible(currentWidth >= requiredWidth);
-    valueLabel.setBounds(bottomArea.reduced(2, 0));
+    unitLabel.setFont(sharedFont);
+
+    int unitWidth = sharedFont.getStringWidth("dB") + 4;
+    int requiredWidth = sharedFont.getStringWidth("-88.8 ") + unitWidth;
+
+    bool fits = currentWidth >= requiredWidth;
+    valueLabel.setVisible(fits);
+    unitLabel.setVisible(fits);
+
+    if (fits)
+    {
+        auto bounds = bottomArea.reduced(2, 0);
+        unitLabel.setBounds(bounds.removeFromRight(unitWidth));
+        valueLabel.setBounds(bounds);
+    }
 }

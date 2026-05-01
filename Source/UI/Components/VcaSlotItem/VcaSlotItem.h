@@ -28,12 +28,10 @@ private:
 	void configAttachments();
 
 	void updateValueLabel();
-	juce::String getValueText(float val, bool isFineMode);
 	void updateNameFromValueTree();
 
 	void setupSlotBounds();
-	void setupFont(int currentWidth);
-	void setupTopArea(juce::Rectangle<int>& area, int labelHeight);
+	void setupTopArea(juce::Rectangle<int>& area);
 	void setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight);
 	void setupNameLabel(juce::Rectangle<int>& topArea, int labelHeight);
 	void setupMuteButton(juce::Rectangle<int>& topArea);
@@ -48,6 +46,7 @@ private:
 	juce::Label nameLabel;
 	juce::Label indexLabel;
 	juce::Label valueLabel;
+	juce::Label unitLabel;
 	PrecisionSlider volumeFader;
 	juce::TextButton muteButton{ "M" };
 	juce::TextButton expandButton{ "EXP" };

@@ -1,3 +1,4 @@
+#pragma once
 #include <JuceHeader.h>
 
 namespace MyColours
@@ -20,4 +21,42 @@ namespace MyColours
 	const juce::Colour expandBtnPressed = juce::Colour(0xFFBAE361).withAlpha(0.8f); // pastel green original
 
 	//const juce::Colour expandBtnPressed = juce::Colour(0xFF7DC5C8).withAlpha(0.8f); // pastel blue
+}
+
+namespace GroupColours
+{
+    const juce::Colour cyan = juce::Colour(0xFF56FFF9);
+	const juce::Colour red = juce::Colour(0xFFFF0000).brighter(0.3f);
+    const juce::Colour blue = juce::Colour(0xFF0A2AFF).brighter(0.5f);
+    const juce::Colour pink = juce::Colour(0xFFFE019A).brighter(0.2f);
+    const juce::Colour green = juce::Colour(0xFF21FA90);
+    const juce::Colour purple = juce::Colour(0xFFF200FF).brighter(0.3f);
+    const juce::Colour orange = juce::Colour(0xFFFF8000);
+    const juce::Colour yellow = juce::Colour(0xFFFFD500);
+
+    static constexpr int numColours = 9;
+
+    static inline const juce::Colour palette[numColours] = {
+        cyan, 
+        red,
+        blue, 
+        pink, 
+        green, 
+        purple, 
+        orange, 
+        yellow,
+        MyColours::white
+    };
+
+    static inline const juce::String names[numColours] = {
+        "Cyan", 
+        "Red", 
+        "Blue", 
+        "Pink", 
+        "Green", 
+        "Purple", 
+        "Orange", 
+        "Yellow",
+        "White"
+    };
 }

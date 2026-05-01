@@ -48,7 +48,6 @@ private:
 	void configGroupLabel();
 	void configValueLabel();
 	void updateValueLabel();
-	juce::String getValueText(float val, bool isFineMode);
 
 	void updateNameFromValueTree();
 	void updateStereoState();
@@ -85,6 +84,7 @@ private:
 	juce::Label indexLabel;
 	juce::Label groupLabel;
 	juce::Label valueLabel;
+	juce::Label unitLabel;
 	PrecisionSlider volumeFader;
 	juce::Slider panSlider;
 	juce::TextButton muteButton{ UIButtonLabels::mute };

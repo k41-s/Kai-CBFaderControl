@@ -5,5 +5,6 @@ enum ContextMenuID {
     RemoveGroup = 40,
     PromoteLeader = 50,
     DemoteMember = 51,
-    ToggleVCA = 60
+    ToggleVCA = 60,
+    AssignColourBase = 100
 };

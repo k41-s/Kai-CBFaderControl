@@ -19,6 +19,13 @@ namespace WindowSizeValues
     static inline const int maxHeight = 1200;
 }
 
+namespace UISizeConstants
+{
+	static inline const float minFontSize = 9.0f;
+	static inline const float maxFontSize = 15.0f;
+	static inline const float fontSizeWidthRatio = 0.23f;
+}
+
 namespace UIButtonLabels
 {
     static inline const juce::String mute = "M";
@@ -32,6 +39,11 @@ namespace UIComponentNames
     static inline const juce::String soloButton = "SoloButton";
     static inline const juce::String activeToggle = "ActiveToggle";
     static inline const juce::String expandButton = "ExpandButton";
+}
+
+namespace UIStringConstants
+{
+	static inline const juce::String inf = "-inf";
 }
 
 namespace SlotSizeValues

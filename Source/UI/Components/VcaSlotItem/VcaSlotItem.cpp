@@ -2,6 +2,7 @@
 #include "../../../Main/SlotIDs.h"
 #include "../../CustomLookAndFeel/MyColours.h"
 #include "../../../Utils/LayoutUtils/LayoutUtils.h"
+#include "../../../Utils/UIUtils/UIUtils.h"
 
 VcaSlotItem::VcaSlotItem(KaiCBFaderControlAudioProcessor& p, int vcaIndex)
 	: processor(p), index(vcaIndex)
@@ -73,10 +74,8 @@ void VcaSlotItem::configNameLabel()
 
 void VcaSlotItem::configValueLabel()
 {
-    valueLabel.setJustificationType(juce::Justification::centred);
-    valueLabel.setColour(juce::Label::backgroundColourId, MyColours::unpressedBtn);
-    valueLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-    addAndMakeVisible(valueLabel);
+    UIUtils::setupValueBoxLabel(*this, valueLabel, juce::Justification::centredRight);
+    UIUtils::setupValueBoxLabel(*this, unitLabel, juce::Justification::centredLeft, "dB");
 }
 
 void VcaSlotItem::configAttachments()
@@ -96,15 +95,15 @@ void VcaSlotItem::updateNameFromValueTree()
 void VcaSlotItem::updateValueLabel()
 {
     float val = (float)volumeFader.getValue();
-    if (std::isnan(val) || std::isinf(val)) val = -96.0f;
-    bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
-    valueLabel.setText(getValueText(val, isFineMode) + " dB", juce::dontSendNotification);
-}
+    if (std::isnan(val) || std::isinf(val)) 
+        val = -96.0f;
 
-juce::String VcaSlotItem::getValueText(float val, bool isFineMode)
-{
-    if (val <= -95.75f) return "-inf";
-    return isFineMode ? juce::String(val, 2) : juce::String(juce::roundToInt(val));
+    bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
+    juce::String text = UIUtils::getValueText(val, isFineMode);
+	
+    bool isInf = (text == UIStringConstants::inf);
+	unitLabel.setVisible(!isInf);
+    valueLabel.setText(isInf ? text : text + " ", juce::dontSendNotification);
 }
 
 VcaSlotItem::~VcaSlotItem()
@@ -136,24 +135,19 @@ void VcaSlotItem::setupSlotBounds()
 {
     auto area = getLocalBounds().reduced(2);
     int currentWidth = area.getWidth();
-    setupFont(currentWidth);
+    UIUtils::setSharedFont(sharedFont, currentWidth);
 
-    juce::Font maxFont(16.0f);
-    int labelHeight = maxFont.getHeight() + 5;
 
-    setupTopArea(area, labelHeight);
+    setupTopArea(area);
     setupBottomArea(area);
     volumeFader.setBounds(area.reduced(2));
 }
 
-void VcaSlotItem::setupFont(int currentWidth)
+void VcaSlotItem::setupTopArea(juce::Rectangle<int>& area)
 {
-    float sharedFontSize = juce::jlimit(10.0f, 16.0f, (float)currentWidth * 0.25f);
-    sharedFont = juce::Font(sharedFontSize);
-}
+    juce::Font maxFont(UISizeConstants::maxFontSize);
+    int labelHeight = maxFont.getHeight() + 5;
 
-void VcaSlotItem::setupTopArea(juce::Rectangle<int>& area, int labelHeight)
-{
     int topAreaHeight = (labelHeight + 5) * 3 + (30 + 5) * 2;
     auto topArea = area.removeFromTop(topAreaHeight);
 
@@ -199,5 +193,11 @@ void VcaSlotItem::setupBottomArea(juce::Rectangle<int>& area)
 {
     auto bottomArea = area.removeFromBottom(25);
     valueLabel.setFont(sharedFont);
-    valueLabel.setBounds(bottomArea.reduced(2, 0));
+    unitLabel.setFont(sharedFont);
+
+    auto bounds = bottomArea.reduced(2, 0);
+    int unitWidth = sharedFont.getStringWidth("dB") + 4;
+
+    unitLabel.setBounds(bounds.removeFromRight(unitWidth));
+    valueLabel.setBounds(bounds);
 }

@@ -20,6 +20,7 @@ namespace SlotIdStringPrefixes
 	// Grouping parameters
     static const juce::String groupId = "groupId_";
     static const juce::String groupRole = "groupRole_";
+    static const juce::String groupColour = "groupColour_";
 
 	// VCA parameters
     static const juce::String vcaEnabled = "vcaEnabled_";
@@ -45,6 +46,7 @@ struct SlotIDs
     
     static juce::String groupId(int i) { return SlotIdStringPrefixes::groupId + juce::String(i); }
     static juce::String groupRole(int i) { return SlotIdStringPrefixes::groupRole + juce::String(i); }
+    static juce::String groupColour(int i) { return SlotIdStringPrefixes::groupColour + juce::String(i); }
 
     static juce::String vcaEnabled(int grp) { return SlotIdStringPrefixes::vcaEnabled + juce::String(grp); }
     static juce::String vcaVolume(int vca) { return SlotIdStringPrefixes::vcaVolume + juce::String(vca); }
