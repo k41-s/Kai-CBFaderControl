@@ -96,6 +96,12 @@
         <GROUP id="{D4DE0E00-C7C6-8602-3529-26D1C61414B2}" name="Enums">
           <FILE id="eXWIsZ" name="ContextMenuId.h" compile="0" resource="0" file="Source/Utils/Enums/ContextMenuId.h"/>
         </GROUP>
+        <GROUP id="{DF1D131C-BA8E-2959-8025-E02AA565D4D2}" name="GlobalSlotRegistry">
+          <FILE id="WTgHGN" name="GlobalSlotRegistry.cpp" compile="1" resource="0"
+                file="Source/Utils/GlobalSlotRegistry/GlobalSlotRegistry.cpp"/>
+          <FILE id="S7SNpO" name="GlobalSlotRegistry.h" compile="0" resource="0"
+                file="Source/Utils/GlobalSlotRegistry/GlobalSlotRegistry.h"/>
+        </GROUP>
         <GROUP id="{6641C19B-C8BE-D82C-67FD-49F295D718F0}" name="LayoutUtils">
           <FILE id="rCd6Fe" name="LayoutUtils.h" compile="0" resource="0" file="Source/Utils/LayoutUtils/LayoutUtils.h"/>
         </GROUP>

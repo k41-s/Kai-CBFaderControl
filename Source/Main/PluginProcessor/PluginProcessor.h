@@ -9,6 +9,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "../LinkManager/LinkManager.h"
+#include "../../Utils/GlobalSlotRegistry/GlobalSlotRegistry.h"
 
 //==============================================================================
 /**
@@ -61,6 +62,8 @@ public:
 	std::unique_ptr<LinkManager> linkManager;
 
     std::atomic<bool> isRestoringState{ false };
+
+    juce::SharedResourcePointer<GlobalSlotRegistry> globalSlotRegistry;
 private:
     void init();
     void InitialiseNetworkingDefaults();
@@ -74,3 +77,5 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KaiCBFaderControlAudioProcessor)
 };
+
+// Add functionality for Active, read only, and disabled, for the multiple instance situation.

@@ -119,7 +119,6 @@ void SetupPageView::configGridContainer()
 	}
 }
 
-
 void SetupPageView::configToggleAllBtnText()
 {
 	addAndMakeVisible(toggleAllButton);
