@@ -655,14 +655,12 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 {
 	SlotDisplayInfo info;
 
-	// 1. Check Global Slot Mode
 	bool isLocallyActive = *processor.isActiveParams[i] > 0.5f;
 	info.mode = processor.globalSlotRegistry->getSlotMode(i + 1, processor.getInstanceId(), isLocallyActive);
 
 	if (info.mode == SlotMode::Disabled)
-		return info; // shouldProcess remains false
+		return info;
 
-	// 2. Check Stereo Linking
 	bool isLinked = isSlotLinked(i + 1);
 	info.isStereoMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(i + 1)), false);
 
@@ -674,15 +672,11 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 			// Orphaned sub-slot, treat it as a standard mono slot
 		}
 		else
-		{
-			// It's a valid sub-slot, meaning the Main slot handles the UI
-			return info; // shouldProcess remains false so we ignore it visually
-		}
+			return info;
 	}
 
 	info.shouldProcess = true;
 
-	// 3. Check VCA Expansion using your existing helper
 	int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i + 1)), 0);
 	info.isVisible = true;
 	hideSlotIfVcaCollapsed(grpId, info.isVisible);

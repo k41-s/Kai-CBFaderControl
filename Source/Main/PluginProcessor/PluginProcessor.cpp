@@ -71,12 +71,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout KaiCBFaderControlAudioProces
 {
     juce::AudioProcessorValueTreeState::ParameterLayout params;
 
-    for (int i = 1; i <= 32; ++i) {
+    for (int i = 1; i <= 32; ++i) 
         addParamsForSlot(params, i);
-    }
-    for (int i = 1; i <= 8; ++i) {
+    for (int i = 1; i <= 8; ++i)
         addParamsForVca(params, i);
-	}
+
     return params;
 }
 
@@ -275,11 +274,15 @@ void KaiCBFaderControlAudioProcessor::setStateInformation (const void* data, int
         if (xmlState->hasTagName(apvts.state.getType()))
             apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 
+    claimActiveSlots();
+	isRestoringState = false;
+}
+
+void KaiCBFaderControlAudioProcessor::claimActiveSlots()
+{
     for (int i = 1; i <= 32; ++i)
         if (*apvts.getRawParameterValue(SlotIDs::isActive(i)) > 0.5f)
-			globalSlotRegistry->claimSlot(i, getInstanceId());
-
-	isRestoringState = false;
+            globalSlotRegistry->claimSlot(i, getInstanceId());
 }
 
 //==============================================================================

@@ -63,6 +63,12 @@ private:
 	void drawSlotItem(juce::Graphics& g);
 	void drawReadOnlyOverlay(juce::Graphics& g);
 
+	void drawDarkWashLayer(juce::Graphics& g, const juce::Rectangle<int>& bounds);
+
+	void drawHatchingTexture(juce::Graphics& g, const juce::Colour& hatchingColour, juce::Rectangle<int>& bounds);
+
+	void drawReadonlySlotOutline(juce::Graphics& g, const juce::Colour& hatchingColour, const juce::Rectangle<int>& bounds);
+
 	void setupSlotBounds();
 	void injectPanControl(juce::Rectangle<int>& area);
 

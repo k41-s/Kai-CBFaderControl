@@ -55,6 +55,7 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+
     //==============================================================================
     
     const juce::Uuid& getInstanceId() const { return instanceId; }
@@ -79,6 +80,7 @@ private:
     void addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
     void addParamsForVca(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
 
+    void claimActiveSlots();
     void releaseOwnedSlots() const;
 
     juce::Uuid instanceId;

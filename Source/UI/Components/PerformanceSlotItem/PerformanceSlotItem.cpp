@@ -316,23 +316,30 @@ void PerformanceSlotItem::drawReadOnlyOverlay(juce::Graphics& g)
     auto bounds = getLocalBounds();
     auto hatchingColour = juce::Colours::white.withAlpha(0.25f);
 
-    // 1. Add an extra layer of dark wash to kill the contrast of the fader underneath
+    drawDarkWashLayer(g, bounds);
+    drawHatchingTexture(g, hatchingColour, bounds);
+    drawReadonlySlotOutline(g, hatchingColour, bounds);
+}
+
+void PerformanceSlotItem::drawDarkWashLayer(juce::Graphics& g, const juce::Rectangle<int>& bounds)
+{
     g.setColour(juce::Colours::black.withAlpha(0.3f));
     g.fillRect(bounds);
+}
 
-    // 2. Draw the diagonal hatching texture
+void PerformanceSlotItem::drawHatchingTexture(juce::Graphics& g, const juce::Colour& hatchingColour, juce::Rectangle<int>& bounds)
+{
     g.setColour(hatchingColour);
 
-    int spacing = 12; // Distance between the lines
+    int spacing = 12;
     int maxDim = juce::jmax(bounds.getWidth(), bounds.getHeight());
 
-    // We start in the negative to ensure the lines cover the top-left corner
     for (int i = -maxDim; i < bounds.getWidth(); i += spacing)
-    {
         g.drawLine((float)i, 0.0f, (float)(i + maxDim), (float)maxDim, 1.5f);
-    }
+}
 
-    // 3. Optional: Add a subtle red "locked" border around the strip
+void PerformanceSlotItem::drawReadonlySlotOutline(juce::Graphics& g, const juce::Colour& hatchingColour, const juce::Rectangle<int>& bounds)
+{
     g.setColour(hatchingColour);
     g.drawRect(bounds, 1);
 }
