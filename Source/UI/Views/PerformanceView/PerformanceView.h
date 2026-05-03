@@ -93,6 +93,14 @@ private:
 	void plotVcaMasters(juce::FlexBox& flexBox);
 	void addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot, bool isMainStereo);
 
+	struct SlotDisplayInfo {
+		bool shouldProcess = false;
+		bool isVisible = false;
+		bool isStereoMain = false;
+		SlotMode mode = SlotMode::Disabled;
+	};
+	SlotDisplayInfo getSlotDisplayInfo(int index);
+
 	juce::TextButton setupButton{ "Setup" };
 
 	KaiCBFaderControlAudioProcessor& processor;

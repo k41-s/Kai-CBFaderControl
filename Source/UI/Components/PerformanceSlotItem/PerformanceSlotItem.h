@@ -25,6 +25,7 @@ public:
 	void setSelected(bool selected);
 	bool getSelected() const { return isSelected; }
 	int getIndex() const { return index; }
+	void setMode(SlotMode mode);
 
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDown;
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDrag;
@@ -75,6 +76,8 @@ private:
 	void setupBottomArea(juce::Rectangle<int>& area, int currentWidth);
 
 	juce::Font sharedFont;
+
+	SlotMode currentMode = SlotMode::Disabled;
 
 	KaiCBFaderControlAudioProcessor& processor;
 	int index;

@@ -62,27 +62,10 @@ void SlotConfigItem::configActiveToggle()
 	activeToggle.onClick = [this]
 		{
 			if (activeToggle.getToggleState())
-			{
-				// 1. User is trying to manually turn the slot ON
-				if (!processor.globalSlotRegistry->claimSlot(slotNumber, &processor))
-				{
-					// Failed! Another instance owns it. Show a warning.
-					juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-						"Slot Unavailable",
-						"Slot " + juce::String(slotNumber) + " is already active in another plugin instance.");
-
-					// Force the toggle back OFF and tell the APVTS to update
-					activeToggle.setToggleState(false, juce::sendNotificationSync);
-					return; // Abort here so we don't trigger the onToggleChanged callback!
-				}
-			}
+				processor.globalSlotRegistry->claimSlot(slotNumber, processor.getInstanceId());
 			else
-			{
-				// 2. User is manually turning it OFF, so release it back to the global pool
-				processor.globalSlotRegistry->releaseSlot(slotNumber, &processor);
-			}
+				processor.globalSlotRegistry->releaseSlot(slotNumber, processor.getInstanceId());
 
-			// If we got this far, the claim was successful (or it was an OFF command)
 			if (onToggleChanged != nullptr)
 				onToggleChanged();
 		};
@@ -96,17 +79,9 @@ SlotConfigItem::~SlotConfigItem()
 void SlotConfigItem::setToggleState(bool shouldBeActive, bool shouldNotify)
 {
 	if (shouldBeActive)
-	{
-		// 1. "Toggle All" is trying to turn this ON
-		if (!processor.globalSlotRegistry->claimSlot(slotNumber, &processor))
-		{
-			// Slot is taken by another instance! 
-			// We just silently return and ignore the command so we don't steal it.
-			return;
-		}
-	}
+		processor.globalSlotRegistry->claimSlot(slotNumber, processor.getInstanceId());
 	else
-		processor.globalSlotRegistry->releaseSlot(slotNumber, &processor);
+		processor.globalSlotRegistry->releaseSlot(slotNumber, processor.getInstanceId());
 
 	auto notification = shouldNotify ? juce::sendNotificationSync : juce::dontSendNotification;
 	activeToggle.setToggleState(shouldBeActive, notification);

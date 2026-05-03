@@ -95,6 +95,7 @@
         </GROUP>
         <GROUP id="{D4DE0E00-C7C6-8602-3529-26D1C61414B2}" name="Enums">
           <FILE id="eXWIsZ" name="ContextMenuId.h" compile="0" resource="0" file="Source/Utils/Enums/ContextMenuId.h"/>
+          <FILE id="lVfot1" name="SlotMode.h" compile="0" resource="0" file="Source/Utils/Enums/SlotMode.h"/>
         </GROUP>
         <GROUP id="{DF1D131C-BA8E-2959-8025-E02AA565D4D2}" name="GlobalSlotRegistry">
           <FILE id="WTgHGN" name="GlobalSlotRegistry.cpp" compile="1" resource="0"

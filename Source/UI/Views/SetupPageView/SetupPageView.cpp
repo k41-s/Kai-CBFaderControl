@@ -169,6 +169,7 @@ void SetupPageView::bindNetworkEditorCallbacks()
 
 SetupPageView::~SetupPageView()
 {
+	processor.apvts.state.removeListener(this);
 	setLookAndFeel(nullptr);
 }
 

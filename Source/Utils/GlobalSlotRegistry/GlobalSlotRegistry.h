@@ -1,16 +1,19 @@
 #pragma once
 #include <JuceHeader.h>
 #include <array>
+#include "../Enums/SlotMode.h"
 
-class GlobalSlotRegistry
+class GlobalSlotRegistry : public juce::ChangeBroadcaster
 {
 public:
-	GlobalSlotRegistry();
-	bool claimSlot(int slotIndex, void* processorInstance);
-	void releaseSlot(int slotIndex, void* processorInstance);
-	bool isClaimedByOther(int slotIndex, void* processorInstance);
-	void releaseAllForInstance(void* processorInstance);
+    GlobalSlotRegistry();
+    ~GlobalSlotRegistry() = default;
+
+    void claimSlot(int slotIndex, const juce::Uuid& instanceId);
+    void releaseSlot(int slotIndex, const juce::Uuid& instanceId);
+    SlotMode getSlotMode(int slotIndex, const juce::Uuid& instanceId, bool isLocallyActive);
+
 private:
-	std::array<void*, 32> owners;
-	juce::CriticalSection lock;
+    juce::CriticalSection lock;
+    juce::Array<juce::Uuid> slotOwners;
 };

@@ -14,6 +14,7 @@ void PerformanceView::init()
 {
 	setLookAndFeel(&performanceLF);
 	selectedItems.addChangeListener(this);
+	processor.globalSlotRegistry->addChangeListener(this);
 	configComponents();
 	registerListeners();
 	addAndMakeVisible(lasso);
@@ -106,6 +107,7 @@ void PerformanceView::deregisterListeners()
 	removeRegularSlotListeners();
 	removeVcaListeners();
 	processor.apvts.state.removeListener(this);
+	processor.globalSlotRegistry->removeChangeListener(this);
 }
 
 void PerformanceView::removeRegularSlotListeners()
@@ -155,6 +157,8 @@ void PerformanceView::changeListenerCallback(juce::ChangeBroadcaster* source)
 			slot->setSelected(selectedItems.isSelected(slot->getIndex()));
 		}
 	}
+	else if (source == &processor.globalSlotRegistry.get())
+		triggerAsyncUpdate();
 }
 
 void PerformanceView::findLassoItemsInArea(juce::Array<int>& itemsFound, const juce::Rectangle<int>& area)
@@ -543,38 +547,19 @@ void PerformanceView::plotRegularSlots(juce::FlexBox& flexBox)
 {
 	for (int i = 0; i < 32; ++i)
 	{
-		if (*processor.isActiveParams[i] > 0.5f)
-		{
-			bool isLinked = isSlotLinked(i + 1);
-			bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(i + 1)), false);
+		auto info = getSlotDisplayInfo(i);
 
-			if (isLinked && !isMain)
-			{
-				int linkedIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(i + 1)), -1);
-
-				if (linkedIdx != -1 && *processor.isActiveParams[linkedIdx - 1] < 0.5f)
-					isLinked = false;
-				else 
-				{
-					slots[i]->setVisible(false);
-					continue;
-				}
-			}
-
-			int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i + 1)), 0);
-			bool shouldShow = true;
-
-			hideSlotIfVcaCollapsed(grpId, shouldShow);
-
-			slots[i]->setVisible(shouldShow);
-
-			if (shouldShow)
-				addSlotIfActive(true, flexBox, slots[i], isMain);
-		}
-		else
+		if (info.mode == SlotMode::Disabled || !info.shouldProcess)
 		{
 			slots[i]->setVisible(false);
+			continue;
 		}
+
+		slots[i]->setMode(info.mode);
+		slots[i]->setVisible(info.isVisible);
+
+		if (info.isVisible)
+			addSlotIfActive(true, flexBox, slots[i], info.isStereoMain);
 	}
 }
 
@@ -643,40 +628,12 @@ void PerformanceView::calculateRegularSlotWidth(int& targetWidth, int& activeCou
 {
 	for (int i = 0; i < 32; ++i)
 	{
-		if (*processor.isActiveParams[i] > 0.5f)
+		auto info = getSlotDisplayInfo(i);
+
+		if (info.shouldProcess && info.isVisible)
 		{
-			bool isLinked = isSlotLinked(i + 1);
-			bool isMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(i + 1)), false);
-
-			if (isLinked && !isMain)
-			{
-				int linkedIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(i + 1)), -1);
-
-				if (linkedIdx != -1 && *processor.isActiveParams[linkedIdx - 1] < 0.5f)
-					isLinked = false;
-				else 
-					continue;
-			}
-			int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i + 1)), 0);
-			bool shouldShow = true;
-
-			if (grpId >= 1 && grpId <= 8)
-			{
-				bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
-				bool isExpanded = *processor.apvts.getRawParameterValue(SlotIDs::isVcaExpanded(grpId)) > 0.5f;
-
-				if (vcaEnabled && !isExpanded) {
-					shouldShow = false;
-				}
-			}
-
-			if (shouldShow)
-			{
-				targetWidth += (isLinked && isMain)
-					? SlotSizeValues::stereoSlotTargetWidth
-					: SlotSizeValues::monoSlotTargetWidth;
-				activeCount++;
-			}
+			targetWidth += info.isStereoMain ? SlotSizeValues::stereoSlotTargetWidth : SlotSizeValues::monoSlotTargetWidth;
+			activeCount++;
 		}
 	}
 }
@@ -692,4 +649,43 @@ void PerformanceView::calculateVcaWidth(int& targetWidth, int& activeCount)
 			activeCount++;
 		}
 	}
+}
+
+PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
+{
+	SlotDisplayInfo info;
+
+	// 1. Check Global Slot Mode
+	bool isLocallyActive = *processor.isActiveParams[i] > 0.5f;
+	info.mode = processor.globalSlotRegistry->getSlotMode(i + 1, processor.getInstanceId(), isLocallyActive);
+
+	if (info.mode == SlotMode::Disabled)
+		return info; // shouldProcess remains false
+
+	// 2. Check Stereo Linking
+	bool isLinked = isSlotLinked(i + 1);
+	info.isStereoMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(i + 1)), false);
+
+	if (isLinked && !info.isStereoMain)
+	{
+		int linkedIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(i + 1)), -1);
+		if (linkedIdx != -1 && *processor.isActiveParams[linkedIdx - 1] < 0.5f)
+		{
+			// Orphaned sub-slot, treat it as a standard mono slot
+		}
+		else
+		{
+			// It's a valid sub-slot, meaning the Main slot handles the UI
+			return info; // shouldProcess remains false so we ignore it visually
+		}
+	}
+
+	info.shouldProcess = true;
+
+	// 3. Check VCA Expansion using your existing helper
+	int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i + 1)), 0);
+	info.isVisible = true;
+	hideSlotIfVcaCollapsed(grpId, info.isVisible);
+
+	return info;
 }

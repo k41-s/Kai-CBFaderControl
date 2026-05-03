@@ -56,7 +56,13 @@ void KaiCBFaderControlAudioProcessor::initLinkManager()
 
 KaiCBFaderControlAudioProcessor::~KaiCBFaderControlAudioProcessor()
 {
-	globalSlotRegistry->releaseAllForInstance(this);
+    releaseOwnedSlots();
+}
+
+void KaiCBFaderControlAudioProcessor::releaseOwnedSlots() const
+{
+    for (int i = 1; i <= 32; ++i)
+        globalSlotRegistry->releaseSlot(i, getInstanceId());
 }
 
 //==============================================================================
@@ -269,21 +275,10 @@ void KaiCBFaderControlAudioProcessor::setStateInformation (const void* data, int
         if (xmlState->hasTagName(apvts.state.getType()))
             apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 
-    // --- NEW REGISTRY DEFENSE ---
     for (int i = 1; i <= 32; ++i)
-    {
-        // If the loaded preset says this slot is active...
         if (*apvts.getRawParameterValue(SlotIDs::isActive(i)) > 0.5f)
-        {
-            // Try to claim it. If another instance already has it (e.g. from track duplication)...
-            if (!globalSlotRegistry->claimSlot(i, this))
-            {
-                // Force it off locally so we don't break the xpatch sync!
-                if (auto* param = apvts.getParameter(SlotIDs::isActive(i)))
-                    param->setValueNotifyingHost(0.0f);
-            }
-        }
-    }
+			globalSlotRegistry->claimSlot(i, getInstanceId());
+
 	isRestoringState = false;
 }
 

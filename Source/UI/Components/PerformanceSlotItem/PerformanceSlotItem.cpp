@@ -227,15 +227,14 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
 
 void PerformanceSlotItem::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
 {
+    if (currentMode != SlotMode::FullAccess)
+        return;
+
     auto pos = event.getEventRelativeTo(this).position.toInt();
 
     if (volumeFader.getBounds().contains(pos))
-    {
         if (wheel.deltaY != 0)
-        {
             moveFader(wheel);
-        }
-    }
 }
 
 void PerformanceSlotItem::moveFader(const juce::MouseWheelDetails& wheel)
@@ -424,4 +423,19 @@ void PerformanceSlotItem::setupBottomArea(juce::Rectangle<int>& area, int curren
         unitLabel.setBounds(bounds.removeFromRight(unitWidth));
         valueLabel.setBounds(bounds);
     }
+}
+
+void PerformanceSlotItem::setMode(SlotMode mode)
+{
+    if (currentMode == mode) return;
+    currentMode = mode;
+
+    bool isFullAccess = (mode == SlotMode::FullAccess);
+
+    volumeFader.setEnabled(isFullAccess);
+    panSlider.setEnabled(isFullAccess);
+    muteButton.setEnabled(isFullAccess);
+    soloButton.setEnabled(isFullAccess);
+
+    setAlpha(isFullAccess ? 1.0f : 0.6f);
 }

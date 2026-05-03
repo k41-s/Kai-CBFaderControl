@@ -1,42 +1,53 @@
 #include "GlobalSlotRegistry.h"
 
-GlobalSlotRegistry::GlobalSlotRegistry() 
-{ 
-    owners.fill(nullptr);
+GlobalSlotRegistry::GlobalSlotRegistry()
+{
+    slotOwners.insertMultiple(0, juce::Uuid::null(), 32);
 }
 
-bool GlobalSlotRegistry::claimSlot(int slotIndex, void* processorInstance)
+void GlobalSlotRegistry::claimSlot(int slotIndex, const juce::Uuid& instanceId)
 {
-    juce::ScopedLock sl(lock);
-    int idx = slotIndex - 1;
+    if (!juce::isPositiveAndBelow(slotIndex - 1, slotOwners.size()))
+        return;
 
-    if (owners[idx] != nullptr && owners[idx] != processorInstance)
-        return false;
-
-    owners[idx] = processorInstance;
-    return true;
-}
-
-void GlobalSlotRegistry::releaseSlot(int slotIndex, void* processorInstance)
-{
-    juce::ScopedLock sl(lock);
-    int idx = slotIndex - 1;
-    if (owners[idx] == processorInstance)
-        owners[idx] = nullptr;
-}
-
-bool GlobalSlotRegistry::isClaimedByOther(int slotIndex, void* processorInstance)
-{
-    juce::ScopedLock sl(lock);
-    return (owners[slotIndex - 1] != nullptr && owners[slotIndex - 1] != processorInstance);
-}
-
-void GlobalSlotRegistry::releaseAllForInstance(void* processorInstance)
-{
-    juce::ScopedLock sl(lock);
-    for (int i = 0; i < 32; ++i) 
+    bool changed = false;
     {
-        if (owners[i] == processorInstance)
-            owners[i] = nullptr;
+        juce::ScopedLock sl(lock);
+        if (slotOwners[slotIndex - 1] != instanceId)
+        {
+            slotOwners.set(slotIndex - 1, instanceId);
+            changed = true;
+        }
     }
+
+    if (changed)
+        sendChangeMessage();
+}
+
+void GlobalSlotRegistry::releaseSlot(int slotIndex, const juce::Uuid& instanceId)
+{
+    if (!juce::isPositiveAndBelow(slotIndex - 1, slotOwners.size()))
+        return;
+
+    juce::ScopedLock sl(lock);
+    if (slotOwners[slotIndex - 1] == instanceId)
+    {
+        slotOwners.set(slotIndex - 1, juce::Uuid::null());
+        sendChangeMessage();
+    }
+}
+
+SlotMode GlobalSlotRegistry::getSlotMode(int slotIndex, const juce::Uuid& instanceId, bool isLocallyActive)
+{
+    if (!isLocallyActive)
+        return SlotMode::Disabled;
+
+    if (!juce::isPositiveAndBelow(slotIndex - 1, slotOwners.size()))
+        return SlotMode::Disabled;
+
+    juce::ScopedLock sl(lock);
+    if (slotOwners[slotIndex - 1] == instanceId)
+        return SlotMode::FullAccess;
+
+    return SlotMode::ReadOnly;
 }

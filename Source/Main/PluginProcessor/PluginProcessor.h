@@ -21,6 +21,7 @@ public:
     KaiCBFaderControlAudioProcessor();
     ~KaiCBFaderControlAudioProcessor() override;
 
+
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -55,6 +56,10 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     //==============================================================================
+    
+    const juce::Uuid& getInstanceId() const { return instanceId; }
+
+    //==============================================================================
 
     juce::AudioProcessorValueTreeState apvts;
     std::atomic<float>* isActiveParams[32];
@@ -74,8 +79,10 @@ private:
     void addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
     void addParamsForVca(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
 
+    void releaseOwnedSlots() const;
+
+    juce::Uuid instanceId;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KaiCBFaderControlAudioProcessor)
 };
-
-// Add functionality for Active, read only, and disabled, for the multiple instance situation.
