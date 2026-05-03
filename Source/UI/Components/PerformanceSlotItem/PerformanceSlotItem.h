@@ -61,6 +61,7 @@ private:
 
 	void drawSelectedSlotItem(juce::Graphics& g);
 	void drawSlotItem(juce::Graphics& g);
+	void drawReadOnlyOverlay(juce::Graphics& g);
 
 	void setupSlotBounds();
 	void injectPanControl(juce::Rectangle<int>& area);

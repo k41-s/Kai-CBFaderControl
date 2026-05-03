@@ -292,6 +292,9 @@ void PerformanceSlotItem::paint(juce::Graphics& g)
         drawSelectedSlotItem(g);
     else
         drawSlotItem(g);
+
+    if (currentMode == SlotMode::ReadOnly)
+        drawReadOnlyOverlay(g);
 }
 
 void PerformanceSlotItem::drawSelectedSlotItem(juce::Graphics& g)
@@ -306,6 +309,32 @@ void PerformanceSlotItem::drawSlotItem(juce::Graphics& g)
 {
     g.setColour(juce::Colours::black.withAlpha(0.6f));
     g.drawRect(getLocalBounds(), 1);
+}
+
+void PerformanceSlotItem::drawReadOnlyOverlay(juce::Graphics& g)
+{
+    auto bounds = getLocalBounds();
+    auto hatchingColour = juce::Colours::white.withAlpha(0.25f);
+
+    // 1. Add an extra layer of dark wash to kill the contrast of the fader underneath
+    g.setColour(juce::Colours::black.withAlpha(0.3f));
+    g.fillRect(bounds);
+
+    // 2. Draw the diagonal hatching texture
+    g.setColour(hatchingColour);
+
+    int spacing = 12; // Distance between the lines
+    int maxDim = juce::jmax(bounds.getWidth(), bounds.getHeight());
+
+    // We start in the negative to ensure the lines cover the top-left corner
+    for (int i = -maxDim; i < bounds.getWidth(); i += spacing)
+    {
+        g.drawLine((float)i, 0.0f, (float)(i + maxDim), (float)maxDim, 1.5f);
+    }
+
+    // 3. Optional: Add a subtle red "locked" border around the strip
+    g.setColour(hatchingColour);
+    g.drawRect(bounds, 1);
 }
 
 void PerformanceSlotItem::resized()
@@ -437,5 +466,5 @@ void PerformanceSlotItem::setMode(SlotMode mode)
     muteButton.setEnabled(isFullAccess);
     soloButton.setEnabled(isFullAccess);
 
-    setAlpha(isFullAccess ? 1.0f : 0.6f);
+    setAlpha(isFullAccess ? 1.0f : 0.4f);
 }
