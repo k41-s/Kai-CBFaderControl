@@ -35,6 +35,7 @@ private:
     void setAppropriateSize();
     void showCurrentView(bool showSetupPage);
 	void updateWindowSize(int width, int height);
+    juce::Point<int> getMaxConstrainedWindowSize();
 
     KaiCBFaderControlAudioProcessor& audioProcessor;
     SetupPageView setupPage;

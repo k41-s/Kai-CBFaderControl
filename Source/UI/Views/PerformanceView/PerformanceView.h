@@ -36,6 +36,9 @@ public:
 	int getIdealWidth();
 	void calculateRegularSlotWidth(int& targetWidth, int& activeCount);
 	void calculateVcaWidth(int& targetWidth, int& activeCount);
+
+	int getMinWidth();
+
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
 private:

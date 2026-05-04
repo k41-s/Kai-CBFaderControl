@@ -688,10 +688,10 @@ int PerformanceView::getIdealWidth()
 	calculateVcaWidth(targetWidth, activeCount);
 
 	if (activeCount == 0)
-		return WindowSizeValues::minWidth;
+		return WindowSizeValues::absolutePerfMinWidth;
 
 	return juce::jlimit(
-		WindowSizeValues::minWidth,
+		WindowSizeValues::absolutePerfMinWidth,
 		WindowSizeValues::maxWidth,
 		targetWidth
 	);
@@ -722,6 +722,37 @@ void PerformanceView::calculateVcaWidth(int& targetWidth, int& activeCount)
 			activeCount++;
 		}
 	}
+}
+
+int PerformanceView::getMinWidth()
+{
+	int minWidth = 0;
+	int activeCount = 0;
+
+	// 1. Calculate Regular Slots
+	for (int i = 0; i < 32; ++i) {
+		auto info = getSlotDisplayInfo(i); // Using the helper we made earlier!
+
+		if (info.shouldProcess && info.isVisible) {
+			minWidth += info.isStereoMain ? SlotSizeValues::stereoSlotMinWidth : SlotSizeValues::monoSlotMinWidth;
+			activeCount++;
+		}
+	}
+
+	// 2. Calculate VCA Masters
+	for (int g = 0; g < 8; ++g) {
+		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(g + 1)) > 0.5f;
+		if (vcaEnabled) {
+			minWidth += SlotSizeValues::vcaSlotMinWidth;
+			activeCount++;
+		}
+	}
+
+	// 3. Protect the Footer
+	if (activeCount == 0)
+		return WindowSizeValues::absolutePerfMinWidth;
+
+	return juce::jmax(WindowSizeValues::absolutePerfMinWidth, minWidth);
 }
 
 PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)

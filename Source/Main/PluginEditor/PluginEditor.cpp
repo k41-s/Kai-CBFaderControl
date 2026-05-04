@@ -78,10 +78,10 @@ void KaiCBFaderControlAudioProcessorEditor::determineInitialState()
 void KaiCBFaderControlAudioProcessorEditor::configResizing()
 {
     setResizable(true, true);
-    setResizeLimits(WindowSizeValues::minWidth,
-        WindowSizeValues::minHeight,
-        WindowSizeValues::maxWidth,
-        WindowSizeValues::maxHeight);
+    //setResizeLimits(WindowSizeValues::minWidth,
+    //    WindowSizeValues::minHeight,
+    //    WindowSizeValues::maxWidth,
+    //    WindowSizeValues::maxHeight);
 }
 
 void KaiCBFaderControlAudioProcessorEditor::setAppropriateSize()
@@ -108,13 +108,34 @@ void KaiCBFaderControlAudioProcessorEditor::resized()
 
 void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
 {
+    auto maxSize = getMaxConstrainedWindowSize();
+    int trueMaxWidth = maxSize.x;
+    int trueMaxHeight = maxSize.y;
+
     if (showSetupPage)
     {
+        int safeMinWidth = juce::jmin(WindowSizeValues::minWidth, trueMaxWidth);
+        int safeMinHeight = juce::jmin(WindowSizeValues::minHeight, trueMaxHeight);
+
+        setResizeLimits(
+            safeMinWidth,
+            safeMinHeight,
+            trueMaxWidth,
+            trueMaxHeight);
+
         setupPage.setBounds(getLocalBounds());
         performanceView.setBounds(0, 0, 0, 0);
     }
     else
     {
+        int perfMinWidth = juce::jmin(performanceView.getMinWidth(), trueMaxWidth);
+        int perfMinHeight = juce::jmin(WindowSizeValues::perfMinHeight, trueMaxHeight);
+
+        setResizeLimits(perfMinWidth,
+            perfMinHeight,
+            trueMaxWidth,
+            trueMaxHeight);
+
         performanceView.setBounds(getLocalBounds());
         setupPage.setBounds(0, 0, 0, 0);
     }
@@ -122,16 +143,30 @@ void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
 
 void KaiCBFaderControlAudioProcessorEditor::updateWindowSize(int width, int height)
 {
-    auto* display = juce::Desktop::getInstance().getDisplays().getDisplayForRect(getScreenBounds());
+    auto maxSize = getMaxConstrainedWindowSize();
+    int trueMaxWidth = maxSize.x;
+    int trueMaxHeight = maxSize.y;
 
+    int currentMinWidth = showSetupPage ? WindowSizeValues::minWidth : performanceView.getMinWidth();
+    int currentMinHeight = showSetupPage ? WindowSizeValues::minHeight : WindowSizeValues::perfMinHeight;
+
+    currentMinWidth = juce::jmin(currentMinWidth, trueMaxWidth);
+    currentMinHeight = juce::jmin(currentMinHeight, trueMaxHeight);
+
+    int safeWidth = juce::jlimit(currentMinWidth, trueMaxWidth, width);
+    int safeHeight = juce::jlimit(currentMinHeight, trueMaxHeight, height);
+
+    setSize(safeWidth, safeHeight);
+}
+
+juce::Point<int> KaiCBFaderControlAudioProcessorEditor::getMaxConstrainedWindowSize()
+{
+    auto* display = juce::Desktop::getInstance().getDisplays().getDisplayForRect(getScreenBounds());
     int maxScreenWidth = display ? display->userArea.getWidth() - 40 : WindowSizeValues::maxWidth;
     int maxScreenHeight = display ? display->userArea.getHeight() - 40 : WindowSizeValues::maxHeight;
 
     int trueMaxWidth = juce::jmin(WindowSizeValues::maxWidth, maxScreenWidth);
     int trueMaxHeight = juce::jmin(WindowSizeValues::maxHeight, maxScreenHeight);
 
-    int safeWidth = juce::jlimit(WindowSizeValues::minWidth, trueMaxWidth, width);
-    int safeHeight = juce::jlimit(WindowSizeValues::minHeight, trueMaxHeight, height);
-
-    setSize(safeWidth, safeHeight);
+    return { trueMaxWidth, trueMaxHeight };
 }

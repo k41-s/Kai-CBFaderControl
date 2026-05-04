@@ -12,8 +12,10 @@ namespace UIProperties
 
 namespace WindowSizeValues
 {
-	static inline const int minWidth = 750;
-    static inline const int minHeight = 550;
+    static inline const int absolutePerfMinWidth = 350;
+    static inline const int perfMinHeight = 600;
+	static inline const int minWidth = 550;
+    static inline const int minHeight = 500;
     static inline const int defaultWidth = 900;
     static inline const int defaultHeight = 650;
     static inline const int maxWidth = 1920;
@@ -60,6 +62,10 @@ namespace SlotSizeValues
     static inline const float stereoSlotTargetWidth = 100.0f;
     static inline const float vcaSlotTargetWidth = 80.0f;
     static inline const float monoSlotTargetWidth = 60.0f;
+
+    static inline const float stereoSlotMinWidth = 70.0f;
+    static inline const float vcaSlotMinWidth = 55.0f;
+    static inline const float monoSlotMinWidth = 40.0f;
 
     static inline const int targetBtnWidth = 45;
 }

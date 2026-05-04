@@ -22,7 +22,7 @@ void PerformanceViewLookFeel::drawFader(int x, int y, int width, int height, juc
 {
 	auto area = juce::Rectangle<float>(x, y, width, height);
 
-	float tickAreaWidth = juce::jlimit(20.0f, 30.0f, area.getWidth() * 0.28f);
+	float tickAreaWidth = juce::jlimit(16.0f, 30.0f, area.getWidth() * 0.3f);
 	auto tickArea = area.removeFromLeft(tickAreaWidth);
 
 	area.removeFromLeft(2.0f);
@@ -45,7 +45,7 @@ void PerformanceViewLookFeel::drawFaderScale(juce::Graphics& g, juce::Slider& sl
 
 	std::vector<double> tickValues = { 20.0, 10.0, 5.0, 0.0, -5.0, -10.0, -20.0, -30.0, -40.0, -50.0, -75.0, inf };
 
-	float fontSize = juce::jlimit(10.0f, 13.0f, tickArea.getWidth() * 0.5f);
+	float fontSize = juce::jlimit(8.5f, 13.0f, tickArea.getWidth() * 0.5f);
 	g.setFont(juce::Font(fontSize));
 
 	drawTickValues(tickValues, slider, tickArea, g);
@@ -60,7 +60,10 @@ void PerformanceViewLookFeel::drawTickValues(std::vector<double>& tickValues, ju
 		bool isZero = (val == 0.0);
 		bool isInf = (val == inf);
 
-		float lineLength = isZero ? 4.0f : 2.0f;
+		float maxLineLength = isZero ? 4.0f : 2.0f;
+		float widthPercentage = isZero ? 0.2f : 0.1f;
+
+		float lineLength = juce::jmin(maxLineLength, tickArea.getWidth() * widthPercentage);
 		drawTickLine(tickArea, lineLength, g, isZero, y);
 		drawTickText(isZero, isInf, val, tickArea, y, lineLength, g);
 	}
@@ -88,14 +91,14 @@ void PerformanceViewLookFeel::drawTickText(bool isZero, bool isInf, double val, 
 
 void PerformanceViewLookFeel::drawFaderTrack(juce::Graphics& g, juce::Slider& slider, juce::Rectangle<float>& area)
 {
-	auto trackWidth = 5.0f;
+	float trackWidth = juce::jlimit(2.0f, 6.0f, area.getWidth() * 0.12f);
 	g.setColour(slider.findColour(juce::Slider::trackColourId));
-	g.fillRoundedRectangle(area.withSizeKeepingCentre(trackWidth, area.getHeight()), 2.0f);
+	g.fillRoundedRectangle(area.withSizeKeepingCentre(trackWidth, area.getHeight()), trackWidth * 0.5f);
 }
 
 juce::Rectangle<float> PerformanceViewLookFeel::getFaderCapBounds(juce::Rectangle<float>& area, float sliderPos)
 {
-	float capWidth = juce::jlimit(12.0f, 24.0f, area.getWidth() * 0.7f);
+	float capWidth = juce::jlimit(13.0f, 24.0f, area.getWidth() * 0.7f);
 	float targetCapHeight = capWidth * 2.0f;
 	float maxAllowedHeight = area.getHeight() * 0.15f;
 	float capHeight = juce::jmax(16.0f, juce::jmin(targetCapHeight, maxAllowedHeight));
