@@ -54,6 +54,10 @@ private:
     void configIndicatorPointer(float radius, juce::Path& p, float angle, float centreX, float centreY);
     void drawIndicatorPointer(juce::Graphics& g, juce::Path& p);
     void drawOuterRing(juce::Graphics& g, float centreX, float radius, float centreY);
+    void drawPanScale(juce::Graphics& g, float centreX, float centreY, float radius, float startAngle, float endAngle);
+    void drawPanLabels(juce::Graphics& g, float centreX, float scaleRadius, float centreY, float startAngle, float endAngle);
+    void drawPanTicks(juce::Graphics& g, float radius, float centreX, float centreY, float startAngle, float endAngle);
+    void drawPanValueText(juce::Graphics& g, float sliderPos, juce::Rectangle<float>& textArea);
 
     //Button Helpers
     void getColourFromToggleState(juce::Button& button, juce::Colour& bgColour);

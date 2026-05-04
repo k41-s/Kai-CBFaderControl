@@ -222,20 +222,31 @@ void PerformanceViewLookFeel::drawIndicatorLine(juce::Graphics& g, juce::Rectang
 void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
 	float sliderPos, const float startAngle, const float endAngle, juce::Slider& slider
 ) {
-	auto outline = juce::Rectangle<float>(x, y, width, height).reduced(2.0f);
+	auto bounds = juce::Rectangle<float>(x, y, width, height).reduced(2.0f);
 
-	float maxDiameter = juce::jlimit(24.0f, 36.0f, outline.getWidth() * 0.7f);
-	float diameter = juce::jmin(outline.getWidth(), outline.getHeight(), maxDiameter);
+	// 1. Carve out the left side using the EXACT same math as the fader dB scale
+	float tickAreaWidth = juce::jlimit(16.0f, 30.0f, width * 0.35f);
+	auto textArea = bounds.removeFromLeft(tickAreaWidth);
+	bounds.removeFromLeft(2.0f);
+
+	// 2. Draw the dynamic value readout in the left column
+	drawPanValueText(g, sliderPos, textArea);
+
+	// 3. The remaining bounds are for the knob.
+	auto outline = bounds.reduced(1.0f);
+
+	float maxDiameter = juce::jlimit(24.0f, 36.0f, outline.getWidth() * 0.95f);
+	float diameter = juce::jmin(outline.getWidth(), outline.getHeight() * 0.95f, maxDiameter);
 
 	auto knobArea = outline.withSizeKeepingCentre(diameter, diameter);
-
 	auto radius = knobArea.getWidth() / 2.0f;
-	radius -= 2.0f;
-
-	auto centreX = x + width * 0.5f;
-	auto centreY = y + height * 0.5f;
+	auto centreX = knobArea.getCentreX();
+	auto centreY = knobArea.getCentreY();
 	auto angle = startAngle + sliderPos * (endAngle - startAngle);
 
+	drawPanScale(g, centreX, centreY, radius, startAngle, endAngle);
+
+	radius -= 2.0f;
 	drawKnobBackground(g, centreX, radius, centreY);
 	configAndDrawIndicatorPointer(radius, angle, centreX, centreY, g);
 	drawOuterRing(g, centreX, radius, centreY);
@@ -320,6 +331,68 @@ void PerformanceViewLookFeel::drawOuterRing(juce::Graphics& g, float centreX, fl
 
 	g.setColour(juce::Colours::black.withAlpha(0.5f));
 	g.drawEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f, 1.5f);
+}
+
+void PerformanceViewLookFeel::drawPanScale(juce::Graphics& g, float centreX, float centreY, float radius, float startAngle, float endAngle)
+{
+	g.setColour(juce::Colours::white.withAlpha(0.6f));
+	g.setFont(juce::Font(8.5f, juce::Font::bold));
+
+	float scaleRadius = radius + 5.5f;
+
+	drawPanLabels(g, centreX, scaleRadius, centreY, startAngle, endAngle);
+	drawPanTicks(g, radius, centreX, centreY, startAngle, endAngle);
+}
+
+void PerformanceViewLookFeel::drawPanLabels(juce::Graphics& g, float centreX, float scaleRadius, float centreY, float startAngle, float endAngle)
+{
+	auto drawLabelAtAngle = [&](float angle, const juce::String& text)
+		{
+			float tx = centreX + scaleRadius * std::sin(angle);
+			float ty = centreY - scaleRadius * std::cos(angle);
+			juce::Rectangle<float> r(tx - 10.0f, ty - 6.0f, 20.0f, 12.0f);
+			g.drawText(text, r, juce::Justification::centred, false);
+		};
+
+	drawLabelAtAngle(startAngle, "L");
+	drawLabelAtAngle((startAngle + endAngle) * 0.5f, "C");
+	drawLabelAtAngle(endAngle, "R");
+}
+
+void PerformanceViewLookFeel::drawPanTicks(juce::Graphics& g, float radius, float centreX, float centreY, float startAngle, float endAngle)
+{
+	g.setColour(juce::Colours::white.withAlpha(0.2f));
+
+	auto drawTick = [&](float angle)
+	{
+		float innerR = radius + 1.0f;
+		float outerR = radius + 3.5f;
+		g.drawLine(centreX + innerR * std::sin(angle), centreY - innerR * std::cos(angle),
+			centreX + outerR * std::sin(angle), centreY - outerR * std::cos(angle), 1.0f);
+	};
+
+	drawTick(startAngle);
+	drawTick((startAngle + endAngle) * 0.5f);
+	drawTick(endAngle);
+}
+
+void PerformanceViewLookFeel::drawPanValueText(juce::Graphics& g, float sliderPos, juce::Rectangle<float>& textArea)
+{
+	juce::String panText;
+
+	if (std::abs(sliderPos - 0.5f) < 0.01f)
+		panText = "C";
+	else
+	{
+		int pct = juce::roundToInt(std::abs(sliderPos - 0.5f) * 200.0f);
+		panText = juce::String(pct) + "%"; // maybe: (sliderPos < 0.5f ? "L" : "R") somewhere
+	}
+
+	g.setColour(juce::Colours::white.withAlpha(0.85f));
+
+	float fontSize = juce::jlimit(7.0f, 9.5f, textArea.getWidth() * 0.45f);
+	g.setFont(juce::Font(fontSize, juce::Font::bold));
+	g.drawText(panText, textArea, juce::Justification::centred, false);
 }
 
 void PerformanceViewLookFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button, 

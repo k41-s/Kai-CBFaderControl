@@ -430,10 +430,10 @@ void PerformanceSlotItem::injectPanControl(juce::Rectangle<int>& area)
 {
     if (isStereoMain) 
     {
-        int panHeight = juce::jmax(35, (int)(getLocalBounds().getHeight() * 0.09f));
+        int panHeight = juce::jmax(35, (int)(getLocalBounds().getHeight() * 0.10f));
         auto panArea = area.removeFromTop(panHeight);
 
-        panSlider.setBounds(panArea.reduced(5));
+        panSlider.setBounds(panArea.reduced(2));
         panSlider.setVisible(true);
     }
     else
