@@ -258,13 +258,48 @@ bool PerformanceView::isSlotLinked(int slotIdx) const
 
 void PerformanceView::addMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
 {
-	addStereoMenuItems(selectedArr, menu);
+	juce::Array<int> activeSlots;
+	juce::Array<int> readOnlySlots;
+
+	sortSelectedSlots(selectedArr, activeSlots, readOnlySlots);
+
+	if (!readOnlySlots.isEmpty())
+		addClaimSlotMenuItem(readOnlySlots, menu);
+
+	if (!activeSlots.isEmpty())
+		addStandardMenuOptions(readOnlySlots, menu, activeSlots);
+}
+
+void PerformanceView::sortSelectedSlots(const juce::Array<int>& selectedArr, juce::Array<int>& activeSlots, juce::Array<int>& readOnlySlots)
+{
+	for (int idx : selectedArr)
+	{
+		if (isSlotFullAccess(idx)) activeSlots.add(idx);
+		else readOnlySlots.add(idx);
+	}
+}
+
+void PerformanceView::addClaimSlotMenuItem(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu)
+{
+	juce::String text = readOnlySlots.size() == 1
+		? "Claim Slot " + juce::String(readOnlySlots[0])
+		: "Claim Selected Slots";
+
+	menu.addItem(ClaimSlot, text);
+}
+
+void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu, juce::Array<int>& activeSlots)
+{
+	if (!readOnlySlots.isEmpty())
+		menu.addSeparator();
+
+	addStereoMenuItems(activeSlots, menu);
 
 	menu.addSeparator();
 	addGroupMenu(menu);
 
-	if (selectedArr.size() == 1)
-		addSingleSlotGroupOptions(selectedArr, menu);
+	if (activeSlots.size() == 1)
+		addSingleSlotGroupOptions(activeSlots, menu);
 }
 
 void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
@@ -335,44 +370,79 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 {
 	if (result == 0 || selectedArr.isEmpty()) return;
 
-	if (result > AssignGroupBase && result <= AssignGroupBase + GroupColours::numColours) {
-		handleGroupAssignment(result, selectedArr);
+	if (result == ClaimSlot) 
+	{
+		handleClaimSlot(selectedArr);
 		return;
 	}
 
-	if (result >= AssignColourBase && result < AssignColourBase + GroupColours::numColours) {
-		handleColourAssignment(selectedArr, result);
+	juce::Array<int> activeSlots;
+	fillActiveSlots(selectedArr, activeSlots);
+
+	if (activeSlots.isEmpty()) return;
+
+	if (result > AssignGroupBase && result <= AssignGroupBase + GroupColours::numColours) 
+	{
+		handleGroupAssignment(result, activeSlots);
+		return;
+	}
+
+	if (result >= AssignColourBase && result < AssignColourBase + GroupColours::numColours) 
+	{
+		handleColourAssignment(activeSlots, result);
 		return;
 	}
 
 	switch (result) {
 		case StereoLink:
-			if (selectedArr.size() == 2) doStereoLink(selectedArr[0], selectedArr[1]);
+			if (activeSlots.size() == 2) doStereoLink(activeSlots[0], activeSlots[1]);
 			break;
 
 		case StereoUnlink:
-			if (selectedArr.size() == 1) doStereoUnlink(selectedArr[0]);
+			if (activeSlots.size() == 1) doStereoUnlink(activeSlots[0]);
 			break;
 
 		case RemoveGroup:
-			for (int idx : selectedArr) setSlotStandardGroup(idx, 0, 0);
+			for (int idx : activeSlots) setSlotStandardGroup(idx, 0, 0);
 			break;
 
 		case PromoteLeader:
-			if (selectedArr.size() == 1) promoteToGroupLeader(selectedArr[0]);
+			if (activeSlots.size() == 1) promoteToGroupLeader(activeSlots[0]);
 			break;
 
 		case DemoteMember:
-			if (selectedArr.size() == 1) demoteToStandardMember(selectedArr[0]);
+			if (activeSlots.size() == 1) demoteToStandardMember(activeSlots[0]);
 			break;
 
 		case ToggleVCA:
-			if (selectedArr.size() == 1) toggleVcaMaster(selectedArr[0]);
+			if (activeSlots.size() == 1) toggleVcaMaster(activeSlots[0]);
 			break;
 
 		default:
 			break;
 	}
+}
+
+void PerformanceView::handleClaimSlot(const juce::Array<int>& selectedArr)
+{
+	for (int idx : selectedArr)
+	{
+		if (!isSlotFullAccess(idx))
+		{
+			processor.globalSlotRegistry->claimSlot(idx, processor.getInstanceId());
+
+			if (auto* param = processor.apvts.getParameter(SlotIDs::isActive(idx)))
+				param->setValueNotifyingHost(1.0f);
+		}
+	}
+	selectedItems.deselectAll();
+}
+
+void PerformanceView::fillActiveSlots(const juce::Array<int>& selectedArr, juce::Array<int>& activeSlots)
+{
+	for (int idx : selectedArr)
+		if (isSlotFullAccess(idx))
+			activeSlots.add(idx);
 }
 
 void PerformanceView::handleGroupAssignment(int result, const juce::Array<int>& selectedArr)
@@ -424,6 +494,9 @@ void PerformanceView::setSubSlotProperties(juce::ValueTree& state, int subIdx, i
 	state.setProperty(juce::Identifier(SlotIDs::isStereoLinked(subIdx)), true, nullptr);
 	state.setProperty(juce::Identifier(SlotIDs::isStereoMain(subIdx)), false, nullptr);
 	state.setProperty(juce::Identifier(SlotIDs::linkedSlotId(subIdx)), mainIdx, nullptr);
+
+	state.setProperty(juce::Identifier(SlotIDs::groupId(subIdx)), 0, nullptr);
+	state.setProperty(juce::Identifier(SlotIDs::groupRole(subIdx)), 0, nullptr);
 }
 
 void PerformanceView::doStereoUnlink(int slotIdx)
@@ -682,4 +755,11 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 	hideSlotIfVcaCollapsed(grpId, info.isVisible);
 
 	return info;
+}
+
+bool PerformanceView::isSlotFullAccess(int slotIdx)
+{
+	bool isLocallyActive = *processor.isActiveParams[slotIdx - 1] > 0.5f;
+	return processor.globalSlotRegistry
+		->getSlotMode(slotIdx, processor.getInstanceId(), isLocallyActive) == SlotMode::FullAccess;
 }

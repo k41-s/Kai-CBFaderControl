@@ -25,6 +25,7 @@ void KaiCBFaderControlAudioProcessor::init()
     InitialiseNetworkingDefaults();
     fillIsActiveParamsList();
     initLinkManager();
+    initGlobalRegistry();
 }
 
 void KaiCBFaderControlAudioProcessor::InitialiseNetworkingDefaults()
@@ -54,8 +55,23 @@ void KaiCBFaderControlAudioProcessor::initLinkManager()
     linkManager = std::make_unique<LinkManager>(*this);
 }
 
+void KaiCBFaderControlAudioProcessor::initGlobalRegistry()
+{
+    wasSlotOwned.insertMultiple(0, false, 32);
+
+    globalSlotRegistry->addChangeListener(this);
+    for (int i = 1; i <= 32; ++i)
+    {
+        bool isLocallyActive = *isActiveParams[i - 1] > 0.5f;
+        bool isOwned = (globalSlotRegistry->getSlotMode(i, getInstanceId(), isLocallyActive) == SlotMode::FullAccess);
+
+        wasSlotOwned.set(i - 1, isOwned);
+    }
+}
+
 KaiCBFaderControlAudioProcessor::~KaiCBFaderControlAudioProcessor()
 {
+    globalSlotRegistry->removeChangeListener(this);
     releaseOwnedSlots();
 }
 
@@ -278,7 +294,53 @@ void KaiCBFaderControlAudioProcessor::setStateInformation (const void* data, int
 	isRestoringState = false;
 }
 
-void KaiCBFaderControlAudioProcessor::claimActiveSlots()
+void KaiCBFaderControlAudioProcessor::clearSlotRouting(int slotIdx)
+{
+    auto& state = apvts.state;
+
+    // 1. Remove from any Group explicitly
+    state.setProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0, nullptr);
+    state.setProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), 0, nullptr);
+
+    // 2. Fetch the linked partner before we destroy the link
+    int linkedIdx = state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(slotIdx)), -1);
+
+    // 3. Force properties to default states instead of removing them
+    state.setProperty(juce::Identifier(SlotIDs::isStereoLinked(slotIdx)), false, nullptr);
+    state.setProperty(juce::Identifier(SlotIDs::isStereoMain(slotIdx)), false, nullptr);
+    state.setProperty(juce::Identifier(SlotIDs::linkedSlotId(slotIdx)), -1, nullptr);
+
+    // 4. If it was linked, strictly sever the partner's connection too
+    if (linkedIdx != -1)
+    {
+        state.setProperty(juce::Identifier(SlotIDs::isStereoLinked(linkedIdx)), false, nullptr);
+        state.setProperty(juce::Identifier(SlotIDs::isStereoMain(linkedIdx)), false, nullptr);
+        state.setProperty(juce::Identifier(SlotIDs::linkedSlotId(linkedIdx)), -1, nullptr);
+    }
+}
+
+void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    if (source == &globalSlotRegistry.get())
+    {
+        for (int i = 1; i <= 32; ++i)
+        {
+            bool isLocallyActive = *isActiveParams[i - 1] > 0.5f;
+            bool isCurrentlyOwned = (globalSlotRegistry->getSlotMode(i, getInstanceId(), isLocallyActive) == SlotMode::FullAccess);
+
+            // If we owned it a millisecond ago, but we don't right now... we lost it!
+            if (wasSlotOwned[i - 1] && !isCurrentlyOwned)
+            {
+                clearSlotRouting(i); // Nuke the routing immediately
+            }
+
+            // Safely update our tracker for the next time the registry fires
+            wasSlotOwned.set(i - 1, isCurrentlyOwned);
+        }
+    }
+}
+
+void KaiCBFaderControlAudioProcessor::claimActiveSlots() const
 {
     for (int i = 1; i <= 32; ++i)
         if (*apvts.getRawParameterValue(SlotIDs::isActive(i)) > 0.5f)

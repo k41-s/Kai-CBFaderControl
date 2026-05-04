@@ -14,7 +14,9 @@
 //==============================================================================
 /**
 */
-class KaiCBFaderControlAudioProcessor  : public juce::AudioProcessor
+class KaiCBFaderControlAudioProcessor :
+    public juce::AudioProcessor,
+    public juce::ChangeListener
 {
 public:
     //==============================================================================
@@ -60,6 +62,9 @@ public:
     
     const juce::Uuid& getInstanceId() const { return instanceId; }
 
+	void clearSlotRouting(int slotIdx);
+	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+
     //==============================================================================
 
     juce::AudioProcessorValueTreeState apvts;
@@ -72,6 +77,7 @@ public:
     juce::SharedResourcePointer<GlobalSlotRegistry> globalSlotRegistry;
 private:
     void init();
+    void initGlobalRegistry();
     void InitialiseNetworkingDefaults();
     void fillIsActiveParamsList();
     void initLinkManager();
@@ -80,10 +86,11 @@ private:
     void addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
     void addParamsForVca(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
 
-    void claimActiveSlots();
+    void claimActiveSlots() const;
     void releaseOwnedSlots() const;
 
     juce::Uuid instanceId;
+    juce::Array<bool> wasSlotOwned;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KaiCBFaderControlAudioProcessor)

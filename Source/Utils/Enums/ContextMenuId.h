@@ -1,4 +1,5 @@
 enum ContextMenuID {
+    ClaimSlot = 10,
     StereoLink = 1,
     StereoUnlink = 2,
     AssignGroupBase = 30,

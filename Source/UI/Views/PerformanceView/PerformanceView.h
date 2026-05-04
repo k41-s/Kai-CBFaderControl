@@ -61,12 +61,17 @@ private:
 
 	void showContextMenu();
 	void addMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
+	void sortSelectedSlots(const juce::Array<int>& selectedArr, juce::Array<int>& activeSlots, juce::Array<int>& readOnlySlots);
+	void addClaimSlotMenuItem(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu);
+	void addStandardMenuOptions(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu, juce::Array<int>& activeSlots);
 	void addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 	void addGroupMenu(juce::PopupMenu& menu);
 	void addSingleSlotGroupOptions(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 
 	void showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr);
 	void handlePopupMenuResult(int result, const juce::Array<int>& selectedArr);
+	void handleClaimSlot(const juce::Array<int>& selectedArr);
+	void fillActiveSlots(const juce::Array<int>& selectedArr, juce::Array<int>& activeSlots);
 	void handleColourAssignment(const juce::Array<int>& selectedArr, int result);
 	void handleGroupAssignment(int result, const juce::Array<int>& selectedArr);
 
@@ -100,6 +105,8 @@ private:
 		SlotMode mode = SlotMode::Disabled;
 	};
 	SlotDisplayInfo getSlotDisplayInfo(int index);
+
+	bool isSlotFullAccess(int slotIdx);
 
 	juce::TextButton setupButton{ "Setup" };
 
