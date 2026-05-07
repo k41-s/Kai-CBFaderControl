@@ -35,6 +35,13 @@ namespace UIButtonLabels
     static inline const juce::String mute = "M";
     static inline const juce::String solo = "S";
     static inline const juce::String soloInPlace = "SIP";
+    static inline const juce::String expand = "EXP";
+}
+
+namespace UIGroupLabelPrefixes
+{
+    static inline const juce::String leader = "LDR ";
+    static inline const juce::String group = "GRP ";
 }
 
 namespace UIComponentNames

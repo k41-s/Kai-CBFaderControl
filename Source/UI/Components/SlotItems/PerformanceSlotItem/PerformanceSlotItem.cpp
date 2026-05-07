@@ -1,12 +1,12 @@
 #include "PerformanceSlotItem.h"
-#include "../../../Main/SlotIDs.h"
-#include "../../CustomLookAndFeel/MyColours.h"
-#include "../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
-#include "../../../Utils/LayoutUtils/LayoutUtils.h"
-#include "../../../Utils/UIUtils/UIUtils.h"
+#include "../../../../Main/SlotIDs.h"
+#include "../../../CustomLookAndFeel/MyColours.h"
+#include "../../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
+#include "../../../../Utils/LayoutUtils/LayoutUtils.h"
+#include "../../../../Utils/UIUtils/UIUtils.h"
 
 PerformanceSlotItem::PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex)
-	:processor(p), index(slotIndex)
+	:BaseSlotItem(p, slotIndex)
 {
     init(slotIndex);
 }
@@ -26,21 +26,11 @@ void PerformanceSlotItem::init(int slotIndex)
 
 void PerformanceSlotItem::configComponents()
 {
-    configVolumeFader();
+    configBaseVolumeFader();
     configPanSlider();
     configMuteButton();
     configSoloButton();
     configLabels();
-}
-
-void PerformanceSlotItem::configVolumeFader()
-{
-    addAndMakeVisible(volumeFader);
-    volumeFader.setSliderStyle(juce::Slider::LinearVertical);
-    volumeFader.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    volumeFader.addMouseListener(this, false);
-    volumeFader.getProperties().set(UIProperties::isHighRes, true);
-    volumeFader.onResolutionChanged = [this]() { updateValueLabel(); };
 }
 
 void PerformanceSlotItem::configPanSlider()
@@ -69,8 +59,7 @@ void PerformanceSlotItem::configLabels()
 	configIndexLabel();
     configNameLabel();
     configGroupLabel();
-    configValueLabel();
-    volumeFader.onValueChange = [this]() { updateValueLabel(); };
+    configBaseValueLabel();
 }
 
 void PerformanceSlotItem::configIndexLabel()
@@ -88,7 +77,6 @@ void PerformanceSlotItem::configNameLabel()
     nameLabel.setJustificationType(juce::Justification::centred);
 
     auto name = processor.apvts.state.getProperty(SlotIDs::slotName(index), "");
-
     nameLabel.setText(name, juce::dontSendNotification);
 }
 
@@ -98,16 +86,12 @@ void PerformanceSlotItem::configGroupLabel()
     groupLabel.setJustificationType(juce::Justification::centred);
 }
 
-void PerformanceSlotItem::configValueLabel()
-{
-    UIUtils::setupValueBoxLabel(*this, valueLabel, juce::Justification::centredRight);
-    UIUtils::setupValueBoxLabel(*this, unitLabel, juce::Justification::centredLeft, "dB");
-}
-
 void PerformanceSlotItem::configAttachments(int slotIndex)
 {
     configVolumeAttachment(slotIndex);
     configPanAttachment(slotIndex);
+    configBaseMuteAttachment(SlotIDs::mute(slotIndex));
+    configSoloAttachment();
 }
 
 void PerformanceSlotItem::configVolumeAttachment(int slotIndex)
@@ -115,14 +99,7 @@ void PerformanceSlotItem::configVolumeAttachment(int slotIndex)
     if (auto* param = processor.apvts.getParameter(SlotIDs::volume(slotIndex)))
         preSeedSlider(param);
 
-    volumeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.apvts, SlotIDs::volume(slotIndex), volumeFader);
-}
-
-void PerformanceSlotItem::preSeedSlider(juce::RangedAudioParameter* param)
-{
-    volumeFader.setRange(param->getNormalisableRange().start, param->getNormalisableRange().end, param->getNormalisableRange().interval);
-    volumeFader.setValue(param->convertFrom0to1(param->getValue()), juce::dontSendNotification);
+	configBaseVolumeAttachment(SlotIDs::volume(slotIndex));
 }
 
 void PerformanceSlotItem::configPanAttachment(int slotIndex)
@@ -131,18 +108,10 @@ void PerformanceSlotItem::configPanAttachment(int slotIndex)
         processor.apvts, SlotIDs::pan(slotIndex), panSlider);
 }
 
-void PerformanceSlotItem::updateValueLabel()
+void PerformanceSlotItem::configSoloAttachment()
 {
-    float val = (float)volumeFader.getValue();
-    if (std::isnan(val) || std::isinf(val))
-        val = -96.0f;
-
-    bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
-    juce::String text = UIUtils::getValueText(val, isFineMode);
-   
-    bool isInf = (val <= -95.75f);
-    unitLabel.setText(isInf ? "" : "dB", juce::dontSendNotification);
-    valueLabel.setText(isInf ? text : text + " ", juce::dontSendNotification);
+    soloAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        processor.apvts, SlotIDs::solo(index), soloButton);
 }
 
 void PerformanceSlotItem::updateNameFromValueTree()
@@ -169,7 +138,7 @@ void PerformanceSlotItem::updateGroupState()
 
     if (grpId > 0) 
     {
-        juce::String labelText = (role == 1) ? "LDR " : "GRP ";
+        juce::String labelText = (role == 1) ? UIGroupLabelPrefixes::leader : UIGroupLabelPrefixes::group;
         labelText += juce::String(grpId);
         groupLabel.setText(labelText, juce::dontSendNotification);
 
@@ -231,28 +200,13 @@ void PerformanceSlotItem::mouseWheelMove(const juce::MouseEvent& event, const ju
     if (currentMode != SlotMode::FullAccess)
         return;
 
-    auto pos = event.getEventRelativeTo(this).position.toInt();
-
-    if (volumeFader.getBounds().contains(pos))
-        if (wheel.deltaY != 0)
-            moveFader(wheel);
-}
-
-void PerformanceSlotItem::moveFader(const juce::MouseWheelDetails& wheel)
-{
-    float currentVal = (float)volumeFader.getValue();
-
-    bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, false);
-    float step = isFineMode ? 0.25f : 1.0f;
-
-    float increment = (wheel.deltaY > 0) ? step : -step;
-
-    volumeFader.setValue(currentVal + increment, juce::sendNotificationSync);
+	BaseSlotItem::mouseWheelMove(event, wheel);
 }
 
 void PerformanceSlotItem::mouseDown(const juce::MouseEvent& e)
 {
-    if (e.originalComponent == this || e.mods.isPopupMenu() || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown()) {
+    if (e.originalComponent == this || e.mods.isPopupMenu() || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown())
+    {
         if (onBackgroundMouseDown)
             onBackgroundMouseDown(e.getEventRelativeTo(this), this);
     }
@@ -260,7 +214,8 @@ void PerformanceSlotItem::mouseDown(const juce::MouseEvent& e)
 
 void PerformanceSlotItem::mouseDrag(const juce::MouseEvent& e)
 {
-    if (e.originalComponent == this || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown()) {
+    if (e.originalComponent == this || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown()) 
+    {
         if (onBackgroundMouseDrag)
             onBackgroundMouseDrag(e.getEventRelativeTo(this), this);
     }
@@ -268,7 +223,8 @@ void PerformanceSlotItem::mouseDrag(const juce::MouseEvent& e)
 
 void PerformanceSlotItem::mouseUp(const juce::MouseEvent& e)
 {
-    if (e.originalComponent == this || e.mods.isPopupMenu() || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown()) {
+    if (e.originalComponent == this || e.mods.isPopupMenu() || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown()) 
+    {
         if (onBackgroundMouseUp)
             onBackgroundMouseUp(e.getEventRelativeTo(this), this);
     }
@@ -276,7 +232,8 @@ void PerformanceSlotItem::mouseUp(const juce::MouseEvent& e)
 
 void PerformanceSlotItem::setSelected(bool selected)
 {
-    if (isSelected != selected) {
+    if (isSelected != selected)
+    {
         isSelected = selected;
         repaint();
     }
@@ -439,30 +396,6 @@ void PerformanceSlotItem::injectPanControl(juce::Rectangle<int>& area)
         panSlider.setVisible(false);
 }
 
-void PerformanceSlotItem::setupBottomArea(juce::Rectangle<int>& area, int currentWidth)
-{
-    auto bottomArea = area.removeFromBottom(25);
-    valueLabel.setFont(sharedFont);
-    unitLabel.setFont(sharedFont);
-
-    int unitWidth = sharedFont.getStringWidth("dB") + 4;
-    int valueWidth = sharedFont.getStringWidth("-88.8 ");
-    int requiredWidth = valueWidth + unitWidth;
-
-    bool fits = currentWidth >= requiredWidth;
-    valueLabel.setVisible(fits);
-    unitLabel.setVisible(fits);
-
-    if (fits)
-    {
-        int centerOffset = (bottomArea.getWidth() - requiredWidth) / 2;
-        int boundaryX = centerOffset + valueWidth;
-
-        valueLabel.setBounds(bottomArea.withWidth(boundaryX));
-        unitLabel.setBounds(bottomArea.withTrimmedLeft(boundaryX));
-    }
-}
-
 void PerformanceSlotItem::setMode(SlotMode mode)
 {
     if (currentMode == mode) return;
@@ -476,20 +409,4 @@ void PerformanceSlotItem::setMode(SlotMode mode)
     soloButton.setEnabled(isFullAccess);
 
     setAlpha(isFullAccess ? 1.0f : 0.4f);
-}
-
-void PerformanceSlotItem::updateTypography()
-{
-    if (auto* lnf = dynamic_cast<PerformanceViewLookFeel*>(&getLookAndFeel()))
-    {
-        float newSize = lnf->getStandardSharedFont();
-
-        if (sharedFont.getHeight() != newSize)
-        {
-            sharedFont = juce::Font(newSize);
-
-            setupSlotBounds();
-            repaint();
-        }
-    }
 }

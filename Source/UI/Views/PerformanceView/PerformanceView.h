@@ -1,8 +1,8 @@
 #pragma once
 #include <JuceHeader.h>
 #include "../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
-#include "../../Components/PerformanceSlotItem/PerformanceSlotItem.h"
-#include "../../Components/VcaSlotItem/VcaSlotItem.h"
+#include "../../Components/SlotItems/PerformanceSlotItem/PerformanceSlotItem.h"
+#include "../../Components/SlotItems/VcaSlotItem/VcaSlotItem.h"
 #include "../../../Main/PluginProcessor/PluginProcessor.h"
 #include "../../../Utils/BinaryImageComponent/BinaryImageComponent.h"
 

@@ -57,12 +57,6 @@
           </GROUP>
         </GROUP>
         <GROUP id="{85C987F1-CF1A-9A13-E890-A4A368996334}" name="Components">
-          <GROUP id="{30AC02B6-F48E-ECAC-05C4-0A6185D30ADA}" name="PerformanceSlotItem">
-            <FILE id="Vjqamu" name="PerformanceSlotItem.cpp" compile="1" resource="0"
-                  file="Source/UI/Components/PerformanceSlotItem/PerformanceSlotItem.cpp"/>
-            <FILE id="P135WL" name="PerformanceSlotItem.h" compile="0" resource="0"
-                  file="Source/UI/Components/PerformanceSlotItem/PerformanceSlotItem.h"/>
-          </GROUP>
           <GROUP id="{DD3184E6-5619-9A67-FB9C-96B330527D59}" name="PrecisionSlider">
             <FILE id="FGTCBb" name="PrecisionSlider.cpp" compile="1" resource="0"
                   file="Source/UI/Components/PrecisionSlider/PrecisionSlider.cpp"/>
@@ -75,13 +69,26 @@
             <FILE id="YV9FCm" name="SlotConfigItem.h" compile="0" resource="0"
                   file="Source/UI/Components/SlotConfigItem/SlotConfigItem.h"/>
           </GROUP>
+          <GROUP id="{F8446154-F7DB-5BF6-0D8B-CCC4A60615BE}" name="SlotItems">
+            <GROUP id="{3108AAF1-8781-6B24-6459-4AA1F762683B}" name="BaseSlotItem">
+              <FILE id="Ff3A72" name="BaseSlotItem.cpp" compile="1" resource="0"
+                    file="Source/UI/Components/SlotItems/BaseSlotItem/BaseSlotItem.cpp"/>
+              <FILE id="nIh6Z5" name="BaseSlotItem.h" compile="0" resource="0" file="Source/UI/Components/SlotItems/BaseSlotItem/BaseSlotItem.h"/>
+            </GROUP>
+            <GROUP id="{C0C6D1C4-C450-1129-DA22-2FFC33AC368D}" name="PerformanceSlotItem">
+              <FILE id="KKj8gH" name="PerformanceSlotItem.cpp" compile="1" resource="0"
+                    file="Source/UI/Components/SlotItems/PerformanceSlotItem/PerformanceSlotItem.cpp"/>
+              <FILE id="EqzFtV" name="PerformanceSlotItem.h" compile="0" resource="0"
+                    file="Source/UI/Components/SlotItems/PerformanceSlotItem/PerformanceSlotItem.h"/>
+            </GROUP>
+            <GROUP id="{2F916CBC-DA4D-8FBD-28FE-87051BA1F5DB}" name="VcaSlotItem">
+              <FILE id="zkwb9Q" name="VcaSlotItem.cpp" compile="1" resource="0" file="Source/UI/Components/SlotItems/VcaSlotItem/VcaSlotItem.cpp"/>
+              <FILE id="EZVrCY" name="VcaSlotItem.h" compile="0" resource="0" file="Source/UI/Components/SlotItems/VcaSlotItem/VcaSlotItem.h"/>
+            </GROUP>
+          </GROUP>
           <GROUP id="{6DD8F8C9-38C4-2A4C-2637-9E0A9EC4C190}" name="StatusLED">
             <FILE id="Rtjcyd" name="StatusLED.cpp" compile="1" resource="0" file="Source/UI/Components/StatusLED/StatusLED.cpp"/>
             <FILE id="a2TSHr" name="StatusLED.h" compile="0" resource="0" file="Source/UI/Components/StatusLED/StatusLED.h"/>
-          </GROUP>
-          <GROUP id="{F159346B-F3DF-A11A-E461-E9B5D9471C18}" name="VcaSlotItem">
-            <FILE id="wm4cqQ" name="VcaSlotItem.cpp" compile="1" resource="0" file="Source/UI/Components/VcaSlotItem/VcaSlotItem.cpp"/>
-            <FILE id="JqEtcG" name="VcaSlotItem.h" compile="0" resource="0" file="Source/UI/Components/VcaSlotItem/VcaSlotItem.h"/>
           </GROUP>
           <FILE id="a5Oun4" name="UIConstants.h" compile="0" resource="0" file="Source/UI/Components/UIConstants.h"/>
         </GROUP>
