@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "../../Components/UIConstants.h"
 
 class PerformanceViewLookFeel : public juce::LookAndFeel_V4
 {
@@ -27,6 +28,10 @@ public:
         const juce::Drawable* icon, const juce::Colour* textColourToUse) override;
     void getIdealPopupMenuItemSize(const juce::String& text, bool isSeparator,
         int standardMenuItemHeight, int& idealWidth, int& idealHeight) override;
+
+    void updateGlobalTypography(float baselineSlotWidth);
+    float getStandardSharedFont() const { return globalSharedFont; }
+
 private:
 	//Fader Helpers
     void drawFader(int x, int y, int width, int height, juce::Graphics& g, juce::Slider& slider, float sliderPos);
@@ -75,5 +80,6 @@ private:
     void drawSeparator(const juce::Rectangle<int>& area, juce::Graphics& g);
     void drawSubMenu(const juce::Rectangle<int>& area, juce::Graphics& g);
 
+    float globalSharedFont = UISizeConstants::standardFontSize;
     double inf = -95.75;
 };

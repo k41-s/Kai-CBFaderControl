@@ -224,15 +224,14 @@ void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, 
 ) {
 	auto bounds = juce::Rectangle<float>(x, y, width, height).reduced(2.0f);
 
-	// 1. Carve out the left side using the EXACT same math as the fader dB scale
+	// Carve out the left side using the EXACT same math as the fader dB scale 
+	// -> make this in one function to reuse
 	float tickAreaWidth = juce::jlimit(16.0f, 30.0f, width * 0.35f);
 	auto textArea = bounds.removeFromLeft(tickAreaWidth);
 	bounds.removeFromLeft(2.0f);
 
-	// 2. Draw the dynamic value readout in the left column
 	drawPanValueText(g, sliderPos, textArea);
 
-	// 3. The remaining bounds are for the knob.
 	auto outline = bounds.reduced(1.0f);
 
 	float maxDiameter = juce::jlimit(24.0f, 36.0f, outline.getWidth() * 0.95f);
@@ -591,4 +590,13 @@ void PerformanceViewLookFeel::getIdealPopupMenuItemSize(const juce::String& text
 		idealWidth = font.getStringWidth(text) + 40;
 		idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : 28;
 	}
+}
+
+void PerformanceViewLookFeel::updateGlobalTypography(float baselineSlotWidth)
+{
+	globalSharedFont = juce::jlimit(
+		UISizeConstants::minFontSize,
+		UISizeConstants::maxFontSize,
+		baselineSlotWidth * UISizeConstants::fontSizeWidthRatio
+	);
 }

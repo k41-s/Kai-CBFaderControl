@@ -571,6 +571,32 @@ void PerformanceView::resized()
 {
 	setHeaderArea();
 	setupAndFillArea();
+
+	float baselineWidth = SlotSizeValues::monoSlotMinWidth;
+	for (int i = 0; i < 32; ++i) 
+	{
+		auto info = getSlotDisplayInfo(i);
+		if (info.shouldProcess && info.isVisible && !info.isStereoMain) 
+		{
+			baselineWidth = slots[i]->getWidth();
+			break;
+		}
+	}
+
+	performanceLF.updateGlobalTypography(baselineWidth);
+
+	for (auto* item : slots) 
+	{
+		if (item->isVisible()) {
+			item->updateTypography();
+		}
+	}
+
+	for (auto* vcaItem : vcaSlots) {
+		if (vcaItem->isVisible()) {
+			vcaItem->updateTypography();
+		}
+	}
 }
 
 void PerformanceView::setHeaderArea()

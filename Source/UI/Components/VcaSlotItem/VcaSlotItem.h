@@ -15,6 +15,8 @@ public:
 	void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
 	int getIndex() const { return index; }
 
+	void updateTypography();
+
 private:
 	void init();
 	void configVolumeFader();
@@ -43,7 +45,7 @@ private:
 	void setupNameLabel(juce::Rectangle<int>& topArea, int labelHeight);
 	void setupMuteButton(juce::Rectangle<int>& topArea);
 	void setupExpandButton(juce::Rectangle<int>& topArea);
-	void setupBottomArea(juce::Rectangle<int>& area);
+	void setupBottomArea(juce::Rectangle<int>& area, int currentWidth);
 
 	juce::Font sharedFont;
 

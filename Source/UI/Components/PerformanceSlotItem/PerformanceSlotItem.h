@@ -27,6 +27,8 @@ public:
 	int getIndex() const { return index; }
 	void setMode(SlotMode mode);
 
+	void updateTypography();
+
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDown;
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDrag;
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseUp;

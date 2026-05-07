@@ -25,6 +25,7 @@ namespace WindowSizeValues
 namespace UISizeConstants
 {
 	static inline const float minFontSize = 9.0f;
+	static inline const float standardFontSize = 12.0f;
 	static inline const float maxFontSize = 15.0f;
 	static inline const float fontSizeWidthRatio = 0.23f;
 }

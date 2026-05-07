@@ -1,6 +1,7 @@
 #include "PerformanceSlotItem.h"
 #include "../../../Main/SlotIDs.h"
 #include "../../CustomLookAndFeel/MyColours.h"
+#include "../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
 #include "../../../Utils/LayoutUtils/LayoutUtils.h"
 #include "../../../Utils/UIUtils/UIUtils.h"
 
@@ -140,7 +141,7 @@ void PerformanceSlotItem::updateValueLabel()
     juce::String text = UIUtils::getValueText(val, isFineMode);
    
     bool isInf = (val <= -95.75f);
-    unitLabel.setVisible(!isInf);
+    unitLabel.setText(isInf ? "" : "dB", juce::dontSendNotification);
     valueLabel.setText(isInf ? text : text + " ", juce::dontSendNotification);
 }
 
@@ -354,8 +355,6 @@ void PerformanceSlotItem::setupSlotBounds()
     auto area = getLocalBounds().reduced(2);
     int currentWidth = area.getWidth();
 
-    UIUtils::setSharedFont(sharedFont, currentWidth);
-
     setupTopArea(area, currentWidth);
     injectPanControl(area);
     setupBottomArea(area, currentWidth);
@@ -447,7 +446,8 @@ void PerformanceSlotItem::setupBottomArea(juce::Rectangle<int>& area, int curren
     unitLabel.setFont(sharedFont);
 
     int unitWidth = sharedFont.getStringWidth("dB") + 4;
-    int requiredWidth = sharedFont.getStringWidth("-88.8 ") + unitWidth;
+    int valueWidth = sharedFont.getStringWidth("-88.8 ");
+    int requiredWidth = valueWidth + unitWidth;
 
     bool fits = currentWidth >= requiredWidth;
     valueLabel.setVisible(fits);
@@ -455,9 +455,11 @@ void PerformanceSlotItem::setupBottomArea(juce::Rectangle<int>& area, int curren
 
     if (fits)
     {
-        auto bounds = bottomArea.reduced(2, 0);
-        unitLabel.setBounds(bounds.removeFromRight(unitWidth));
-        valueLabel.setBounds(bounds);
+        int centerOffset = (bottomArea.getWidth() - requiredWidth) / 2;
+        int boundaryX = centerOffset + valueWidth;
+
+        valueLabel.setBounds(bottomArea.withWidth(boundaryX));
+        unitLabel.setBounds(bottomArea.withTrimmedLeft(boundaryX));
     }
 }
 
@@ -474,4 +476,20 @@ void PerformanceSlotItem::setMode(SlotMode mode)
     soloButton.setEnabled(isFullAccess);
 
     setAlpha(isFullAccess ? 1.0f : 0.4f);
+}
+
+void PerformanceSlotItem::updateTypography()
+{
+    if (auto* lnf = dynamic_cast<PerformanceViewLookFeel*>(&getLookAndFeel()))
+    {
+        float newSize = lnf->getStandardSharedFont();
+
+        if (sharedFont.getHeight() != newSize)
+        {
+            sharedFont = juce::Font(newSize);
+
+            setupSlotBounds();
+            repaint();
+        }
+    }
 }

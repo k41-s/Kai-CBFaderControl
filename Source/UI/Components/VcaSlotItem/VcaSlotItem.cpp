@@ -1,6 +1,7 @@
 #include "VcaSlotItem.h"
 #include "../../../Main/SlotIDs.h"
 #include "../../CustomLookAndFeel/MyColours.h"
+#include "../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
 #include "../../../Utils/LayoutUtils/LayoutUtils.h"
 #include "../../../Utils/UIUtils/UIUtils.h"
 
@@ -143,7 +144,7 @@ void VcaSlotItem::updateValueLabel()
     juce::String text = UIUtils::getValueText(val, isFineMode);
 	
     bool isInf = (val <= -95.75f);
-    unitLabel.setVisible(!isInf);
+    unitLabel.setText(isInf ? "" : "dB", juce::dontSendNotification);
     valueLabel.setText(isInf ? text : text + " ", juce::dontSendNotification);
 }
 
@@ -182,11 +183,9 @@ void VcaSlotItem::setupSlotBounds()
 {
     auto area = getLocalBounds().reduced(2);
     int currentWidth = area.getWidth();
-    UIUtils::setSharedFont(sharedFont, currentWidth);
-
-
+    
     setupTopArea(area);
-    setupBottomArea(area);
+    setupBottomArea(area, currentWidth);
     volumeFader.setBounds(area.reduced(2));
 }
 
@@ -236,17 +235,28 @@ void VcaSlotItem::setupExpandButton(juce::Rectangle<int>& topArea)
     LayoutUtils::setCenteredMaxWidthBounds(expandButton, expandArea, SlotSizeValues::targetBtnWidth);
 }
 
-void VcaSlotItem::setupBottomArea(juce::Rectangle<int>& area)
+void VcaSlotItem::setupBottomArea(juce::Rectangle<int>& area, int currentWidth)
 {
     auto bottomArea = area.removeFromBottom(25);
     valueLabel.setFont(sharedFont);
     unitLabel.setFont(sharedFont);
 
-    auto bounds = bottomArea.reduced(2, 0);
     int unitWidth = sharedFont.getStringWidth("dB") + 4;
+    int valueWidth = sharedFont.getStringWidth("-88.8 ");
+    int requiredWidth = valueWidth + unitWidth;
 
-    unitLabel.setBounds(bounds.removeFromRight(unitWidth));
-    valueLabel.setBounds(bounds);
+    bool fits = currentWidth >= requiredWidth;
+    valueLabel.setVisible(fits);
+    unitLabel.setVisible(fits);
+
+    if (fits)
+    {
+        int centerOffset = (bottomArea.getWidth() - requiredWidth) / 2;
+        int boundaryX = centerOffset + valueWidth;
+
+        valueLabel.setBounds(bottomArea.withWidth(boundaryX));
+        unitLabel.setBounds(bottomArea.withTrimmedLeft(boundaryX));
+    }
 }
 
 void VcaSlotItem::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
@@ -265,6 +275,22 @@ void VcaSlotItem::mouseWheelMove(const juce::MouseEvent& event, const juce::Mous
             float increment = (wheel.deltaY > 0) ? step : -step;
 
             volumeFader.setValue(currentVal + increment, juce::sendNotificationSync);
+        }
+    }
+}
+
+void VcaSlotItem::updateTypography()
+{
+    if (auto* lnf = dynamic_cast<PerformanceViewLookFeel*>(&getLookAndFeel()))
+    {
+        float newSize = lnf->getStandardSharedFont();
+
+        if (sharedFont.getHeight() != newSize)
+        {
+            sharedFont = juce::Font(newSize);
+
+            setupSlotBounds();
+            repaint();
         }
     }
 }
