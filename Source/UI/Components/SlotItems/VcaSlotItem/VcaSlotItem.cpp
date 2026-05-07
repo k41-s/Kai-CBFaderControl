@@ -140,7 +140,7 @@ void VcaSlotItem::setupSlotBounds()
     
     setupTopArea(area);
     setupBottomArea(area, currentWidth);
-    volumeFader.setBounds(area.reduced(2));
+    setupFaderBounds(area);
 }
 
 void VcaSlotItem::setupTopArea(juce::Rectangle<int>& area)

@@ -85,6 +85,21 @@ void BaseSlotItem::setupBottomArea(juce::Rectangle<int>& area, int currentWidth)
     }
 }
 
+void BaseSlotItem::setupFaderBounds(juce::Rectangle<int>& remainingArea)
+{
+    auto faderArea = remainingArea.reduced(2);
+
+    int targetFaderWidth = (targetSlotWidth > 0) ? (targetSlotWidth - 4) : faderArea.getWidth();
+
+    if (faderArea.getWidth() > targetFaderWidth)
+    {
+        int shrinkAmount = (faderArea.getWidth() - targetFaderWidth) / 2;
+        faderArea.reduce(shrinkAmount, 0);
+    }
+
+    volumeFader.setBounds(faderArea);
+}
+
 void BaseSlotItem::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
 {
     auto pos = event.getEventRelativeTo(this).position.toInt();
@@ -112,5 +127,14 @@ void BaseSlotItem::updateTypography()
             setupSlotBounds();
             repaint();
         }
+    }
+}
+
+void BaseSlotItem::setTargetSlotWidth(int width)
+{
+    if (targetSlotWidth != width)
+    {
+        targetSlotWidth = width;
+        resized();
     }
 }

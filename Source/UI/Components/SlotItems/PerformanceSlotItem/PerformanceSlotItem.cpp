@@ -315,7 +315,7 @@ void PerformanceSlotItem::setupSlotBounds()
     setupTopArea(area, currentWidth);
     injectPanControl(area);
     setupBottomArea(area, currentWidth);
-    volumeFader.setBounds(area.reduced(2));
+    setupFaderBounds(area);
 }
 
 void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWidth)

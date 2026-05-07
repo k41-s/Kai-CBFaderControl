@@ -13,6 +13,7 @@ public:
     void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
     void updateTypography();
     int getIndex() const { return index; }
+    void setTargetSlotWidth(int width);
 
 protected:
     virtual void updateNameFromValueTree() = 0;
@@ -27,6 +28,9 @@ protected:
 
     void updateValueLabel();
     void setupBottomArea(juce::Rectangle<int>& area, int currentWidth);
+    void setupFaderBounds(juce::Rectangle<int>& remainingArea);
+
+    int targetSlotWidth = -1; // -1 means unconstrained by default
 
     KaiCBFaderControlAudioProcessor& processor;
     int index;

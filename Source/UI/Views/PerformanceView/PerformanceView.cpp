@@ -587,13 +587,18 @@ void PerformanceView::resized()
 
 	for (auto* item : slots) 
 	{
-		if (item->isVisible()) {
+		if (item->isVisible()) 
+		{
+			item->setTargetSlotWidth(baselineWidth);
 			item->updateTypography();
 		}
 	}
 
-	for (auto* vcaItem : vcaSlots) {
-		if (vcaItem->isVisible()) {
+	for (auto* vcaItem : vcaSlots) 
+	{
+		if (vcaItem->isVisible()) 
+		{
+			vcaItem->setTargetSlotWidth(baselineWidth);
 			vcaItem->updateTypography();
 		}
 	}

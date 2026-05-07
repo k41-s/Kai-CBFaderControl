@@ -76,4 +76,5 @@ namespace SlotSizeValues
     static inline const float monoSlotMinWidth = 40.0f;
 
     static inline const int targetBtnWidth = 45;
+    static inline const int targetFaderWidth = 60;
 }
