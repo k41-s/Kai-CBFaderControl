@@ -68,7 +68,6 @@ public:
     //==============================================================================
 
     juce::AudioProcessorValueTreeState apvts;
-    std::atomic<float>* isActiveParams[32];
 
 	std::unique_ptr<LinkManager> linkManager;
 
@@ -79,7 +78,6 @@ private:
     void init();
     void initGlobalRegistry();
     void InitialiseNetworkingDefaults();
-    void fillIsActiveParamsList();
     void initLinkManager();
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

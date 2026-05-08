@@ -218,4 +218,10 @@ namespace SlotStateHelpers
         if (auto* param = apvts.getParameter(paramId))
             param->setValueNotifyingHost(param->convertTo0to1(unnormalizedValue));
     }
+
+    static inline void setSlotActive(juce::AudioProcessorValueTreeState& apvts, int slotIdx, bool shouldBeActive)
+    {
+        setParamNormalized(apvts, SlotIDs::isActive(slotIdx), shouldBeActive ? 1.0f : 0.0f);
+    }
+
 }

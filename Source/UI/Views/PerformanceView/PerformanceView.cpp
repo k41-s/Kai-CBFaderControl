@@ -347,7 +347,7 @@ void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selected
 {
 	int slotIdx = selectedArr[0];
 	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
-	int role = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(slotIdx));
+	int role = SlotStateHelpers::getGroupRole(processor.apvts.state, slotIdx);
 
 	if (grpId > 0)
 	{
@@ -464,7 +464,7 @@ void PerformanceView::handleClaimSlot(const juce::Array<int>& selectedArr)
 		{
 			processor.globalSlotRegistry->claimSlot(idx, processor.getInstanceId());
 
-			SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::isActive(idx), 1.0f);
+			SlotStateHelpers::setSlotActive(processor.apvts, idx, true);
 		}
 	}
 	selectedItems.deselectAll();
@@ -535,7 +535,7 @@ void PerformanceView::setSubSlotProperties(juce::ValueTree& state, int subIdx, i
 void PerformanceView::doStereoUnlink(int slotIdx)
 {
 	auto& state = processor.apvts.state;
-	int linkedIdx = SlotStateHelpers::getIntProp(state, SlotIDs::linkedSlotId(slotIdx), -1);
+	int linkedIdx = SlotStateHelpers::getLinkedSlotId(state, slotIdx);
 
 	unlinkSlot(state, slotIdx);
 	if (linkedIdx != -1) unlinkSlot(state, linkedIdx);
@@ -565,7 +565,7 @@ void PerformanceView::demoteExistingGroupLeaders(int grpId)
 	for (int i = 1; i <= 32; ++i)
 	{
 		int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
-		int otherRole = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(i));
+		int otherRole = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
 
 		if (otherGrpId == grpId && otherRole == 1) 
 		{

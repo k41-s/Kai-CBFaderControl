@@ -16,20 +16,23 @@ void LinkManager::init()
 
 void LinkManager::addRegularSlotListeners()
 {
-    for (int i = 1; i <= 32; ++i) {
+    for (int i = 1; i <= 32; ++i)
+    {
         processor.apvts.addParameterListener(SlotIDs::volume(i), this);
         processor.apvts.addParameterListener(SlotIDs::mute(i), this);
 
-        lastVolume[i - 1] = processor.apvts.getRawParameterValue(SlotIDs::volume(i))->load();
+        lastVolume[i - 1] = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::volume(i));
     }
 }
 
 void LinkManager::addVcaMasterListeners()
 {
-    for (int i = 1; i <= 8; ++i) {
+    for (int i = 1; i <= 8; ++i) 
+    {
         processor.apvts.addParameterListener(SlotIDs::vcaVolume(i), this);
         processor.apvts.addParameterListener(SlotIDs::vcaMute(i), this);
-        lastVcaVolume[i - 1] = processor.apvts.getRawParameterValue(SlotIDs::vcaVolume(i))->load();
+
+        lastVcaVolume[i - 1] = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::vcaVolume(i));
     }
 }
 

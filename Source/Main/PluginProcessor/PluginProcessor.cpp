@@ -24,7 +24,6 @@ KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
 void KaiCBFaderControlAudioProcessor::init()
 {
     InitialiseNetworkingDefaults();
-    fillIsActiveParamsList();
     initLinkManager();
     initGlobalRegistry();
 }
@@ -40,14 +39,6 @@ void KaiCBFaderControlAudioProcessor::InitialiseNetworkingDefaults()
 
     if (!state.hasProperty(SlotIDs::outgoingPort()))
         SlotStateHelpers::setOutgoingPort(state, 8001);
-}
-
-void KaiCBFaderControlAudioProcessor::fillIsActiveParamsList()
-{
-    for (int i = 0; i < 32; ++i) {
-        isActiveParams[i] = apvts.getRawParameterValue(SlotIDs::isActive(i + 1));
-		jassert(isActiveParams[i] != nullptr);
-    }
 }
 
 void KaiCBFaderControlAudioProcessor::initLinkManager()
