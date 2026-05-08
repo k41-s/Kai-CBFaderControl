@@ -28,7 +28,7 @@ void SlotConfigItem::configNameEditor(int slotNumber)
 	customNameEditor.setTextToShowWhenEmpty("Text here...", juce::Colour::greyLevel(0.75f));
 	customNameEditor.setJustification(juce::Justification::left);
 
-	auto currentName = SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::slotName(slotNumber));
+	auto currentName = SlotStateHelpers::getSlotCustomName(processor.apvts.state, slotNumber);
 	customNameEditor.setText(currentName, juce::dontSendNotification);
 
 	configSaveCustomName(slotNumber);

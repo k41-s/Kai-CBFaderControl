@@ -258,11 +258,6 @@ void PerformanceView::showContextMenu()
 	showPopupMenuIfNotEmpty(menu, selectedArr);
 }
 
-bool PerformanceView::isSlotLinked(int slotIdx) const
-{
-	return SlotStateHelpers::getBoolProp(processor.apvts.state, SlotIDs::isStereoLinked(slotIdx));
-}
-
 void PerformanceView::addMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
 {
 	juce::Array<int> activeSlots;
@@ -313,12 +308,15 @@ void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, ju
 {
 	if (selectedArr.size() == 2)
 	{
-		if (!isSlotLinked(selectedArr[0]) && !isSlotLinked(selectedArr[1]))
+		if (!SlotStateHelpers::isStereoLinked(processor.apvts.state, selectedArr[0]) &&
+			!SlotStateHelpers::isStereoLinked(processor.apvts.state, selectedArr[1])
+		) {
 			menu.addItem(1, "Stereo Link Pairs");
+		}
 	}
 	else if (selectedArr.size() == 1)
 	{
-		if (isSlotLinked(selectedArr[0]))
+		if (SlotStateHelpers::isStereoLinked(processor.apvts.state, selectedArr[0]))
 			menu.addItem(2, "Unlink Stereo Pair");
 	}
 }
@@ -331,27 +329,28 @@ void PerformanceView::addGroupMenu(const juce::Array<int>& selectedArr, juce::Po
 	menu.addSubMenu("Grouping", groupMenu);
 }
 
-void PerformanceView::setupGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& groupMenu)
+void PerformanceView::setupGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& groupMenu) const
 {
 	for (int i = 1; i <= 8; ++i)
-		groupMenu.addItem(30 + i, "Assign to Group " + juce::String(i));
+		groupMenu.addItem(AssignGroupBase + i, "Assign to Group " + juce::String(i));
 
 	groupMenu.addSeparator();
 
 	int slotIdx = selectedArr[0];
-	int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(slotIdx));
+	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
 	
 	if (grpId > 0)
-		groupMenu.addItem(40, "Remove from Group");
+		groupMenu.addItem(RemoveGroup, "Remove from Group");
 }
 
 void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
 {
 	int slotIdx = selectedArr[0];
-	int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(slotIdx));
+	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
 	int role = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(slotIdx));
 
-	if (grpId > 0) {
+	if (grpId > 0)
+	{
 		menu.addSeparator();
 		addGroupMemberItems(role, menu);
 		addVcaMenuItem(menu, grpId);
@@ -371,7 +370,7 @@ void PerformanceView::addVcaMenuItem(juce::PopupMenu& menu, int grpId)
 {
 	menu.addSeparator();
 	bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
-	menu.addItem(60, vcaEnabled ? "Disable VCA Master" : "Enable VCA Master", true, false);
+	menu.addItem(ToggleVCA, vcaEnabled ? "Disable VCA Master" : "Enable VCA Master", true, false);
 }
 
 void PerformanceView::setupAndAddColourMenu(juce::PopupMenu& menu, int grpId)
@@ -382,7 +381,7 @@ void PerformanceView::setupAndAddColourMenu(juce::PopupMenu& menu, int grpId)
 	menu.addSubMenu("Group Colour", colourMenu);
 }
 
-void PerformanceView::setupColourMenu(int grpId, juce::PopupMenu& colourMenu)
+void PerformanceView::setupColourMenu(int grpId, juce::PopupMenu& colourMenu) const
 {
 	int currentColourIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupColour(grpId));
 
@@ -491,7 +490,7 @@ void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr
 	if (selectedArr.size() == 1)
 	{
 		int colourIdx = result - AssignColourBase;
-		int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(selectedArr[0]));
+		int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, selectedArr[0]);
 
 		if (grpId > 0)
 			SlotStateHelpers::setIntProp(processor.apvts.state, SlotIDs::groupColour(grpId), colourIdx);
@@ -500,8 +499,9 @@ void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr
 
 void PerformanceView::doStereoLink(int slotA, int slotB)
 {
-	if (isSlotLinked(slotA) || isSlotLinked(slotB))
-	{
+	if (SlotStateHelpers::isStereoLinked(processor.apvts.state, slotA) || 
+		SlotStateHelpers::isStereoLinked(processor.apvts.state, slotB)
+	) {
 		selectedItems.deselectAll();
 		return;
 	}
@@ -551,16 +551,9 @@ void PerformanceView::unlinkSlot(juce::ValueTree& state, int idx)
 	SlotStateHelpers::removeProp(state, SlotIDs::linkedSlotId(idx));
 }
 
-void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, int role)
-{
-	auto& state = processor.apvts.state;
-	SlotStateHelpers::setIntProp(state, SlotIDs::groupId(slotIdx), groupId);
-	SlotStateHelpers::setIntProp(state, SlotIDs::groupRole(slotIdx), role);
-}
-
 void PerformanceView::promoteToGroupLeader(int slotIdx)
 {
-	int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(slotIdx));
+	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
 
 	if (grpId == 0) return;
 
@@ -572,7 +565,7 @@ void PerformanceView::demoteExistingGroupLeaders(int grpId)
 {
 	for (int i = 1; i <= 32; ++i)
 	{
-		int otherGrpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i));
+		int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
 		int otherRole = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(i));
 
 		if (otherGrpId == grpId && otherRole == 1) 
@@ -582,15 +575,22 @@ void PerformanceView::demoteExistingGroupLeaders(int grpId)
 	}
 }
 
+void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, int role)
+{
+	auto& state = processor.apvts.state;
+	SlotStateHelpers::setIntProp(state, SlotIDs::groupId(slotIdx), groupId);
+	SlotStateHelpers::setIntProp(state, SlotIDs::groupRole(slotIdx), role);
+}
+
 void PerformanceView::demoteToStandardMember(int slotIdx)
 {
-	int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(slotIdx));
+	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
 	setSlotStandardGroup(slotIdx, grpId, 0);
 }
 
 void PerformanceView::toggleVcaMaster(int slotIdx)
 {
-	int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(slotIdx));
+	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
 	if (auto* param = processor.apvts.getParameter(SlotIDs::vcaEnabled(grpId)))
 		param->setValueNotifyingHost(param->getValue() > 0.5f ? 0.0f : 1.0f);
 }
@@ -837,12 +837,12 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 	if (info.mode == SlotMode::Disabled)
 		return info;
 
-	bool isLinked = isSlotLinked(i + 1);
-	info.isStereoMain = SlotStateHelpers::getBoolProp(processor.apvts.state, SlotIDs::isStereoMain(i + 1));
+	bool isLinked = SlotStateHelpers::isStereoLinked(processor.apvts.state, i + 1);
+	info.isStereoMain = SlotStateHelpers::isStereoMain(processor.apvts.state, i + 1);
 
 	if (isLinked && !info.isStereoMain)
 	{
-		int linkedIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::linkedSlotId(i + 1), -1);
+		int linkedIdx = SlotStateHelpers::getLinkedSlotId(processor.apvts.state, i + 1);
 		if (linkedIdx != -1 && *processor.isActiveParams[linkedIdx - 1] < 0.5f)
 		{
 			// Orphaned sub-slot, treat it as a standard mono slot
@@ -855,7 +855,7 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 
 	info.shouldProcess = true;
 
-	int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i + 1));
+	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, i + 1);
 	info.isVisible = true;
 	hideSlotIfVcaCollapsed(grpId, info.isVisible);
 

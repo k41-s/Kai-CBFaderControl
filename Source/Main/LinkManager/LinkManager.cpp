@@ -103,7 +103,7 @@ void LinkManager::applyDeltaToGroupFromVca(int grpIdx, float delta)
 	isPropagating = true;
     for (int i = 1; i <= 32; ++i)
     {
-        int assignedGrp = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i));
+        int assignedGrp = SlotStateHelpers::getGroupId(processor.apvts.state, i);
         if (assignedGrp == grpIdx) 
         {
             float targetVol = lastVolume[i - 1] + delta;
@@ -127,7 +127,7 @@ void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
 {
 	isPropagating = true;
     for (int i = 1; i <= 32; ++i) {
-        int assignedGrp = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i));
+        int assignedGrp = SlotStateHelpers::getGroupId(processor.apvts.state, i);
         if (assignedGrp == grpIdx) 
         {
             if (auto* param = processor.apvts.getParameter(SlotIDs::mute(i))) 
@@ -142,14 +142,15 @@ void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
 void LinkManager::handleVolumeParameterChanged(const juce::String& parameterID, float newValue)
 {
     int slotIdx = parameterID.substring(7).getIntValue();
-    int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(slotIdx));
-    int role = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(slotIdx));
 
     float delta = newValue - lastVolume[slotIdx - 1];
     lastVolume[slotIdx - 1] = newValue;
 
-    if (isSlotLeader(grpId, role))
+    if (SlotStateHelpers::isGroupLeader(processor.apvts.state, slotIdx))
+    {
+        int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
         applyDeltaToGroupMembers(slotIdx, grpId, delta);
+    }
 }
 
 void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
@@ -159,8 +160,8 @@ void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
     {
         if (i == slotIdx) continue;
 
-		int otherGrpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i));
-        int otherRoleId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(i));
+        int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
+        int otherRoleId = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
 
         if (otherGrpId == grpId && otherRoleId == 0) {
             float targetVol = lastVolume[i - 1] + delta;
@@ -178,11 +179,12 @@ void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
 void LinkManager::handleMuteParameterChanged(const juce::String& parameterID, float newValue)
 {
     int slotIdx = parameterID.substring(5).getIntValue();
-    int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(slotIdx));
-    int role = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(slotIdx));
 
-    if (isSlotLeader(grpId, role))
+    if (SlotStateHelpers::isGroupLeader(processor.apvts.state, slotIdx)) 
+    {
+        int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
         syncMutesWithinGroup(slotIdx, grpId, newValue);
+    }
 }
 
 void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
@@ -191,8 +193,8 @@ void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
     for (int i = 1; i <= 32; ++i) {
         if (i == slotIdx) continue;
 
-        int otherGrpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i));
-        int otherRoleId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(i));
+        int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
+        int otherRoleId = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
 
         if (otherGrpId == grpId && otherRoleId == 0) 
         {
@@ -202,9 +204,4 @@ void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
         }
     }
 	isPropagating = false;
-}
-
-bool LinkManager::isSlotLeader(int grpId, int role)
-{
-    return grpId > 0 && role == 1;
 }

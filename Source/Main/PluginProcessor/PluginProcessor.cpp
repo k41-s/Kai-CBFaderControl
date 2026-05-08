@@ -318,7 +318,7 @@ void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadca
 void KaiCBFaderControlAudioProcessor::clearSlotRouting(int slotIdx)
 {
     auto& state = apvts.state;
-    int linkedIdx = SlotStateHelpers::getIntProp(state, SlotIDs::linkedSlotId(slotIdx), -1);
+    int linkedIdx = SlotStateHelpers::getLinkedSlotId(state, slotIdx);
 
     removeFromGroup(state, slotIdx);
     removeFromStereoPair(state, slotIdx);

@@ -77,7 +77,7 @@ void PerformanceSlotItem::configNameLabel()
     addAndMakeVisible(nameLabel);
     nameLabel.setJustificationType(juce::Justification::centred);
 
-    auto name = SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::slotName(index));
+    auto name = SlotStateHelpers::getSlotCustomName(processor.apvts.state, index);
     nameLabel.setText(name, juce::dontSendNotification);
 }
 
@@ -117,15 +117,15 @@ void PerformanceSlotItem::configSoloAttachment()
 
 void PerformanceSlotItem::updateNameFromValueTree()
 {
-    auto customName = SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::slotName(index));
+    auto customName = SlotStateHelpers::getSlotCustomName(processor.apvts.state, index);
     nameLabel.setText(customName, juce::dontSendNotification);
     resized();
 }
 
 void PerformanceSlotItem::updateStereoState()
 {
-    isStereoLinked = SlotStateHelpers::getBoolProp(processor.apvts.state, SlotIDs::isStereoLinked(index));
-    isStereoMain = SlotStateHelpers::getBoolProp(processor.apvts.state, SlotIDs::isStereoMain(index));
+    isStereoLinked = SlotStateHelpers::isStereoLinked(processor.apvts.state, index);
+    isStereoMain = SlotStateHelpers::isStereoMain(processor.apvts.state, index);
     panSlider.setVisible(isStereoMain);
 
     setAppropriateIndexLabelText();
@@ -134,8 +134,8 @@ void PerformanceSlotItem::updateStereoState()
 
 void PerformanceSlotItem::updateGroupState()
 {
-    int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(index));
-    int role = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(index));
+    int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, index);
+    int role = SlotStateHelpers::getGroupRole(processor.apvts.state, index);
 
     if (grpId > 0) 
     {
@@ -180,7 +180,7 @@ void PerformanceSlotItem::setAppropriateIndexLabelText()
 {
     if (isStereoMain)
     {
-        int linkedIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::linkedSlotId(index));
+        int linkedIdx = SlotStateHelpers::getLinkedSlotId(processor.apvts.state, index);
         indexLabel.setText(juce::String(index) + "-" + juce::String(linkedIdx), juce::dontSendNotification);
     }
     else 

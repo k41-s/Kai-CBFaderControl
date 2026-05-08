@@ -86,6 +86,9 @@ private:
     void addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
     void addParamsForVca(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
 
+    void removeFromGroup(juce::ValueTree& state, int slotIdx);
+    void removeFromStereoPair(juce::ValueTree& state, int slotIdx);
+
     void claimActiveSlots() const;
     void releaseOwnedSlots() const;
 

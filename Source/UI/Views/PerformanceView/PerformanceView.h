@@ -75,7 +75,7 @@ private:
 	void addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 
 	void addGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
-	void setupGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& groupMenu);
+	void setupGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& groupMenu) const;
 
 	void addSingleSlotGroupOptions(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 
@@ -83,7 +83,7 @@ private:
 	void addVcaMenuItem(juce::PopupMenu& menu, int grpId);
 
 	void setupAndAddColourMenu(juce::PopupMenu& menu, int grpId);
-	void setupColourMenu(int grpId, juce::PopupMenu& colourMenu);
+	void setupColourMenu(int grpId, juce::PopupMenu& colourMenu) const;
 
 	void showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr);
 	void handlePopupMenuResult(int result, const juce::Array<int>& selectedArr);
@@ -96,7 +96,6 @@ private:
 
 	// Stereo link functions
 	void doStereoLink(int slotA, int slotB);
-	bool isSlotLinked(int slotIdx) const;
 
 	void setMainSlotProperties(juce::ValueTree& state, int mainIdx, int subIdx);
 	void setSubSlotProperties(juce::ValueTree& state, int subIdx, int mainIdx);

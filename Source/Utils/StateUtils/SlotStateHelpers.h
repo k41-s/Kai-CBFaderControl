@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "../../Main/SlotIDs.h"
 
 namespace SlotStateHelpers
 {
@@ -22,9 +23,7 @@ namespace SlotStateHelpers
         return state.getProperty(juce::Identifier(paramId), defaultVal).toString();
     }
 
-    // =========================================================================
     // SETTERS
-    // =========================================================================
 
     static inline void setIntProp(juce::ValueTree& state, const juce::String& paramId, int value, juce::UndoManager* undoManager = nullptr)
     {
@@ -44,5 +43,47 @@ namespace SlotStateHelpers
     static inline void removeProp(juce::ValueTree& state, const juce::String& paramId, juce::UndoManager* undoManager = nullptr)
     {
         state.removeProperty(juce::Identifier(paramId), undoManager);
+    }
+
+    // SEMANTIC DOMAIN HELPERS (Slot Logic)
+
+    static inline int getGroupId(const juce::ValueTree& state, int slotIdx)
+    {
+        return getIntProp(state, SlotIDs::groupId(slotIdx), 0);
+    }
+
+    static inline int getGroupRole(const juce::ValueTree& state, int slotIdx)
+    {
+        return getIntProp(state, SlotIDs::groupRole(slotIdx), 0);
+    }
+
+    static inline bool isSlotInGroup(const juce::ValueTree& state, int slotIdx)
+    {
+        return getGroupId(state, slotIdx) > 0;
+    }
+
+    static inline bool isGroupLeader(const juce::ValueTree& state, int slotIdx)
+    {
+        return isSlotInGroup(state, slotIdx) && getGroupRole(state, slotIdx) == 1;
+    }
+
+    static inline bool isStereoLinked(const juce::ValueTree& state, int slotIdx)
+    {
+        return getBoolProp(state, SlotIDs::isStereoLinked(slotIdx), false);
+    }
+
+    static inline bool isStereoMain(const juce::ValueTree& state, int slotIdx)
+    {
+        return getBoolProp(state, SlotIDs::isStereoMain(slotIdx), false);
+    }
+
+    static inline int getLinkedSlotId(const juce::ValueTree& state, int slotIdx)
+    {
+        return getIntProp(state, SlotIDs::linkedSlotId(slotIdx), -1);
+    }
+
+    static inline juce::String getSlotCustomName(const juce::ValueTree& state, int slotIdx)
+    {
+        return getStringProp(state, SlotIDs::slotName(slotIdx), "");
     }
 }
