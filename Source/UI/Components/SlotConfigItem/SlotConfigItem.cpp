@@ -13,7 +13,6 @@ SlotConfigItem::SlotConfigItem(KaiCBFaderControlAudioProcessor& p, int slotNum)
 	configActiveToggle();
 }
 
-
 void SlotConfigItem::configSlotLabel(int slotNumber)
 {
 	slotLabel.setText("Slot " + juce::String(slotNumber), juce::dontSendNotification);
@@ -43,11 +42,11 @@ void SlotConfigItem::configSaveCustomName(int slotNumber)
 
 			if (newText.isNotEmpty() && newText != defaultName)
 			{
-				SlotStateHelpers::setStringProp(processor.apvts.state, SlotIDs::slotName(slotNumber), newText);
+				SlotStateHelpers::setSlotCustomName(processor.apvts.state, slotNumber, newText);
 			}
 			else
 			{
-				SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::slotName(slotNumber));
+				SlotStateHelpers::setSlotCustomName(processor.apvts.state, slotNumber, "");
 				customNameEditor.setText("", juce::dontSendNotification);
 			}
 		};

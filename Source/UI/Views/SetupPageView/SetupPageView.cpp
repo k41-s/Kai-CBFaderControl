@@ -23,21 +23,21 @@ void SetupPageView::configComponents()
 	configLabelEditorPair(
 		"Target Ip Address",
 		targetIpLabel,
-		SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::targetIP().toString()),
+		SlotStateHelpers::getTargetIP(processor.apvts.state),
 		targetIpEditor
 	);
 
 	configLabelEditorPair(
 		"Incoming Port",
 		incomingPortLabel,
-		SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::incomingPort().toString()),
+		juce::String(SlotStateHelpers::getIncomingPort(processor.apvts.state)),
 		incomingPortEditor
 	);
 
 	configLabelEditorPair(
 		"Outgoing Port",
 		outgoingPortLabel,
-		SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::outgoingPort().toString()),
+		juce::String(SlotStateHelpers::getOutgoingPort(processor.apvts.state)),
 		outgoingPortEditor
 	);
 
@@ -150,9 +150,9 @@ void SetupPageView::configImages()
 
 void SetupPageView::saveNetworkSettings()
 {
-	SlotStateHelpers::setStringProp(processor.apvts.state, SlotIDs::targetIP().toString(), targetIpEditor.getText());
-	SlotStateHelpers::setIntProp(processor.apvts.state, SlotIDs::incomingPort().toString(), incomingPortEditor.getText().getIntValue());
-	SlotStateHelpers::setIntProp(processor.apvts.state, SlotIDs::outgoingPort().toString(), outgoingPortEditor.getText().getIntValue());
+	SlotStateHelpers::setTargetIP(processor.apvts.state, targetIpEditor.getText());
+	SlotStateHelpers::setIncomingPort(processor.apvts.state, incomingPortEditor.getText().getIntValue());
+	SlotStateHelpers::setOutgoingPort(processor.apvts.state, outgoingPortEditor.getText().getIntValue());
 
 	DBG("Network Settings Saved: " << targetIpEditor.getText());
 }

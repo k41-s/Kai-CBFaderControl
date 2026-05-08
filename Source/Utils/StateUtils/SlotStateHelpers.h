@@ -4,9 +4,7 @@
 
 namespace SlotStateHelpers
 {
-    // =========================================================================
     // GETTERS
-    // =========================================================================
 
     static inline int getIntProp(const juce::ValueTree& state, const juce::String& paramId, int defaultVal = 0)
     {
@@ -45,7 +43,7 @@ namespace SlotStateHelpers
         state.removeProperty(juce::Identifier(paramId), undoManager);
     }
 
-    // SEMANTIC DOMAIN HELPERS (Slot Logic)
+    // SEMANTIC DOMAIN GETTERS (Slot Logic)
 
     static inline int getGroupId(const juce::ValueTree& state, int slotIdx)
     {
@@ -85,5 +83,93 @@ namespace SlotStateHelpers
     static inline juce::String getSlotCustomName(const juce::ValueTree& state, int slotIdx)
     {
         return getStringProp(state, SlotIDs::slotName(slotIdx), "");
+    }
+
+    static inline int getGroupColour(const juce::ValueTree& state, int grpId)
+    {
+        return getIntProp(state, SlotIDs::groupColour(grpId), 0);
+    }
+
+    static inline juce::String getVcaName(const juce::ValueTree& state, int vcaIdx)
+    {
+        return getStringProp(state, SlotIDs::vcaName(vcaIdx), "");
+    }
+
+    static inline juce::String getTargetIP(const juce::ValueTree& state)
+    {
+        return getStringProp(state, SlotIDs::targetIP().toString(), "127.0.0.1");
+    }
+
+    static inline int getIncomingPort(const juce::ValueTree& state)
+    {
+        return getIntProp(state, SlotIDs::incomingPort().toString(), 8000);
+    }
+
+    static inline int getOutgoingPort(const juce::ValueTree& state)
+    {
+        return getIntProp(state, SlotIDs::outgoingPort().toString(), 8001);
+    }
+
+    // SEMANTIC DOMAIN SETTERS (Slot Logic)
+
+    static inline void setGroupId(juce::ValueTree& state, int slotIdx, int groupId, juce::UndoManager* undoManager = nullptr)
+    {
+        setIntProp(state, SlotIDs::groupId(slotIdx), groupId, undoManager);
+    }
+
+    static inline void setGroupRole(juce::ValueTree& state, int slotIdx, int role, juce::UndoManager* undoManager = nullptr)
+    {
+        setIntProp(state, SlotIDs::groupRole(slotIdx), role, undoManager);
+    }
+
+    static inline void setStereoLinked(juce::ValueTree& state, int slotIdx, bool isLinked, juce::UndoManager* undoManager = nullptr)
+    {
+        setBoolProp(state, SlotIDs::isStereoLinked(slotIdx), isLinked, undoManager);
+    }
+
+    static inline void setStereoMain(juce::ValueTree& state, int slotIdx, bool isMain, juce::UndoManager* undoManager = nullptr)
+    {
+        setBoolProp(state, SlotIDs::isStereoMain(slotIdx), isMain, undoManager);
+    }
+
+    static inline void setLinkedSlotId(juce::ValueTree& state, int slotIdx, int linkedIdx, juce::UndoManager* undoManager = nullptr)
+    {
+        setIntProp(state, SlotIDs::linkedSlotId(slotIdx), linkedIdx, undoManager);
+    }
+
+    static inline void setSlotCustomName(juce::ValueTree& state, int slotIdx, const juce::String& name, juce::UndoManager* undoManager = nullptr)
+    {
+        if (name.isEmpty())
+            removeProp(state, SlotIDs::slotName(slotIdx), undoManager);
+        else
+            setStringProp(state, SlotIDs::slotName(slotIdx), name, undoManager);
+    }
+
+    static inline void setGroupColour(juce::ValueTree& state, int grpId, int colourIdx, juce::UndoManager* undoManager = nullptr)
+    {
+        setIntProp(state, SlotIDs::groupColour(grpId), colourIdx, undoManager);
+    }
+
+    static inline void setVcaName(juce::ValueTree& state, int vcaIdx, const juce::String& name, juce::UndoManager* undoManager = nullptr)
+    {
+        if (name.isEmpty())
+            removeProp(state, SlotIDs::vcaName(vcaIdx), undoManager);
+        else
+            setStringProp(state, SlotIDs::vcaName(vcaIdx), name, undoManager);
+    }
+
+    static inline void setTargetIP(juce::ValueTree& state, const juce::String& ip, juce::UndoManager* undoManager = nullptr)
+    {
+        setStringProp(state, SlotIDs::targetIP().toString(), ip, undoManager);
+    }
+
+    static inline void setIncomingPort(juce::ValueTree& state, int port, juce::UndoManager* undoManager = nullptr)
+    {
+        setIntProp(state, SlotIDs::incomingPort().toString(), port, undoManager);
+    }
+
+    static inline void setOutgoingPort(juce::ValueTree& state, int port, juce::UndoManager* undoManager = nullptr)
+    {
+        setIntProp(state, SlotIDs::outgoingPort().toString(), port, undoManager);
     }
 }

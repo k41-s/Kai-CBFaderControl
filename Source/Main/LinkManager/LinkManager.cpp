@@ -108,7 +108,8 @@ void LinkManager::applyDeltaToGroupFromVca(int grpIdx, float delta)
         {
             float targetVol = lastVolume[i - 1] + delta;
             targetVol = juce::jlimit(-96.0f, 22.0f, targetVol);
-            if (auto* param = processor.apvts.getParameter(SlotIDs::volume(i))) {
+            if (auto* param = processor.apvts.getParameter(SlotIDs::volume(i))) 
+            {
                 param->setValueNotifyingHost(param->convertTo0to1(targetVol));
             }
             lastVolume[i - 1] = targetVol;

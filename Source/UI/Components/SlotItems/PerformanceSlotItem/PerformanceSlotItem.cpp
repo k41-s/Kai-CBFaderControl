@@ -169,7 +169,7 @@ void PerformanceSlotItem::setGroupedSlotLabel(int role, int grpId)
 
 void PerformanceSlotItem::setGroupedSlotColour(int grpId)
 {
-    int colourIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupColour(grpId));
+    int colourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, grpId);
     juce::Colour groupColour = GroupColours::palette[colourIdx];
 
     groupLabel.setColour(juce::Label::textColourId, groupColour);

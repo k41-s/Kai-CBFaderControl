@@ -32,15 +32,14 @@ void KaiCBFaderControlAudioProcessor::init()
 void KaiCBFaderControlAudioProcessor::InitialiseNetworkingDefaults()
 {
     auto& state = apvts.state;
-
     if (!state.hasProperty(SlotIDs::targetIP()))
-        SlotStateHelpers::setStringProp(state, SlotIDs::targetIP().toString(), "127.0.0.1");
+        SlotStateHelpers::setTargetIP(state, "127.0.0.1");
 
     if (!state.hasProperty(SlotIDs::incomingPort()))
-        SlotStateHelpers::setIntProp(state, SlotIDs::incomingPort().toString(), 8000);
+        SlotStateHelpers::setIncomingPort(state, 8000);
 
     if (!state.hasProperty(SlotIDs::outgoingPort()))
-        SlotStateHelpers::setIntProp(state, SlotIDs::outgoingPort().toString(), 8001);
+        SlotStateHelpers::setOutgoingPort(state, 8001);
 }
 
 void KaiCBFaderControlAudioProcessor::fillIsActiveParamsList()
@@ -331,15 +330,15 @@ void KaiCBFaderControlAudioProcessor::clearSlotRouting(int slotIdx)
 
 void KaiCBFaderControlAudioProcessor::removeFromGroup(juce::ValueTree& state, int slotIdx)
 {
-    SlotStateHelpers::setIntProp(state, SlotIDs::groupId(slotIdx), 0);
-    SlotStateHelpers::setIntProp(state, SlotIDs::groupRole(slotIdx), 0);
+    SlotStateHelpers::setGroupId(state, slotIdx, 0);
+    SlotStateHelpers::setGroupRole(state, slotIdx, 0);
 }
 
 void KaiCBFaderControlAudioProcessor::removeFromStereoPair(juce::ValueTree& state, int slotIdx)
 {
-    SlotStateHelpers::setBoolProp(state, SlotIDs::isStereoLinked(slotIdx), false);
-    SlotStateHelpers::setBoolProp(state, SlotIDs::isStereoMain(slotIdx), false);
-    SlotStateHelpers::setIntProp(state, SlotIDs::linkedSlotId(slotIdx), -1);
+    SlotStateHelpers::setStereoLinked(state, slotIdx, false);
+    SlotStateHelpers::setStereoMain(state, slotIdx, false);
+    SlotStateHelpers::setLinkedSlotId(state, slotIdx, -1);
 }
 
 void KaiCBFaderControlAudioProcessor::claimActiveSlots() const

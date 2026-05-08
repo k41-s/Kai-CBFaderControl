@@ -67,7 +67,7 @@ void VcaSlotItem::configNameLabel()
 
 void VcaSlotItem::updateColours()
 {
-    int colourIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupColour(index));
+    int colourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, index);
     juce::Colour groupColour = GroupColours::palette[colourIdx];
 
     volumeFader.getProperties().set(UIProperties::customColour, groupColour.toString());
@@ -99,7 +99,7 @@ void VcaSlotItem::configExpandAttachment()
 
 void VcaSlotItem::updateNameFromValueTree()
 {
-    auto customName = SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::vcaName(index));
+    juce::String customName = SlotStateHelpers::getVcaName(processor.apvts.state, index);
     nameLabel.setText(customName, juce::dontSendNotification);
     resized();
 }
@@ -119,7 +119,7 @@ void VcaSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHas
 
 void VcaSlotItem::paint(juce::Graphics& g)
 {
-    int colourIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupColour(index));
+    int colourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, index);
     juce::Colour groupColour = GroupColours::palette[colourIdx];
 
     g.setColour(juce::Colours::black.withAlpha(0.8f));

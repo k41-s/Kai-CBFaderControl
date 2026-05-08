@@ -383,7 +383,7 @@ void PerformanceView::setupAndAddColourMenu(juce::PopupMenu& menu, int grpId)
 
 void PerformanceView::setupColourMenu(int grpId, juce::PopupMenu& colourMenu) const
 {
-	int currentColourIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupColour(grpId));
+	int currentColourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, grpId);
 
 	for (int i = 0; i < GroupColours::numColours; ++i)
 		colourMenu.addItem(AssignColourBase + i, GroupColours::names[i], true, currentColourIdx == i);
@@ -493,7 +493,7 @@ void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr
 		int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, selectedArr[0]);
 
 		if (grpId > 0)
-			SlotStateHelpers::setIntProp(processor.apvts.state, SlotIDs::groupColour(grpId), colourIdx);
+			SlotStateHelpers::setGroupColour(processor.apvts.state, grpId, colourIdx);
 	}
 }
 
@@ -518,19 +518,19 @@ void PerformanceView::doStereoLink(int slotA, int slotB)
 
 void PerformanceView::setMainSlotProperties(juce::ValueTree& state, int mainIdx, int subIdx)
 {
-	SlotStateHelpers::setBoolProp(state, SlotIDs::isStereoLinked(mainIdx), true);
-	SlotStateHelpers::setBoolProp(state, SlotIDs::isStereoMain(mainIdx), true);
-	SlotStateHelpers::setIntProp(state, SlotIDs::linkedSlotId(mainIdx), subIdx);
+	SlotStateHelpers::setStereoLinked(state, mainIdx, true);
+	SlotStateHelpers::setStereoMain(state, mainIdx, true);
+	SlotStateHelpers::setLinkedSlotId(state, mainIdx, subIdx);
 }
 
 void PerformanceView::setSubSlotProperties(juce::ValueTree& state, int subIdx, int mainIdx)
 {
-	SlotStateHelpers::setBoolProp(state, SlotIDs::isStereoLinked(subIdx), true);
-	SlotStateHelpers::setBoolProp(state, SlotIDs::isStereoMain(subIdx), false);
-	SlotStateHelpers::setIntProp(state, SlotIDs::linkedSlotId(subIdx), mainIdx);
+	SlotStateHelpers::setStereoLinked(state, subIdx, true);
+	SlotStateHelpers::setStereoMain(state, subIdx, false);
+	SlotStateHelpers::setLinkedSlotId(state, subIdx, mainIdx);
 
-	SlotStateHelpers::setIntProp(state, SlotIDs::groupId(subIdx), 0);
-	SlotStateHelpers::setIntProp(state, SlotIDs::groupRole(subIdx), 0);
+	SlotStateHelpers::setGroupId(state, subIdx, 0);
+	SlotStateHelpers::setGroupRole(state, subIdx, 0);
 }
 
 void PerformanceView::doStereoUnlink(int slotIdx)
@@ -578,8 +578,8 @@ void PerformanceView::demoteExistingGroupLeaders(int grpId)
 void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, int role)
 {
 	auto& state = processor.apvts.state;
-	SlotStateHelpers::setIntProp(state, SlotIDs::groupId(slotIdx), groupId);
-	SlotStateHelpers::setIntProp(state, SlotIDs::groupRole(slotIdx), role);
+	SlotStateHelpers::setGroupId(state, slotIdx, groupId);
+	SlotStateHelpers::setGroupRole(state, slotIdx, role);
 }
 
 void PerformanceView::demoteToStandardMember(int slotIdx)
