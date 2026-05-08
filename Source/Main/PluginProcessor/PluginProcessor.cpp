@@ -9,6 +9,7 @@
 #include "PluginProcessor.h"
 #include "../PluginEditor/PluginEditor.h"
 #include "../SlotIDs.h"
+#include "../../Utils/StateUtils/SlotStateHelpers.h"
 
 //==============================================================================
 KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
@@ -33,13 +34,13 @@ void KaiCBFaderControlAudioProcessor::InitialiseNetworkingDefaults()
     auto& state = apvts.state;
 
     if (!state.hasProperty(SlotIDs::targetIP()))
-        state.setProperty(SlotIDs::targetIP(), "127.0.0.1", nullptr);
+        SlotStateHelpers::setStringProp(state, SlotIDs::targetIP().toString(), "127.0.0.1");
 
     if (!state.hasProperty(SlotIDs::incomingPort()))
-        state.setProperty(SlotIDs::incomingPort(), 8000, nullptr);
+        SlotStateHelpers::setIntProp(state, SlotIDs::incomingPort().toString(), 8000);
 
     if (!state.hasProperty(SlotIDs::outgoingPort()))
-        state.setProperty(SlotIDs::outgoingPort(), 8001, nullptr);
+        SlotStateHelpers::setIntProp(state, SlotIDs::outgoingPort().toString(), 8001);
 }
 
 void KaiCBFaderControlAudioProcessor::fillIsActiveParamsList()
@@ -294,30 +295,6 @@ void KaiCBFaderControlAudioProcessor::setStateInformation (const void* data, int
 	isRestoringState = false;
 }
 
-void KaiCBFaderControlAudioProcessor::clearSlotRouting(int slotIdx)
-{
-    auto& state = apvts.state;
-
-    // 1. Remove from any Group explicitly
-    state.setProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0, nullptr);
-    state.setProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), 0, nullptr);
-
-    // 2. Fetch the linked partner before we destroy the link
-    int linkedIdx = state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(slotIdx)), -1);
-
-    // 3. Force properties to default states instead of removing them
-    state.setProperty(juce::Identifier(SlotIDs::isStereoLinked(slotIdx)), false, nullptr);
-    state.setProperty(juce::Identifier(SlotIDs::isStereoMain(slotIdx)), false, nullptr);
-    state.setProperty(juce::Identifier(SlotIDs::linkedSlotId(slotIdx)), -1, nullptr);
-
-    // 4. If it was linked, strictly sever the partner's connection too
-    if (linkedIdx != -1)
-    {
-        state.setProperty(juce::Identifier(SlotIDs::isStereoLinked(linkedIdx)), false, nullptr);
-        state.setProperty(juce::Identifier(SlotIDs::isStereoMain(linkedIdx)), false, nullptr);
-        state.setProperty(juce::Identifier(SlotIDs::linkedSlotId(linkedIdx)), -1, nullptr);
-    }
-}
 
 void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
@@ -328,16 +305,41 @@ void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadca
             bool isLocallyActive = *isActiveParams[i - 1] > 0.5f;
             bool isCurrentlyOwned = (globalSlotRegistry->getSlotMode(i, getInstanceId(), isLocallyActive) == SlotMode::FullAccess);
 
-            // If we owned it a millisecond ago, but we don't right now... we lost it!
             if (wasSlotOwned[i - 1] && !isCurrentlyOwned)
             {
-                clearSlotRouting(i); // Nuke the routing immediately
+                clearSlotRouting(i);
             }
 
-            // Safely update our tracker for the next time the registry fires
             wasSlotOwned.set(i - 1, isCurrentlyOwned);
         }
     }
+}
+
+void KaiCBFaderControlAudioProcessor::clearSlotRouting(int slotIdx)
+{
+    auto& state = apvts.state;
+    int linkedIdx = SlotStateHelpers::getIntProp(state, SlotIDs::linkedSlotId(slotIdx), -1);
+
+    removeFromGroup(state, slotIdx);
+    removeFromStereoPair(state, slotIdx);
+
+    if (linkedIdx != -1)
+    {
+		removeFromStereoPair(state, linkedIdx);
+    }
+}
+
+void KaiCBFaderControlAudioProcessor::removeFromGroup(juce::ValueTree& state, int slotIdx)
+{
+    SlotStateHelpers::setIntProp(state, SlotIDs::groupId(slotIdx), 0);
+    SlotStateHelpers::setIntProp(state, SlotIDs::groupRole(slotIdx), 0);
+}
+
+void KaiCBFaderControlAudioProcessor::removeFromStereoPair(juce::ValueTree& state, int slotIdx)
+{
+    SlotStateHelpers::setBoolProp(state, SlotIDs::isStereoLinked(slotIdx), false);
+    SlotStateHelpers::setBoolProp(state, SlotIDs::isStereoMain(slotIdx), false);
+    SlotStateHelpers::setIntProp(state, SlotIDs::linkedSlotId(slotIdx), -1);
 }
 
 void KaiCBFaderControlAudioProcessor::claimActiveSlots() const

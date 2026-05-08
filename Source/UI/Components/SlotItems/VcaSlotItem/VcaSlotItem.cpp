@@ -4,6 +4,7 @@
 #include "../../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
 #include "../../../../Utils/LayoutUtils/LayoutUtils.h"
 #include "../../../../Utils/UIUtils/UIUtils.h"
+#include "../../../../Utils/StateUtils/SlotStateHelpers.h"
 
 VcaSlotItem::VcaSlotItem(KaiCBFaderControlAudioProcessor& p, int vcaIndex)
 	: BaseSlotItem(p, vcaIndex)
@@ -66,7 +67,7 @@ void VcaSlotItem::configNameLabel()
 
 void VcaSlotItem::updateColours()
 {
-    int colourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(index)), 0);
+    int colourIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupColour(index));
     juce::Colour groupColour = GroupColours::palette[colourIdx];
 
     volumeFader.getProperties().set(UIProperties::customColour, groupColour.toString());
@@ -98,7 +99,7 @@ void VcaSlotItem::configExpandAttachment()
 
 void VcaSlotItem::updateNameFromValueTree()
 {
-    auto customName = processor.apvts.state.getProperty(SlotIDs::vcaName(index), "").toString();
+    auto customName = SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::vcaName(index));
     nameLabel.setText(customName, juce::dontSendNotification);
     resized();
 }
@@ -118,7 +119,7 @@ void VcaSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHas
 
 void VcaSlotItem::paint(juce::Graphics& g)
 {
-    int colourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(index)), 0);
+    int colourIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupColour(index));
     juce::Colour groupColour = GroupColours::palette[colourIdx];
 
     g.setColour(juce::Colours::black.withAlpha(0.8f));

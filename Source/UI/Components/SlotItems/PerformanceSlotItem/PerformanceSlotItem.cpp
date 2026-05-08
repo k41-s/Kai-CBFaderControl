@@ -4,6 +4,7 @@
 #include "../../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
 #include "../../../../Utils/LayoutUtils/LayoutUtils.h"
 #include "../../../../Utils/UIUtils/UIUtils.h"
+#include "../../../../Utils/StateUtils/SlotStateHelpers.h"
 
 PerformanceSlotItem::PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex)
 	:BaseSlotItem(p, slotIndex)
@@ -76,7 +77,7 @@ void PerformanceSlotItem::configNameLabel()
     addAndMakeVisible(nameLabel);
     nameLabel.setJustificationType(juce::Justification::centred);
 
-    auto name = processor.apvts.state.getProperty(SlotIDs::slotName(index), "");
+    auto name = SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::slotName(index));
     nameLabel.setText(name, juce::dontSendNotification);
 }
 
@@ -116,15 +117,15 @@ void PerformanceSlotItem::configSoloAttachment()
 
 void PerformanceSlotItem::updateNameFromValueTree()
 {
-    auto customName = processor.apvts.state.getProperty(SlotIDs::slotName(index), "").toString();
+    auto customName = SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::slotName(index));
     nameLabel.setText(customName, juce::dontSendNotification);
     resized();
 }
 
 void PerformanceSlotItem::updateStereoState()
 {
-    isStereoLinked = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoLinked(index)), false);
-    isStereoMain = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::isStereoMain(index)), false);
+    isStereoLinked = SlotStateHelpers::getBoolProp(processor.apvts.state, SlotIDs::isStereoLinked(index));
+    isStereoMain = SlotStateHelpers::getBoolProp(processor.apvts.state, SlotIDs::isStereoMain(index));
     panSlider.setVisible(isStereoMain);
 
     setAppropriateIndexLabelText();
@@ -133,8 +134,8 @@ void PerformanceSlotItem::updateStereoState()
 
 void PerformanceSlotItem::updateGroupState()
 {
-    int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(index)), 0);
-    int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(index)), 0);
+    int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(index));
+    int role = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(index));
 
     if (grpId > 0) 
     {
@@ -168,7 +169,7 @@ void PerformanceSlotItem::setGroupedSlotLabel(int role, int grpId)
 
 void PerformanceSlotItem::setGroupedSlotColour(int grpId)
 {
-    int colourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(grpId)), 0);
+    int colourIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupColour(grpId));
     juce::Colour groupColour = GroupColours::palette[colourIdx];
 
     groupLabel.setColour(juce::Label::textColourId, groupColour);
@@ -179,7 +180,7 @@ void PerformanceSlotItem::setAppropriateIndexLabelText()
 {
     if (isStereoMain)
     {
-        int linkedIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(index)), index);
+        int linkedIdx = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::linkedSlotId(index));
         indexLabel.setText(juce::String(index) + "-" + juce::String(linkedIdx), juce::dontSendNotification);
     }
     else 

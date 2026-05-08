@@ -1,6 +1,7 @@
 #include "LinkManager.h"
 #include "../SlotIDs.h"
 #include "../PluginProcessor/PluginProcessor.h"
+#include "../../Utils/StateUtils/SlotStateHelpers.h"
 
 LinkManager::LinkManager(KaiCBFaderControlAudioProcessor& p) : processor(p)
 {
@@ -100,9 +101,11 @@ void LinkManager::handleVcaVolumeParameterChanged(const juce::String& parameterI
 void LinkManager::applyDeltaToGroupFromVca(int grpIdx, float delta)
 {
 	isPropagating = true;
-    for (int i = 1; i <= 32; ++i) {
-        int assignedGrp = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
-        if (assignedGrp == grpIdx) {
+    for (int i = 1; i <= 32; ++i)
+    {
+        int assignedGrp = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i));
+        if (assignedGrp == grpIdx) 
+        {
             float targetVol = lastVolume[i - 1] + delta;
             targetVol = juce::jlimit(-96.0f, 22.0f, targetVol);
             if (auto* param = processor.apvts.getParameter(SlotIDs::volume(i))) {
@@ -124,7 +127,7 @@ void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
 {
 	isPropagating = true;
     for (int i = 1; i <= 32; ++i) {
-        int assignedGrp = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
+        int assignedGrp = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i));
         if (assignedGrp == grpIdx) 
         {
             if (auto* param = processor.apvts.getParameter(SlotIDs::mute(i))) 
@@ -139,8 +142,8 @@ void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
 void LinkManager::handleVolumeParameterChanged(const juce::String& parameterID, float newValue)
 {
     int slotIdx = parameterID.substring(7).getIntValue();
-    int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
-    int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), 0);
+    int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(slotIdx));
+    int role = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(slotIdx));
 
     float delta = newValue - lastVolume[slotIdx - 1];
     lastVolume[slotIdx - 1] = newValue;
@@ -156,8 +159,8 @@ void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
     {
         if (i == slotIdx) continue;
 
-        int otherGrpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
-        int otherRoleId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(i)), 0);
+		int otherGrpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i));
+        int otherRoleId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(i));
 
         if (otherGrpId == grpId && otherRoleId == 0) {
             float targetVol = lastVolume[i - 1] + delta;
@@ -175,8 +178,8 @@ void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
 void LinkManager::handleMuteParameterChanged(const juce::String& parameterID, float newValue)
 {
     int slotIdx = parameterID.substring(5).getIntValue();
-    int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
-    int role = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(slotIdx)), 0);
+    int grpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(slotIdx));
+    int role = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(slotIdx));
 
     if (isSlotLeader(grpId, role))
         syncMutesWithinGroup(slotIdx, grpId, newValue);
@@ -188,8 +191,8 @@ void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
     for (int i = 1; i <= 32; ++i) {
         if (i == slotIdx) continue;
 
-        int otherGrpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
-        int otherRoleId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(i)), 0);
+        int otherGrpId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupId(i));
+        int otherRoleId = SlotStateHelpers::getIntProp(processor.apvts.state, SlotIDs::groupRole(i));
 
         if (otherGrpId == grpId && otherRoleId == 0) 
         {

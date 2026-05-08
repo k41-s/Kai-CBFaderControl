@@ -1,6 +1,7 @@
 #include "SlotConfigItem.h"
 #include "../../../Main/SlotIDs.h"
 #include "../../CustomLookAndFeel/MyColours.h"
+#include "../../../Utils/StateUtils/SlotStateHelpers.h"
 
 SlotConfigItem::SlotConfigItem(KaiCBFaderControlAudioProcessor& p, int slotNum)
 	: processor(p), slotNumber(slotNum)
@@ -27,7 +28,7 @@ void SlotConfigItem::configNameEditor(int slotNumber)
 	customNameEditor.setTextToShowWhenEmpty("Text here...", juce::Colour::greyLevel(0.75f));
 	customNameEditor.setJustification(juce::Justification::left);
 
-	auto currentName = processor.apvts.state.getProperty(SlotIDs::slotName(slotNumber), "");
+	auto currentName = SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::slotName(slotNumber));
 	customNameEditor.setText(currentName, juce::dontSendNotification);
 
 	configSaveCustomName(slotNumber);
@@ -42,12 +43,11 @@ void SlotConfigItem::configSaveCustomName(int slotNumber)
 
 			if (newText.isNotEmpty() && newText != defaultName)
 			{
-				processor.apvts.state.setProperty(SlotIDs::slotName(slotNumber), newText, nullptr);
+				SlotStateHelpers::setStringProp(processor.apvts.state, SlotIDs::slotName(slotNumber), newText);
 			}
 			else
 			{
-				processor.apvts.state.removeProperty(SlotIDs::slotName(slotNumber), nullptr);
-
+				SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::slotName(slotNumber));
 				customNameEditor.setText("", juce::dontSendNotification);
 			}
 		};

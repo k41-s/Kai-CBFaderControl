@@ -1,6 +1,7 @@
 #include "SetupPageView.h"
 #include "../../../Main/SlotIDs.h"
 #include "../../CustomLookAndFeel/MyColours.h"
+#include "../../../Utils/StateUtils/SlotStateHelpers.h"
 
 SetupPageView::SetupPageView(KaiCBFaderControlAudioProcessor& p) : processor(p)
 {
@@ -22,21 +23,21 @@ void SetupPageView::configComponents()
 	configLabelEditorPair(
 		"Target Ip Address",
 		targetIpLabel,
-		processor.apvts.state[SlotIDs::targetIP()],
+		SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::targetIP().toString()),
 		targetIpEditor
 	);
 
 	configLabelEditorPair(
 		"Incoming Port",
 		incomingPortLabel,
-		processor.apvts.state[SlotIDs::incomingPort()].toString(),
+		SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::incomingPort().toString()),
 		incomingPortEditor
 	);
 
 	configLabelEditorPair(
 		"Outgoing Port",
 		outgoingPortLabel,
-		processor.apvts.state[SlotIDs::outgoingPort()].toString(),
+		SlotStateHelpers::getStringProp(processor.apvts.state, SlotIDs::outgoingPort().toString()),
 		outgoingPortEditor
 	);
 
@@ -149,9 +150,9 @@ void SetupPageView::configImages()
 
 void SetupPageView::saveNetworkSettings()
 {
-	processor.apvts.state.setProperty(SlotIDs::targetIP(), targetIpEditor.getText(), nullptr);
-	processor.apvts.state.setProperty(SlotIDs::incomingPort(), incomingPortEditor.getText().getIntValue(), nullptr);
-	processor.apvts.state.setProperty(SlotIDs::outgoingPort(), outgoingPortEditor.getText().getIntValue(), nullptr);
+	SlotStateHelpers::setStringProp(processor.apvts.state, SlotIDs::targetIP().toString(), targetIpEditor.getText());
+	SlotStateHelpers::setIntProp(processor.apvts.state, SlotIDs::incomingPort().toString(), incomingPortEditor.getText().getIntValue());
+	SlotStateHelpers::setIntProp(processor.apvts.state, SlotIDs::outgoingPort().toString(), outgoingPortEditor.getText().getIntValue());
 
 	DBG("Network Settings Saved: " << targetIpEditor.getText());
 }
