@@ -138,15 +138,7 @@ void PerformanceSlotItem::updateGroupState()
 
     if (grpId > 0) 
     {
-        juce::String labelText = (role == 1) ? UIGroupLabelPrefixes::leader : UIGroupLabelPrefixes::group;
-        labelText += juce::String(grpId);
-        groupLabel.setText(labelText, juce::dontSendNotification);
-
-        int colourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(grpId)), 0);
-        juce::Colour groupColour = GroupColours::palette[colourIdx];
-
-        groupLabel.setColour(juce::Label::textColourId, groupColour);
-        volumeFader.getProperties().set(UIProperties::indicatorColour, groupColour.toString());
+        setupSlotForGroup(role, grpId);
     }
     else 
     {
@@ -158,13 +150,40 @@ void PerformanceSlotItem::updateGroupState()
     repaint();
 }
 
+void PerformanceSlotItem::setupSlotForGroup(int role, int grpId)
+{
+    setGroupedSlotLabel(role, grpId);
+    setGroupedSlotColour(grpId);
+}
+
+void PerformanceSlotItem::setGroupedSlotLabel(int role, int grpId)
+{
+    juce::String labelText = (role == 1)
+        ? UIGroupLabelPrefixes::leader
+        : UIGroupLabelPrefixes::group;
+
+    labelText += juce::String(grpId);
+    groupLabel.setText(labelText, juce::dontSendNotification);
+}
+
+void PerformanceSlotItem::setGroupedSlotColour(int grpId)
+{
+    int colourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(grpId)), 0);
+    juce::Colour groupColour = GroupColours::palette[colourIdx];
+
+    groupLabel.setColour(juce::Label::textColourId, groupColour);
+    volumeFader.getProperties().set(UIProperties::indicatorColour, groupColour.toString());
+}
+
 void PerformanceSlotItem::setAppropriateIndexLabelText()
 {
-    if (isStereoMain) {
+    if (isStereoMain)
+    {
         int linkedIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::linkedSlotId(index)), index);
         indexLabel.setText(juce::String(index) + "-" + juce::String(linkedIdx), juce::dontSendNotification);
     }
-    else {
+    else 
+    {
         indexLabel.setText(juce::String(index), juce::dontSendNotification);
     }
 }
@@ -181,10 +200,12 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
 {
     juce::String propName = property.toString();
 
-    if (propName == SlotIDs::slotName(index)) {
+    if (propName == SlotIDs::slotName(index))
+    {
         updateNameFromValueTree();
     }
-    else if (propName.startsWith("isStereo") || propName.startsWith("linkedSlotId")) {
+    else if (propName.startsWith("isStereo") || propName.startsWith("linkedSlotId")) 
+    {
         updateStereoState();
     }
     else if (propName.startsWith("groupId") 
@@ -402,11 +423,14 @@ void PerformanceSlotItem::setMode(SlotMode mode)
     currentMode = mode;
 
     bool isFullAccess = (mode == SlotMode::FullAccess);
+    setComponentsEnabled(isFullAccess);
+    setAlpha(isFullAccess ? 1.0f : 0.4f);
+}
 
+void PerformanceSlotItem::setComponentsEnabled(bool isFullAccess)
+{
     volumeFader.setEnabled(isFullAccess);
     panSlider.setEnabled(isFullAccess);
     muteButton.setEnabled(isFullAccess);
     soloButton.setEnabled(isFullAccess);
-
-    setAlpha(isFullAccess ? 1.0f : 0.4f);
 }

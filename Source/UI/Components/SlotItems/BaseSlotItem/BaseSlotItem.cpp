@@ -53,7 +53,12 @@ void BaseSlotItem::updateValueLabel()
     if (std::isnan(val) || std::isinf(val))
         val = -96.0f;
 
-    bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
+    bool isFineMode = volumeFader
+        .getProperties()
+        .getWithDefault(
+            UIProperties::isHighRes, 
+            UIProperties::defaultHighRes
+        );
     juce::String text = UIUtils::getValueText(val, isFineMode);
 
     bool isInf = (val <= -95.75f);

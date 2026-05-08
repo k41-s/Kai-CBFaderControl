@@ -152,8 +152,10 @@ void PerformanceView::handleAsyncUpdate()
 
 void PerformanceView::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
-	if (source == &selectedItems) {
-		for (auto* slot : slots) {
+	if (source == &selectedItems)
+	{
+		for (auto* slot : slots) 
+		{
 			slot->setSelected(selectedItems.isSelected(slot->getIndex()));
 		}
 	}
@@ -163,10 +165,10 @@ void PerformanceView::changeListenerCallback(juce::ChangeBroadcaster* source)
 
 void PerformanceView::findLassoItemsInArea(juce::Array<int>& itemsFound, const juce::Rectangle<int>& area)
 {
-	for (auto* slot : slots) {
-		if (slot->isVisible() && slot->getBounds().intersects(area)) {
+	for (auto* slot : slots)
+	{
+		if (slot->isVisible() && slot->getBounds().intersects(area))
 			itemsFound.add(slot->getIndex());
-		}
 	}
 }
 
@@ -179,19 +181,19 @@ void PerformanceView::mouseDown(const juce::MouseEvent& e)
 {
 	if (handleIsPopupMenuEvent(e)) return;
 
-	if (!e.mods.isShiftDown() && !e.mods.isCommandDown() && !e.mods.isCtrlDown()) {
+	if (!e.mods.isShiftDown() && !e.mods.isCommandDown() && !e.mods.isCtrlDown())
 		selectedItems.deselectAll();
-	}
 
 	lasso.beginLasso(e, this);
 }
 
 bool PerformanceView::handleIsPopupMenuEvent(const juce::MouseEvent& e)
 {
-	if (e.mods.isPopupMenu()) {
-		if (selectedItems.getNumSelected() > 0) {
+	if (e.mods.isPopupMenu())
+	{
+		if (selectedItems.getNumSelected() > 0)
 			showContextMenu();
-		}
+
 		return true;
 	}
 	return false;
@@ -209,8 +211,10 @@ void PerformanceView::mouseUp(const juce::MouseEvent& e)
 
 void PerformanceView::handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot)
 {
-	if (e.mods.isPopupMenu()) {
-		if (!selectedItems.isSelected(slot->getIndex())) {
+	if (e.mods.isPopupMenu()) 
+	{
+		if (!selectedItems.isSelected(slot->getIndex()))
+		{
 			selectedItems.deselectAll();
 			selectedItems.addToSelection(slot->getIndex());
 		}
@@ -218,13 +222,15 @@ void PerformanceView::handleSlotMouseDown(const juce::MouseEvent& e, Performance
 		return;
 	}
 
-	if (e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown()) {
+	if (e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown())
+	{
 		if (selectedItems.isSelected(slot->getIndex()))
 			selectedItems.deselect(slot->getIndex());
 		else
 			selectedItems.addToSelection(slot->getIndex());
 	}
-	else {
+	else 
+	{
 		selectedItems.deselectAll();
 		selectedItems.addToSelection(slot->getIndex());
 	}
@@ -274,8 +280,10 @@ void PerformanceView::sortSelectedSlots(const juce::Array<int>& selectedArr, juc
 {
 	for (int idx : selectedArr)
 	{
-		if (isSlotFullAccess(idx)) activeSlots.add(idx);
-		else readOnlySlots.add(idx);
+		if (isSlotFullAccess(idx)) 
+			activeSlots.add(idx);
+		else 
+			readOnlySlots.add(idx);
 	}
 }
 
@@ -294,9 +302,7 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 		menu.addSeparator();
 
 	addStereoMenuItems(activeSlots, menu);
-
-	menu.addSeparator();
-	addGroupMenu(menu);
+	addGroupMenu(activeSlots, menu);
 
 	if (activeSlots.size() == 1)
 		addSingleSlotGroupOptions(activeSlots, menu);
@@ -316,15 +322,26 @@ void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, ju
 	}
 }
 
-void PerformanceView::addGroupMenu(juce::PopupMenu& menu)
+void PerformanceView::addGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
 {
+	menu.addSeparator();
 	juce::PopupMenu groupMenu;
+	setupGroupMenu(selectedArr, groupMenu);
+	menu.addSubMenu("Grouping", groupMenu);
+}
+
+void PerformanceView::setupGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& groupMenu)
+{
 	for (int i = 1; i <= 8; ++i)
 		groupMenu.addItem(30 + i, "Assign to Group " + juce::String(i));
 
 	groupMenu.addSeparator();
-	groupMenu.addItem(40, "Remove from Group");
-	menu.addSubMenu("Grouping", groupMenu);
+
+	int slotIdx = selectedArr[0];
+	int grpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(slotIdx)), 0);
+	
+	if (grpId > 0)
+		groupMenu.addItem(40, "Remove from Group");
 }
 
 void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
@@ -335,33 +352,49 @@ void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selected
 
 	if (grpId > 0) {
 		menu.addSeparator();
-
-		if (role == 0)
-			menu.addItem(PromoteLeader, "Promote to Group Leader");
-		else if (role == 1)
-			menu.addItem(DemoteMember, "Demote to Standard Member");
-
-		menu.addSeparator();
-		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
-		menu.addItem(60, vcaEnabled ? "Disable VCA Master" : "Enable VCA Master", true, false);
-
-		menu.addSeparator();
-		juce::PopupMenu colourMenu;
-		int currentColourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(grpId)), 0);
-
-		for (int i = 0; i < GroupColours::numColours; ++i)
-			colourMenu.addItem(AssignColourBase + i, GroupColours::names[i], true, currentColourIdx == i);
-
-		menu.addSubMenu("Group Colour", colourMenu);
+		addGroupMemberItems(role, menu);
+		addVcaMenuItem(menu, grpId);
+		setupAndAddColourMenu(menu, grpId);
 	}
+}
+
+void PerformanceView::addGroupMemberItems(int role, juce::PopupMenu& menu)
+{
+	if (role == 0)
+		menu.addItem(PromoteLeader, "Promote to Group Leader");
+	else if (role == 1)
+		menu.addItem(DemoteMember, "Demote to Standard Member");
+}
+
+void PerformanceView::addVcaMenuItem(juce::PopupMenu& menu, int grpId)
+{
+	menu.addSeparator();
+	bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
+	menu.addItem(60, vcaEnabled ? "Disable VCA Master" : "Enable VCA Master", true, false);
+}
+
+void PerformanceView::setupAndAddColourMenu(juce::PopupMenu& menu, int grpId)
+{
+	menu.addSeparator();
+	juce::PopupMenu colourMenu;
+	setupColourMenu(grpId, colourMenu);
+	menu.addSubMenu("Group Colour", colourMenu);
+}
+
+void PerformanceView::setupColourMenu(int grpId, juce::PopupMenu& colourMenu)
+{
+	int currentColourIdx = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupColour(grpId)), 0);
+
+	for (int i = 0; i < GroupColours::numColours; ++i)
+		colourMenu.addItem(AssignColourBase + i, GroupColours::names[i], true, currentColourIdx == i);
 }
 
 void PerformanceView::showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr)
 {
 	if (menu.getNumItems() > 0) {
-		menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this), 
-			[this, selectedArr](int result) {
-				handlePopupMenuResult(result, selectedArr);
+		menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this), [this, selectedArr](int result) 
+		{
+			handlePopupMenuResult(result, selectedArr);
 		});
 	}
 }
@@ -541,7 +574,8 @@ void PerformanceView::demoteExistingGroupLeaders(int grpId)
 		int otherGrpId = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupId(i)), 0);
 		int otherRole = processor.apvts.state.getProperty(juce::Identifier(SlotIDs::groupRole(i)), 0);
 
-		if (otherGrpId == grpId && otherRole == 1) {
+		if (otherGrpId == grpId && otherRole == 1) 
+		{
 			setSlotStandardGroup(i, grpId, 0);
 		}
 	}
@@ -715,8 +749,8 @@ int PerformanceView::getIdealWidth()
 	int targetWidth = 0;
 	int activeCount = 0;
 
-	calculateRegularSlotWidth(targetWidth, activeCount);
-	calculateVcaWidth(targetWidth, activeCount);
+	calculateRegularSlotTargetWidth(targetWidth, activeCount);
+	calculateVcaTargetWidth(targetWidth, activeCount);
 
 	if (activeCount == 0)
 		return WindowSizeValues::absolutePerfMinWidth;
@@ -728,7 +762,7 @@ int PerformanceView::getIdealWidth()
 	);
 }
 
-void PerformanceView::calculateRegularSlotWidth(int& targetWidth, int& activeCount)
+void PerformanceView::calculateRegularSlotTargetWidth(int& targetWidth, int& activeCount)
 {
 	for (int i = 0; i < 32; ++i)
 	{
@@ -742,7 +776,7 @@ void PerformanceView::calculateRegularSlotWidth(int& targetWidth, int& activeCou
 	}
 }
 
-void PerformanceView::calculateVcaWidth(int& targetWidth, int& activeCount)
+void PerformanceView::calculateVcaTargetWidth(int& targetWidth, int& activeCount)
 {
 	for (int g = 0; g < 8; ++g)
 	{
@@ -760,17 +794,29 @@ int PerformanceView::getMinWidth()
 	int minWidth = 0;
 	int activeCount = 0;
 
-	// 1. Calculate Regular Slots
+	calcRegularSlotMinWidth(minWidth, activeCount);
+	calcVcaMinWidth(minWidth, activeCount);
+
+	if (activeCount == 0)
+		return WindowSizeValues::absolutePerfMinWidth;
+
+	return juce::jmax(WindowSizeValues::absolutePerfMinWidth, minWidth);
+}
+
+void PerformanceView::calcRegularSlotMinWidth(int& minWidth, int& activeCount)
+{
 	for (int i = 0; i < 32; ++i) {
-		auto info = getSlotDisplayInfo(i); // Using the helper we made earlier!
+		auto info = getSlotDisplayInfo(i);
 
 		if (info.shouldProcess && info.isVisible) {
 			minWidth += info.isStereoMain ? SlotSizeValues::stereoSlotMinWidth : SlotSizeValues::monoSlotMinWidth;
 			activeCount++;
 		}
 	}
+}
 
-	// 2. Calculate VCA Masters
+void PerformanceView::calcVcaMinWidth(int& minWidth, int& activeCount)
+{
 	for (int g = 0; g < 8; ++g) {
 		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(g + 1)) > 0.5f;
 		if (vcaEnabled) {
@@ -778,12 +824,6 @@ int PerformanceView::getMinWidth()
 			activeCount++;
 		}
 	}
-
-	// 3. Protect the Footer
-	if (activeCount == 0)
-		return WindowSizeValues::absolutePerfMinWidth;
-
-	return juce::jmax(WindowSizeValues::absolutePerfMinWidth, minWidth);
 }
 
 PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
@@ -807,7 +847,9 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 			// Orphaned sub-slot, treat it as a standard mono slot
 		}
 		else
+		{
 			return info;
+		}
 	}
 
 	info.shouldProcess = true;

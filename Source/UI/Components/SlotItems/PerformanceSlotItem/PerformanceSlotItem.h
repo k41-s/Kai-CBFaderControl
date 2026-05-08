@@ -25,6 +25,7 @@ public:
 	bool getSelected() const { return isSelected; }
 	void setMode(SlotMode mode);
 
+
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDown;
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDrag;
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseUp;
@@ -37,11 +38,13 @@ private:
 	void init(int slotIndex);
 	void addMouseListenerToChildren();
 
+	// Attachment configuration
 	void configAttachments(int slotIndex);
 	void configVolumeAttachment(int slotIndex);
 	void configPanAttachment(int slotIndex);
 	void configSoloAttachment();
 
+	// Configuration functions
 	void configComponents();
 	void configPanSlider();
 	void configMuteButton();
@@ -52,18 +55,24 @@ private:
 	void configNameLabel();
 	void configGroupLabel();
 
+	// State update functions
 	void updateStereoState();
 	void updateGroupState();
+	void setupSlotForGroup(int role, int grpId);
+	void setGroupedSlotLabel(int role, int grpId);
+	void setGroupedSlotColour(int grpId);
 	void setAppropriateIndexLabelText();
 
 	void drawSelectedSlotItem(juce::Graphics& g);
 	void drawSlotItem(juce::Graphics& g);
 
+	// Readonly state drawing functions
 	void drawReadOnlyOverlay(juce::Graphics& g);
 	void drawDarkWashLayer(juce::Graphics& g, const juce::Rectangle<int>& bounds);
 	void drawHatchingTexture(juce::Graphics& g, const juce::Colour& hatchingColour, juce::Rectangle<int>& bounds);
 	void drawReadonlySlotOutline(juce::Graphics& g, const juce::Colour& hatchingColour, const juce::Rectangle<int>& bounds);
 
+	// Layout functions
 	void injectPanControl(juce::Rectangle<int>& area);
 	void setupTopArea(juce::Rectangle<int>& area, int currentWidth);
 	void setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight);
@@ -73,6 +82,8 @@ private:
 
 	void setupMuteButton(juce::Rectangle<int>& topArea);
 	void setupSoloButton(juce::Rectangle<int>& topArea);
+
+	void setComponentsEnabled(bool isFullAccess);
 
 	SlotMode currentMode = SlotMode::Disabled;
 

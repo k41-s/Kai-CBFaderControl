@@ -34,63 +34,84 @@ public:
 	void resized() override;
 
 	int getIdealWidth();
-	void calculateRegularSlotWidth(int& targetWidth, int& activeCount);
-	void calculateVcaWidth(int& targetWidth, int& activeCount);
-
 	int getMinWidth();
 
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
 private:
 	void init();
+
+	// Configuration functions
 	void configComponents();
 	void createVcaFaderSlots();
 	void createFaderSlots();
 	void setSlotMouseEvents(PerformanceSlotItem* slot);
 	void configSetupButton();
+
+	// Listener management
 	void registerListeners();
 	void addRegularSlotListeners();
 	void addVcaListeners();
+
 	void deregisterListeners();
 	void removeRegularSlotListeners();
 	void removeVcaListeners();
+
 	void configImages();
 
+	// Mouse event handlers
 	void handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot);
 	void handleSlotMouseDrag(const juce::MouseEvent& e, PerformanceSlotItem* slot);
 	void handleSlotMouseUp(const juce::MouseEvent& e, PerformanceSlotItem* slot);
 
+	// Context menu functions
 	bool handleIsPopupMenuEvent(const juce::MouseEvent& e);
-
 	void showContextMenu();
 	void addMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 	void sortSelectedSlots(const juce::Array<int>& selectedArr, juce::Array<int>& activeSlots, juce::Array<int>& readOnlySlots);
+
 	void addClaimSlotMenuItem(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu);
 	void addStandardMenuOptions(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu, juce::Array<int>& activeSlots);
 	void addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
-	void addGroupMenu(juce::PopupMenu& menu);
+
+	void addGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
+	void setupGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& groupMenu);
+
 	void addSingleSlotGroupOptions(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
+
+	void addGroupMemberItems(int role, juce::PopupMenu& menu);
+	void addVcaMenuItem(juce::PopupMenu& menu, int grpId);
+
+	void setupAndAddColourMenu(juce::PopupMenu& menu, int grpId);
+	void setupColourMenu(int grpId, juce::PopupMenu& colourMenu);
 
 	void showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr);
 	void handlePopupMenuResult(int result, const juce::Array<int>& selectedArr);
+
 	void handleClaimSlot(const juce::Array<int>& selectedArr);
 	void fillActiveSlots(const juce::Array<int>& selectedArr, juce::Array<int>& activeSlots);
+
 	void handleColourAssignment(const juce::Array<int>& selectedArr, int result);
 	void handleGroupAssignment(int result, const juce::Array<int>& selectedArr);
 
+	// Stereo link functions
 	void doStereoLink(int slotA, int slotB);
 	bool isSlotLinked(int slotIdx) const;
+
 	void setMainSlotProperties(juce::ValueTree& state, int mainIdx, int subIdx);
 	void setSubSlotProperties(juce::ValueTree& state, int subIdx, int mainIdx);
+
 	void doStereoUnlink(int slotIdx);
 	void unlinkSlot(juce::ValueTree& state, int idx);
 
+	// Grouping functions
 	void setSlotStandardGroup(int slotIdx, int groupId, int role);
 	void promoteToGroupLeader(int slotIdx);
 	void demoteExistingGroupLeaders(int grpId);
 	void demoteToStandardMember(int slotIdx);
 	void toggleVcaMaster(int slotIdx);
 
+	// Layout and drawing functions
 	void setHeaderArea();
 	void setupAndFillArea();
 	void setupAndFillFooter(juce::Rectangle<int>& area);
@@ -110,6 +131,13 @@ private:
 	SlotDisplayInfo getSlotDisplayInfo(int index);
 
 	bool isSlotFullAccess(int slotIdx);
+
+	// Width calculation helpers
+	void calculateRegularSlotTargetWidth(int& targetWidth, int& activeCount);
+	void calculateVcaTargetWidth(int& targetWidth, int& activeCount);
+
+	void calcRegularSlotMinWidth(int& minWidth, int& activeCount);
+	void calcVcaMinWidth(int& minWidth, int& activeCount);
 
 	juce::TextButton setupButton{ "Setup" };
 

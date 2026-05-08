@@ -20,6 +20,8 @@ protected:
 
 private:
 	void init();
+
+	// Configuration functions
 	void configButtons();
 	void configMuteBtn();
 	void configExpandBtn();
@@ -28,10 +30,12 @@ private:
 	void configNameLabel();
 	void updateColours();
 
+	// Attachments
 	void configAttachments();
 	void configVolumeAttachment();
 	void configExpandAttachment();
 
+	// Layout functions
 	void setupTopArea(juce::Rectangle<int>& area);
 	void setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight);
 	void setupNameLabel(juce::Rectangle<int>& topArea, int labelHeight);
