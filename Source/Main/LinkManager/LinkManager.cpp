@@ -108,10 +108,9 @@ void LinkManager::applyDeltaToGroupFromVca(int grpIdx, float delta)
         {
             float targetVol = lastVolume[i - 1] + delta;
             targetVol = juce::jlimit(-96.0f, 22.0f, targetVol);
-            if (auto* param = processor.apvts.getParameter(SlotIDs::volume(i))) 
-            {
-                param->setValueNotifyingHost(param->convertTo0to1(targetVol));
-            }
+
+            SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(i), targetVol);
+
             lastVolume[i - 1] = targetVol;
         }
     }
@@ -131,10 +130,7 @@ void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
         int assignedGrp = SlotStateHelpers::getGroupId(processor.apvts.state, i);
         if (assignedGrp == grpIdx) 
         {
-            if (auto* param = processor.apvts.getParameter(SlotIDs::mute(i))) 
-            {
-                param->setValueNotifyingHost(newValue);
-            }
+            SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(i), newValue);
         }
     }
 	isPropagating = false;
@@ -168,8 +164,7 @@ void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
             float targetVol = lastVolume[i - 1] + delta;
             targetVol = juce::jlimit(-96.0f, 22.0f, targetVol);
 
-            if (auto* param = processor.apvts.getParameter(SlotIDs::volume(i)))
-                param->setValueNotifyingHost(param->convertTo0to1(targetVol));
+            SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(i), targetVol);
             
             lastVolume[i - 1] = targetVol;
         }
@@ -199,9 +194,7 @@ void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
 
         if (otherGrpId == grpId && otherRoleId == 0) 
         {
-            if (auto* param = processor.apvts.getParameter(SlotIDs::mute(i))) 
-                param->setValueNotifyingHost(newValue);
-            
+            SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(i), newValue);
         }
     }
 	isPropagating = false;

@@ -9,6 +9,7 @@
 #include "PluginEditor.h"
 #include "../../UI/Components/UIConstants.h"
 #include "../../UI/CustomLookAndFeel/MyColours.h"
+#include "../../Utils/StateUtils/SlotStateHelpers.h"
 
 //==============================================================================
 KaiCBFaderControlAudioProcessorEditor::KaiCBFaderControlAudioProcessorEditor (KaiCBFaderControlAudioProcessor& p)
@@ -67,7 +68,7 @@ void KaiCBFaderControlAudioProcessorEditor::determineInitialState()
     showSetupPage = true;
     for (int i = 0; i < 32; ++i)
     {
-        if (*audioProcessor.isActiveParams[i] > 0.5f)
+        if (SlotStateHelpers::isSlotActive(audioProcessor.apvts, i + 1))
         {
             showSetupPage = false;
             break;
@@ -78,10 +79,6 @@ void KaiCBFaderControlAudioProcessorEditor::determineInitialState()
 void KaiCBFaderControlAudioProcessorEditor::configResizing()
 {
     setResizable(true, true);
-    //setResizeLimits(WindowSizeValues::minWidth,
-    //    WindowSizeValues::minHeight,
-    //    WindowSizeValues::maxWidth,
-    //    WindowSizeValues::maxHeight);
 }
 
 void KaiCBFaderControlAudioProcessorEditor::setAppropriateSize()

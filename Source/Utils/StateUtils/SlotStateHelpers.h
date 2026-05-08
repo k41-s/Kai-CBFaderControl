@@ -4,7 +4,9 @@
 
 namespace SlotStateHelpers
 {
+    // =========================================================================
     // GETTERS
+    // =========================================================================
 
     static inline int getIntProp(const juce::ValueTree& state, const juce::String& paramId, int defaultVal = 0)
     {
@@ -21,7 +23,9 @@ namespace SlotStateHelpers
         return state.getProperty(juce::Identifier(paramId), defaultVal).toString();
     }
 
+    // =========================================================================
     // SETTERS
+    // =========================================================================
 
     static inline void setIntProp(juce::ValueTree& state, const juce::String& paramId, int value, juce::UndoManager* undoManager = nullptr)
     {
@@ -43,7 +47,9 @@ namespace SlotStateHelpers
         state.removeProperty(juce::Identifier(paramId), undoManager);
     }
 
+    // =========================================================================
     // SEMANTIC DOMAIN GETTERS (Slot Logic)
+    // =========================================================================
 
     static inline int getGroupId(const juce::ValueTree& state, int slotIdx)
     {
@@ -110,7 +116,9 @@ namespace SlotStateHelpers
         return getIntProp(state, SlotIDs::outgoingPort().toString(), 8001);
     }
 
+    // =========================================================================
     // SEMANTIC DOMAIN SETTERS (Slot Logic)
+    // =========================================================================
 
     static inline void setGroupId(juce::ValueTree& state, int slotIdx, int groupId, juce::UndoManager* undoManager = nullptr)
     {
@@ -171,5 +179,43 @@ namespace SlotStateHelpers
     static inline void setOutgoingPort(juce::ValueTree& state, int port, juce::UndoManager* undoManager = nullptr)
     {
         setIntProp(state, SlotIDs::outgoingPort().toString(), port, undoManager);
+    }
+
+    // =========================================================================
+    // APVTS PARAMETER HELPERS (Audio Parameters)
+    // =========================================================================
+
+    static inline float getRawParamValue(const juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId)
+    {
+        if (auto* param = apvts.getRawParameterValue(paramId))
+            return param->load();
+        return 0.0f;
+    }
+
+    static inline bool isVcaEnabled(const juce::AudioProcessorValueTreeState& apvts, int grpId)
+    {
+        return getRawParamValue(apvts, SlotIDs::vcaEnabled(grpId)) > 0.5f;
+    }
+
+    static inline bool isVcaExpanded(const juce::AudioProcessorValueTreeState& apvts, int grpId)
+    {
+        return getRawParamValue(apvts, SlotIDs::isVcaExpanded(grpId)) > 0.5f;
+    }
+
+    static inline bool isSlotActive(const juce::AudioProcessorValueTreeState& apvts, int slotIdx)
+    {
+        return getRawParamValue(apvts, SlotIDs::isActive(slotIdx)) > 0.5f;
+    }
+
+    static inline void setParamNormalized(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float normalizedValue)
+    {
+        if (auto* param = apvts.getParameter(paramId))
+            param->setValueNotifyingHost(normalizedValue);
+    }
+
+    static inline void setParamUnnormalized(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float unnormalizedValue)
+    {
+        if (auto* param = apvts.getParameter(paramId))
+            param->setValueNotifyingHost(param->convertTo0to1(unnormalizedValue));
     }
 }

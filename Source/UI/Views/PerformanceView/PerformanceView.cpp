@@ -369,7 +369,7 @@ void PerformanceView::addGroupMemberItems(int role, juce::PopupMenu& menu)
 void PerformanceView::addVcaMenuItem(juce::PopupMenu& menu, int grpId)
 {
 	menu.addSeparator();
-	bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
+	bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, grpId);
 	menu.addItem(ToggleVCA, vcaEnabled ? "Disable VCA Master" : "Enable VCA Master", true, false);
 }
 
@@ -464,8 +464,7 @@ void PerformanceView::handleClaimSlot(const juce::Array<int>& selectedArr)
 		{
 			processor.globalSlotRegistry->claimSlot(idx, processor.getInstanceId());
 
-			if (auto* param = processor.apvts.getParameter(SlotIDs::isActive(idx)))
-				param->setValueNotifyingHost(1.0f);
+			SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::isActive(idx), 1.0f);
 		}
 	}
 	selectedItems.deselectAll();
@@ -591,8 +590,9 @@ void PerformanceView::demoteToStandardMember(int slotIdx)
 void PerformanceView::toggleVcaMaster(int slotIdx)
 {
 	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
-	if (auto* param = processor.apvts.getParameter(SlotIDs::vcaEnabled(grpId)))
-		param->setValueNotifyingHost(param->getValue() > 0.5f ? 0.0f : 1.0f);
+
+	bool currentlyEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, grpId);
+	SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaEnabled(grpId), currentlyEnabled ? 0.0f : 1.0f);
 }
 
 void PerformanceView::paint(juce::Graphics& g)
@@ -706,10 +706,11 @@ void PerformanceView::hideSlotIfVcaCollapsed(int grpId, bool& shouldShow)
 {
 	if (grpId >= 1 && grpId <= 8)
 	{
-		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(grpId)) > 0.5f;
-		bool isExpanded = *processor.apvts.getRawParameterValue(SlotIDs::isVcaExpanded(grpId)) > 0.5f;
+		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, grpId);
+		bool isExpanded = SlotStateHelpers::isVcaExpanded(processor.apvts, grpId);
 
-		if (vcaEnabled && !isExpanded) {
+		if (vcaEnabled && !isExpanded)
+		{
 			shouldShow = false;
 		}
 	}
@@ -719,7 +720,7 @@ void PerformanceView::plotVcaMasters(juce::FlexBox& flexBox)
 {
 	for (int g = 0; g < 8; ++g)
 	{
-		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(g + 1)) > 0.5f;
+		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g + 1);
 
 		if (vcaEnabled) {
 			vcaSlots[g]->setVisible(true);
@@ -781,7 +782,7 @@ void PerformanceView::calculateVcaTargetWidth(int& targetWidth, int& activeCount
 {
 	for (int g = 0; g < 8; ++g)
 	{
-		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(g + 1)) > 0.5f;
+		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g + 1);
 
 		if (vcaEnabled) {
 			targetWidth += SlotSizeValues::vcaSlotTargetWidth;
@@ -818,8 +819,9 @@ void PerformanceView::calcRegularSlotMinWidth(int& minWidth, int& activeCount)
 
 void PerformanceView::calcVcaMinWidth(int& minWidth, int& activeCount)
 {
-	for (int g = 0; g < 8; ++g) {
-		bool vcaEnabled = *processor.apvts.getRawParameterValue(SlotIDs::vcaEnabled(g + 1)) > 0.5f;
+	for (int g = 0; g < 8; ++g)
+	{
+		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g + 1);
 		if (vcaEnabled) {
 			minWidth += SlotSizeValues::vcaSlotMinWidth;
 			activeCount++;
@@ -831,7 +833,7 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 {
 	SlotDisplayInfo info;
 
-	bool isLocallyActive = *processor.isActiveParams[i] > 0.5f;
+	bool isLocallyActive = SlotStateHelpers::isSlotActive(processor.apvts, i + 1);
 	info.mode = processor.globalSlotRegistry->getSlotMode(i + 1, processor.getInstanceId(), isLocallyActive);
 
 	if (info.mode == SlotMode::Disabled)
@@ -843,7 +845,7 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 	if (isLinked && !info.isStereoMain)
 	{
 		int linkedIdx = SlotStateHelpers::getLinkedSlotId(processor.apvts.state, i + 1);
-		if (linkedIdx != -1 && *processor.isActiveParams[linkedIdx - 1] < 0.5f)
+		if (linkedIdx != -1 && !SlotStateHelpers::isSlotActive(processor.apvts, linkedIdx))
 		{
 			// Orphaned sub-slot, treat it as a standard mono slot
 		}
@@ -864,7 +866,7 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 
 bool PerformanceView::isSlotFullAccess(int slotIdx)
 {
-	bool isLocallyActive = *processor.isActiveParams[slotIdx - 1] > 0.5f;
+	bool isLocallyActive = SlotStateHelpers::isSlotActive(processor.apvts, slotIdx);
 	return processor.globalSlotRegistry
 		->getSlotMode(slotIdx, processor.getInstanceId(), isLocallyActive) == SlotMode::FullAccess;
 }

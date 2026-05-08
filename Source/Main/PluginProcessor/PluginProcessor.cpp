@@ -62,7 +62,7 @@ void KaiCBFaderControlAudioProcessor::initGlobalRegistry()
     globalSlotRegistry->addChangeListener(this);
     for (int i = 1; i <= 32; ++i)
     {
-        bool isLocallyActive = *isActiveParams[i - 1] > 0.5f;
+        bool isLocallyActive = SlotStateHelpers::isSlotActive(apvts, i);
         bool isOwned = (globalSlotRegistry->getSlotMode(i, getInstanceId(), isLocallyActive) == SlotMode::FullAccess);
 
         wasSlotOwned.set(i - 1, isOwned);
@@ -301,7 +301,7 @@ void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadca
     {
         for (int i = 1; i <= 32; ++i)
         {
-            bool isLocallyActive = *isActiveParams[i - 1] > 0.5f;
+            bool isLocallyActive = SlotStateHelpers::isSlotActive(apvts, i);
             bool isCurrentlyOwned = (globalSlotRegistry->getSlotMode(i, getInstanceId(), isLocallyActive) == SlotMode::FullAccess);
 
             if (wasSlotOwned[i - 1] && !isCurrentlyOwned)
@@ -344,7 +344,7 @@ void KaiCBFaderControlAudioProcessor::removeFromStereoPair(juce::ValueTree& stat
 void KaiCBFaderControlAudioProcessor::claimActiveSlots() const
 {
     for (int i = 1; i <= 32; ++i)
-        if (*apvts.getRawParameterValue(SlotIDs::isActive(i)) > 0.5f)
+        if (SlotStateHelpers::isSlotActive(apvts, i))
             globalSlotRegistry->claimSlot(i, getInstanceId());
 }
 
