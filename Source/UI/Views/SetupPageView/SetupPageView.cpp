@@ -145,6 +145,8 @@ void SetupPageView::handleSlotMouseDown(const juce::MouseEvent& e)
 {
 	if (!e.mods.isLeftButtonDown()) return;
 
+	isDeactivatingMode = e.mods.isCommandDown();
+
 	selectedItems.deselectAll();
 	lasso.beginLasso(e.getEventRelativeTo(this), this);
 }
@@ -168,11 +170,16 @@ void SetupPageView::handleSlotMouseUp(const juce::MouseEvent& e, SlotConfigItem*
 	}
 	else if (selectedItems.getNumSelected() > 0)
 	{
+		bool targetState = !isDeactivatingMode;
+
 		for (int slotId : selectedItems.getItemArray())
 		{
 			if (auto* i = getSlotItem(slotId))
 			{
-				i->setToggleState(!i->isActive(), true);
+				if (i->isActive() != targetState)
+				{
+					i->setToggleState(targetState, true);
+				}
 			}
 		}
 	}
@@ -259,6 +266,9 @@ void SetupPageView::findLassoItemsInArea(juce::Array<int>& itemsFound, const juc
 void SetupPageView::mouseDown(const juce::MouseEvent& e)
 {
 	if (!e.mods.isLeftButtonDown()) return;
+
+	isDeactivatingMode = e.mods.isCommandDown();
+
 	selectedItems.deselectAll();
 	lasso.beginLasso(e, this);
 }
@@ -277,11 +287,16 @@ void SetupPageView::mouseUp(const juce::MouseEvent& e)
 
 	if (e.mouseWasDraggedSinceMouseDown() && selectedItems.getNumSelected() > 0)
 	{
+		bool targetState = !isDeactivatingMode;
+
 		for (int slotId : selectedItems.getItemArray())
 		{
 			if (auto* slot = getSlotItem(slotId))
 			{
-				slot->setToggleState(!slot->isActive(), true);
+				if (slot->isActive() != targetState)
+				{
+					slot->setToggleState(targetState, true);
+				}
 			}
 		}
 	}

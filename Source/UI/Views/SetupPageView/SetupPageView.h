@@ -117,10 +117,11 @@ private:
 	BinaryImageComponent logo{ BinaryData::cblogo_png, BinaryData::cblogo_pngSize };
 	BinaryImageComponent xPatchImg{ BinaryData::XPatch_png, BinaryData::XPatch_pngSize };
 
+	juce::Rectangle<int> footerArea;
+
 	juce::LassoComponent<int> lasso;
 	juce::SelectedItemSet<int> selectedItems;
-
-	juce::Rectangle<int> footerArea;
+	bool isDeactivatingMode = false;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SetupPageView);
 };
