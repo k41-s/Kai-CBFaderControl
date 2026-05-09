@@ -15,6 +15,8 @@ public:
 	bool isActive() const;
 	std::function<void()> onToggleChanged;
 
+	void setSelected(bool shouldBeSelected);
+
 	void paint(juce::Graphics& g) override;
 	void resized() override;
 
@@ -37,6 +39,8 @@ private:
 	void configActiveToggle();
 
 	void setNewNameIfDifferent(juce::String& newName);
+
+	bool isLassoSelected = false;
 
 	KaiCBFaderControlAudioProcessor& processor;
 	int slotNumber;

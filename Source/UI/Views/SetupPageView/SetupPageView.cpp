@@ -13,6 +13,9 @@ void SetupPageView::init()
 {
 	processor.apvts.state.addListener(this);
 	setLookAndFeel(&customLF);
+
+	selectedItems.addChangeListener(this);
+
 	configComponents();
 	refreshControlStates();
 
@@ -118,56 +121,63 @@ void SetupPageView::configGridContainer()
 	for (int i = 1; i <= PluginConstants::numSlots; ++i) 
 	{
 		SlotConfigItem* item = new SlotConfigItem(processor, i);
-		item->setupAttachment(processor.apvts, i);
-		item->onToggleChanged = [this] { refreshControlStates(); };
-
-		// 1. Start the lasso
-		item->onBackgroundMouseDown = [this](const juce::MouseEvent& e)
-		{
-			if (!e.mods.isLeftButtonDown()) return;
-			selectedItems.deselectAll();
-			lasso.beginLasso(e.getEventRelativeTo(this), this);
-		};
-
-		// 2. Drag the lasso
-		item->onBackgroundMouseDrag = [this](const juce::MouseEvent& e)
-		{
-			if (!e.mods.isLeftButtonDown()) return;
-			lasso.dragLasso(e.getEventRelativeTo(this));
-		};
-
-		// 3. Finish and Apply
-		item->onBackgroundMouseUp = [this, item](const juce::MouseEvent& e) 
-		{
-			if (!e.mods.isLeftButtonDown()) return;
-
-			// ALWAYS end the lasso immediately on mouse release
-			lasso.endLasso();
-
-			// If it was just a normal click (no dragging), toggle this specific item
-			if (!e.mouseWasDraggedSinceMouseDown())
-			{
-				item->setToggleState(!item->isActive(), true);
-			}
-			// If it was a drag, invert all lassoed items
-			else if (selectedItems.getNumSelected() > 0)
-			{
-				for (int slotId : selectedItems.getItemArray())
-				{
-					if (auto* i = getSlotItem(slotId))
-					{
-						i->setToggleState(!i->isActive(), true);
-					}
-				}
-			}
-
-			// Clean up
-			selectedItems.deselectAll();
-		};
-
+		setupSlotItem(item, i);
 		slotItems.add(item);
 		gridContainer.addAndMakeVisible(item);
 	}
+}
+
+void SetupPageView::setupSlotItem(SlotConfigItem* item, int i)
+{
+	item->setupAttachment(processor.apvts, i);
+	item->onToggleChanged = [this] { refreshControlStates(); };
+	setupSlotMouseEvents(item);
+}
+
+void SetupPageView::setupSlotMouseEvents(SlotConfigItem* item)
+{
+	item->onBackgroundMouseDown = [this](const juce::MouseEvent& e) { handleSlotMouseDown(e); };
+	item->onBackgroundMouseDrag = [this](const juce::MouseEvent& e) { handleSlotMouseDrag(e); };
+	item->onBackgroundMouseUp = [this, item](const juce::MouseEvent& e) { handleSlotMouseUp(e, item); };
+}
+
+void SetupPageView::handleSlotMouseDown(const juce::MouseEvent& e)
+{
+	if (!e.mods.isLeftButtonDown()) return;
+
+	selectedItems.deselectAll();
+	lasso.beginLasso(e.getEventRelativeTo(this), this);
+}
+
+void SetupPageView::handleSlotMouseDrag(const juce::MouseEvent& e)
+{
+	if (!e.mods.isLeftButtonDown()) return;
+
+	lasso.dragLasso(e.getEventRelativeTo(this));
+}
+
+void SetupPageView::handleSlotMouseUp(const juce::MouseEvent& e, SlotConfigItem* item)
+{
+	if (!e.mods.isLeftButtonDown()) return;
+
+	lasso.endLasso();
+
+	if (!e.mouseWasDraggedSinceMouseDown())
+	{
+		item->setToggleState(!item->isActive(), true);
+	}
+	else if (selectedItems.getNumSelected() > 0)
+	{
+		for (int slotId : selectedItems.getItemArray())
+		{
+			if (auto* i = getSlotItem(slotId))
+			{
+				i->setToggleState(!i->isActive(), true);
+			}
+		}
+	}
+
+	selectedItems.deselectAll();
 }
 
 void SetupPageView::configToggleAllBtnText()
@@ -220,6 +230,7 @@ void SetupPageView::bindNetworkEditorCallbacks()
 
 SetupPageView::~SetupPageView()
 {
+	selectedItems.removeChangeListener(this);
 	processor.apvts.state.removeListener(this);
 	setLookAndFeel(nullptr);
 }
@@ -432,6 +443,20 @@ void SetupPageView::valueTreePropertyChanged(juce::ValueTree& tree, const juce::
 		incomingPortEditor.setText(tree[property], juce::dontSendNotification);
 	if (property == SlotIDs::outgoingPort())
 		outgoingPortEditor.setText(tree[property], juce::dontSendNotification);
+}
+
+void SetupPageView::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+	if (source == &selectedItems)
+	{
+		for (int i = 1; i <= PluginConstants::numSlots; ++i)
+		{
+			if (auto* item = getSlotItem(i))
+			{
+				item->setSelected(selectedItems.isSelected(i));
+			}
+		}
+	}
 }
 
 void SetupPageView::refreshControlStates()

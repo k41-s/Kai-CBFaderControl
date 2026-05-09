@@ -92,10 +92,31 @@ bool SlotConfigItem::isActive() const
 	return activeToggle.getToggleState();
 }
 
+void SlotConfigItem::setSelected(bool shouldBeSelected)
+{
+	if (isLassoSelected != shouldBeSelected)
+	{
+		isLassoSelected = shouldBeSelected;
+		repaint();
+	}
+}
+
 void SlotConfigItem::paint(juce::Graphics& g)
 {
 	g.setColour(juce::Colours::darkgrey);
 	g.drawRect(getLocalBounds(), 1);
+
+	if (isLassoSelected)
+	{
+		auto bounds = getLocalBounds().toFloat();
+		float cornerSize = 4.0f;
+
+		g.setColour(juce::Colours::white.withAlpha(0.08f));
+		g.fillRoundedRectangle(bounds, cornerSize);
+
+		g.setColour(juce::Colours::white.withAlpha(0.3f));
+		g.drawRoundedRectangle(bounds, cornerSize, 1.5f);
+	}
 }
 
 void SlotConfigItem::resized()

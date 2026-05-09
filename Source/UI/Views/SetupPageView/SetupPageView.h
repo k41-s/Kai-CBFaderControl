@@ -9,7 +9,8 @@
 class SetupPageView : 
 	public juce::Component,
 	public juce::ValueTree::Listener,
-	public juce::LassoSource<int>
+	public juce::LassoSource<int>,
+	public juce::ChangeListener
 {
 public:
 	SetupPageView(KaiCBFaderControlAudioProcessor& p);
@@ -27,6 +28,8 @@ public:
 
 	void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
 
+	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+
 	std::function<void()> onNavigateToPerformance;
 private:
 	void init();
@@ -38,8 +41,15 @@ private:
 		juce::TextEditor& editor);
 	void restrictPortEditors();
 	void configStatusComponents();
+
 	void configGrid();
 	void configGridContainer();
+	void setupSlotItem(SlotConfigItem* item, int i);
+	void setupSlotMouseEvents(SlotConfigItem* item);
+	void handleSlotMouseDown(const juce::MouseEvent& e);
+	void handleSlotMouseDrag(const juce::MouseEvent& e);
+	void handleSlotMouseUp(const juce::MouseEvent& e, SlotConfigItem* item);
+
 	void configToggleAllBtnText();
 	void configNavBtn();
 	void configImages();
