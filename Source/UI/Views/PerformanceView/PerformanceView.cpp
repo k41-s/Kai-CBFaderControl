@@ -32,7 +32,7 @@ void PerformanceView::configComponents()
 
 void PerformanceView::createFaderSlots()
 {
-	for (int i = 0; i < 32; ++i)
+	for (int i = 0; i < PluginConstants::numSlots; ++i)
 	{
 		auto* slot = slots.add(new PerformanceSlotItem(processor, i + 1));
 		setSlotMouseEvents(slot);
@@ -42,7 +42,7 @@ void PerformanceView::createFaderSlots()
 
 void PerformanceView::createVcaFaderSlots()
 {
-	for (int i = 0; i < 8; ++i)
+	for (int i = 0; i < PluginConstants::numVcas; ++i)
 	{
 		auto* vca = vcaSlots.add(new VcaSlotItem(processor, i + 1));
 		addAndMakeVisible(vca);
@@ -81,7 +81,7 @@ void PerformanceView::registerListeners()
 
 void PerformanceView::addRegularSlotListeners()
 {
-	for (int i = 1; i <= 32; ++i)
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
 		processor.apvts.addParameterListener(SlotIDs::isActive(i), this);
 	}
@@ -89,7 +89,7 @@ void PerformanceView::addRegularSlotListeners()
 
 void PerformanceView::addVcaListeners()
 {
-	for (int i = 1; i <= 8; ++i) 
+	for (int i = 1; i <= PluginConstants::numVcas; ++i) 
 	{
 		processor.apvts.addParameterListener(SlotIDs::isVcaExpanded(i), this);
 		processor.apvts.addParameterListener(SlotIDs::vcaEnabled(i), this);
@@ -113,7 +113,7 @@ void PerformanceView::deregisterListeners()
 
 void PerformanceView::removeRegularSlotListeners()
 {
-	for (int i = 1; i <= 32; ++i)
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
 		processor.apvts.removeParameterListener(SlotIDs::isActive(i), this);
 	}
@@ -121,7 +121,7 @@ void PerformanceView::removeRegularSlotListeners()
 
 void PerformanceView::removeVcaListeners()
 {
-	for (int i = 1; i <= 8; ++i)
+	for (int i = 1; i <= PluginConstants::numVcas; ++i)
 	{
 		processor.apvts.removeParameterListener(SlotIDs::isVcaExpanded(i), this);
 		processor.apvts.removeParameterListener(SlotIDs::vcaEnabled(i), this);
@@ -331,7 +331,7 @@ void PerformanceView::addGroupMenu(const juce::Array<int>& selectedArr, juce::Po
 
 void PerformanceView::setupGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& groupMenu) const
 {
-	for (int i = 1; i <= 8; ++i)
+	for (int i = 1; i <= PluginConstants::numGroups; ++i)
 		groupMenu.addItem(AssignGroupBase + i, "Assign to Group " + juce::String(i));
 
 	groupMenu.addSeparator();
@@ -562,7 +562,7 @@ void PerformanceView::promoteToGroupLeader(int slotIdx)
 
 void PerformanceView::demoteExistingGroupLeaders(int grpId)
 {
-	for (int i = 1; i <= 32; ++i)
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
 		int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
 		int otherRole = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
@@ -608,7 +608,7 @@ void PerformanceView::resized()
 	setupAndFillArea();
 
 	float baselineWidth = SlotSizeValues::monoSlotMinWidth;
-	for (int i = 0; i < 32; ++i) 
+	for (int i = 0; i < PluginConstants::numSlots; ++i) 
 	{
 		auto info = getSlotDisplayInfo(i);
 		if (info.shouldProcess && info.isVisible && !info.isStereoMain) 
@@ -684,7 +684,7 @@ void PerformanceView::checkAndAddActiveSlots(juce::FlexBox& flexBox)
 
 void PerformanceView::plotRegularSlots(juce::FlexBox& flexBox)
 {
-	for (int i = 0; i < 32; ++i)
+	for (int i = 0; i < PluginConstants::numSlots; ++i)
 	{
 		auto info = getSlotDisplayInfo(i);
 
@@ -704,7 +704,7 @@ void PerformanceView::plotRegularSlots(juce::FlexBox& flexBox)
 
 void PerformanceView::hideSlotIfVcaCollapsed(int grpId, bool& shouldShow)
 {
-	if (grpId >= 1 && grpId <= 8)
+	if (grpId >= 1 && grpId <= PluginConstants::numGroups)
 	{
 		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, grpId);
 		bool isExpanded = SlotStateHelpers::isVcaExpanded(processor.apvts, grpId);
@@ -718,7 +718,7 @@ void PerformanceView::hideSlotIfVcaCollapsed(int grpId, bool& shouldShow)
 
 void PerformanceView::plotVcaMasters(juce::FlexBox& flexBox)
 {
-	for (int g = 0; g < 8; ++g)
+	for (int g = 0; g < PluginConstants::numVcas; ++g)
 	{
 		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g + 1);
 
@@ -766,7 +766,7 @@ int PerformanceView::getIdealWidth()
 
 void PerformanceView::calculateRegularSlotTargetWidth(int& targetWidth, int& activeCount)
 {
-	for (int i = 0; i < 32; ++i)
+	for (int i = 0; i < PluginConstants::numSlots; ++i)
 	{
 		auto info = getSlotDisplayInfo(i);
 
@@ -780,7 +780,7 @@ void PerformanceView::calculateRegularSlotTargetWidth(int& targetWidth, int& act
 
 void PerformanceView::calculateVcaTargetWidth(int& targetWidth, int& activeCount)
 {
-	for (int g = 0; g < 8; ++g)
+	for (int g = 0; g < PluginConstants::numVcas; ++g)
 	{
 		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g + 1);
 
@@ -807,7 +807,7 @@ int PerformanceView::getMinWidth()
 
 void PerformanceView::calcRegularSlotMinWidth(int& minWidth, int& activeCount)
 {
-	for (int i = 0; i < 32; ++i) {
+	for (int i = 0; i < PluginConstants::numSlots; ++i) {
 		auto info = getSlotDisplayInfo(i);
 
 		if (info.shouldProcess && info.isVisible) {
@@ -819,7 +819,7 @@ void PerformanceView::calcRegularSlotMinWidth(int& minWidth, int& activeCount)
 
 void PerformanceView::calcVcaMinWidth(int& minWidth, int& activeCount)
 {
-	for (int g = 0; g < 8; ++g)
+	for (int g = 0; g < PluginConstants::numVcas; ++g)
 	{
 		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g + 1);
 		if (vcaEnabled) {

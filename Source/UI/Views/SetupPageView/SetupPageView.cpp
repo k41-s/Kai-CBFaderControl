@@ -2,6 +2,7 @@
 #include "../../../Main/SlotIDs.h"
 #include "../../CustomLookAndFeel/MyColours.h"
 #include "../../../Utils/StateUtils/SlotStateHelpers.h"
+#include "../../Components/UIConstants.h"
 
 SetupPageView::SetupPageView(KaiCBFaderControlAudioProcessor& p) : processor(p)
 {
@@ -111,7 +112,7 @@ void SetupPageView::configGrid()
 
 void SetupPageView::configGridContainer()
 {
-	for (int i = 0; i < 32; ++i) {
+	for (int i = 0; i < PluginConstants::numSlots; ++i) {
 		SlotConfigItem* item = new SlotConfigItem(processor, i + 1);
 		item->setupAttachment(processor.apvts, i + 1);
 		item->onToggleChanged = [this] { refreshControlStates(); };

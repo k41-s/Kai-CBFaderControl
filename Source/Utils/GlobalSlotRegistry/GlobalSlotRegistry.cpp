@@ -1,8 +1,9 @@
 #include "GlobalSlotRegistry.h"
+#include "../../UI/Components/UIConstants.h"
 
 GlobalSlotRegistry::GlobalSlotRegistry()
 {
-    slotOwners.insertMultiple(0, juce::Uuid::null(), 32);
+    slotOwners.insertMultiple(0, juce::Uuid::null(), PluginConstants::numSlots);
 }
 
 void GlobalSlotRegistry::claimSlot(int slotIndex, const juce::Uuid& instanceId)

@@ -10,6 +10,7 @@
 #include "../PluginEditor/PluginEditor.h"
 #include "../SlotIDs.h"
 #include "../../Utils/StateUtils/SlotStateHelpers.h"
+#include "../../UI/Components/UIConstants.h"
 
 //==============================================================================
 KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
@@ -48,10 +49,10 @@ void KaiCBFaderControlAudioProcessor::initLinkManager()
 
 void KaiCBFaderControlAudioProcessor::initGlobalRegistry()
 {
-    wasSlotOwned.insertMultiple(0, false, 32);
+    wasSlotOwned.insertMultiple(0, false, PluginConstants::numSlots);
 
     globalSlotRegistry->addChangeListener(this);
-    for (int i = 1; i <= 32; ++i)
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
     {
         bool isLocallyActive = SlotStateHelpers::isSlotActive(apvts, i);
         bool isOwned = (globalSlotRegistry->getSlotMode(i, getInstanceId(), isLocallyActive) == SlotMode::FullAccess);
@@ -68,7 +69,7 @@ KaiCBFaderControlAudioProcessor::~KaiCBFaderControlAudioProcessor()
 
 void KaiCBFaderControlAudioProcessor::releaseOwnedSlots() const
 {
-    for (int i = 1; i <= 32; ++i)
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
         globalSlotRegistry->releaseSlot(i, getInstanceId());
 }
 
@@ -78,7 +79,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout KaiCBFaderControlAudioProces
 {
     juce::AudioProcessorValueTreeState::ParameterLayout params;
 
-    for (int i = 1; i <= 32; ++i) 
+    for (int i = 1; i <= PluginConstants::numSlots; ++i) 
         addParamsForSlot(params, i);
     for (int i = 1; i <= 8; ++i)
         addParamsForVca(params, i);
@@ -290,7 +291,7 @@ void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadca
 {
     if (source == &globalSlotRegistry.get())
     {
-        for (int i = 1; i <= 32; ++i)
+        for (int i = 1; i <= PluginConstants::numSlots; ++i)
         {
             bool isLocallyActive = SlotStateHelpers::isSlotActive(apvts, i);
             bool isCurrentlyOwned = (globalSlotRegistry->getSlotMode(i, getInstanceId(), isLocallyActive) == SlotMode::FullAccess);
@@ -334,7 +335,7 @@ void KaiCBFaderControlAudioProcessor::removeFromStereoPair(juce::ValueTree& stat
 
 void KaiCBFaderControlAudioProcessor::claimActiveSlots() const
 {
-    for (int i = 1; i <= 32; ++i)
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
         if (SlotStateHelpers::isSlotActive(apvts, i))
             globalSlotRegistry->claimSlot(i, getInstanceId());
 }

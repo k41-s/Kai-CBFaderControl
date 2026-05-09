@@ -224,4 +224,12 @@ namespace SlotStateHelpers
         setParamNormalized(apvts, SlotIDs::isActive(slotIdx), shouldBeActive ? 1.0f : 0.0f);
     }
 
+    // =========================================================================
+    // EXTRAS
+    // =========================================================================
+
+    static inline int getIndexFromParamId(const juce::String& paramId, const juce::String& prefix)
+    {
+        return paramId.substring(prefix.length()).getIntValue();
+    }
 }

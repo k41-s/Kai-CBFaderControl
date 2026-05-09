@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "../../UI/Components/UIConstants.h"
 
 class KaiCBFaderControlAudioProcessor; // Forward declaration to avoid circular dependency
 
@@ -32,12 +33,10 @@ private:
     void handleMuteParameterChanged(const juce::String& parameterID, float newValue);
     void syncMutesWithinGroup(int slotIdx, int grpId, float newValue);
 
-    bool isSlotLeader(int grpId, int role);
-
     KaiCBFaderControlAudioProcessor& processor;
 
-    std::array<float, 32> lastVolume;
-    std::array<float, 8> lastVcaVolume;
+    std::array<float, PluginConstants::numSlots> lastVolume;
+    std::array<float, PluginConstants::numVcas> lastVcaVolume;
 
     std::atomic<bool> isPropagating{ false };
 

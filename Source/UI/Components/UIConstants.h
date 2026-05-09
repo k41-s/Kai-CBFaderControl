@@ -78,3 +78,10 @@ namespace SlotSizeValues
     static inline const int targetBtnWidth = 45;
     static inline const int targetFaderWidth = 60;
 }
+
+namespace PluginConstants
+{
+    static constexpr int numSlots = 32;
+    static constexpr int numVcas = 8;
+    static constexpr int numGroups = 8;
+}

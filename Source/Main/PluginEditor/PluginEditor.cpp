@@ -66,7 +66,7 @@ void KaiCBFaderControlAudioProcessorEditor::configPerformanceViewLambdas()
 void KaiCBFaderControlAudioProcessorEditor::determineInitialState()
 {
     showSetupPage = true;
-    for (int i = 0; i < 32; ++i)
+    for (int i = 0; i < PluginConstants::numSlots; ++i)
     {
         if (SlotStateHelpers::isSlotActive(audioProcessor.apvts, i + 1))
         {
