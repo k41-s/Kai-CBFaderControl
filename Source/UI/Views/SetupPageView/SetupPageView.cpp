@@ -136,49 +136,48 @@ void SetupPageView::setupSlotItem(SlotConfigItem* item, int i)
 
 void SetupPageView::setupSlotMouseEvents(SlotConfigItem* item)
 {
-	item->onBackgroundMouseDown = [this](const juce::MouseEvent& e) { handleSlotMouseDown(e); };
-	item->onBackgroundMouseDrag = [this](const juce::MouseEvent& e) { handleSlotMouseDrag(e); };
-	item->onBackgroundMouseUp = [this, item](const juce::MouseEvent& e) { handleSlotMouseUp(e, item); };
+	item->onBackgroundMouseDown = [this](const juce::MouseEvent& e) { processLassoDown(e); };
+	item->onBackgroundMouseDrag = [this](const juce::MouseEvent& e) { processLassoDrag(e); };
+	item->onBackgroundMouseUp = [this, item](const juce::MouseEvent& e) { processLassoUp(e, item); };
 }
 
-void SetupPageView::handleSlotMouseDown(const juce::MouseEvent& e)
+void SetupPageView::processLassoDown(const juce::MouseEvent& e)
 {
 	if (!e.mods.isLeftButtonDown()) return;
 
 	isDeactivatingMode = e.mods.isCommandDown();
-
 	selectedItems.deselectAll();
+
 	lasso.beginLasso(e.getEventRelativeTo(this), this);
 }
 
-void SetupPageView::handleSlotMouseDrag(const juce::MouseEvent& e)
+void SetupPageView::processLassoDrag(const juce::MouseEvent& e)
 {
 	if (!e.mods.isLeftButtonDown()) return;
-
 	lasso.dragLasso(e.getEventRelativeTo(this));
 }
 
-void SetupPageView::handleSlotMouseUp(const juce::MouseEvent& e, SlotConfigItem* item)
+void SetupPageView::processLassoUp(const juce::MouseEvent& e, SlotConfigItem* clickedItem)
 {
 	if (!e.mods.isLeftButtonDown()) return;
 
 	lasso.endLasso();
 
-	if (!e.mouseWasDraggedSinceMouseDown())
+	if (clickedItem != nullptr && !e.mouseWasDraggedSinceMouseDown())
 	{
-		item->setToggleState(!item->isActive(), true);
+		clickedItem->setToggleState(!clickedItem->isActive(), true);
 	}
-	else if (selectedItems.getNumSelected() > 0)
+	else if (e.mouseWasDraggedSinceMouseDown() && selectedItems.getNumSelected() > 0)
 	{
 		bool targetState = !isDeactivatingMode;
 
 		for (int slotId : selectedItems.getItemArray())
 		{
-			if (auto* i = getSlotItem(slotId))
+			if (auto* slot = getSlotItem(slotId))
 			{
-				if (i->isActive() != targetState)
+				if (slot->isActive() != targetState)
 				{
-					i->setToggleState(targetState, true);
+					slot->setToggleState(targetState, true);
 				}
 			}
 		}
@@ -263,44 +262,19 @@ void SetupPageView::findLassoItemsInArea(juce::Array<int>& itemsFound, const juc
 	}
 }
 
-void SetupPageView::mouseDown(const juce::MouseEvent& e)
+void SetupPageView::mouseDown(const juce::MouseEvent& e) 
 {
-	if (!e.mods.isLeftButtonDown()) return;
-
-	isDeactivatingMode = e.mods.isCommandDown();
-
-	selectedItems.deselectAll();
-	lasso.beginLasso(e, this);
+	processLassoDown(e);
 }
 
 void SetupPageView::mouseDrag(const juce::MouseEvent& e)
 {
-	if (!e.mods.isLeftButtonDown()) return;
-	lasso.dragLasso(e);
+	processLassoDrag(e);
 }
 
-void SetupPageView::mouseUp(const juce::MouseEvent& e)
+void SetupPageView::mouseUp(const juce::MouseEvent& e) 
 {
-	if (!e.mods.isLeftButtonDown()) return;
-
-	lasso.endLasso();
-
-	if (e.mouseWasDraggedSinceMouseDown() && selectedItems.getNumSelected() > 0)
-	{
-		bool targetState = !isDeactivatingMode;
-
-		for (int slotId : selectedItems.getItemArray())
-		{
-			if (auto* slot = getSlotItem(slotId))
-			{
-				if (slot->isActive() != targetState)
-				{
-					slot->setToggleState(targetState, true);
-				}
-			}
-		}
-	}
-	selectedItems.deselectAll();
+	processLassoUp(e, nullptr); 
 }
 
 void SetupPageView::paint(juce::Graphics& g)

@@ -45,10 +45,11 @@ private:
 	void configGrid();
 	void configGridContainer();
 	void setupSlotItem(SlotConfigItem* item, int i);
+
 	void setupSlotMouseEvents(SlotConfigItem* item);
-	void handleSlotMouseDown(const juce::MouseEvent& e);
-	void handleSlotMouseDrag(const juce::MouseEvent& e);
-	void handleSlotMouseUp(const juce::MouseEvent& e, SlotConfigItem* item);
+	void processLassoDown(const juce::MouseEvent& e);
+	void processLassoDrag(const juce::MouseEvent& e);
+	void processLassoUp(const juce::MouseEvent& e, SlotConfigItem* clickedItem = nullptr);
 
 	void configToggleAllBtnText();
 	void configNavBtn();
