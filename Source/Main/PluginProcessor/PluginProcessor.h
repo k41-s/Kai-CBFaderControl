@@ -90,6 +90,9 @@ private:
     void claimActiveSlots() const;
     void releaseOwnedSlots() const;
 
+    bool getWasSlotOwned(int slotId) const { return wasSlotOwned[slotId - 1]; }
+    void setWasSlotOwned(int slotId, bool isOwned) { wasSlotOwned.set(slotId - 1, isOwned); }
+
     juce::Uuid instanceId;
     juce::Array<bool> wasSlotOwned;
 

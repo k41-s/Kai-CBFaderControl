@@ -32,9 +32,9 @@ void PerformanceView::configComponents()
 
 void PerformanceView::createFaderSlots()
 {
-	for (int i = 0; i < PluginConstants::numSlots; ++i)
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
-		auto* slot = slots.add(new PerformanceSlotItem(processor, i + 1));
+		auto* slot = slots.add(new PerformanceSlotItem(processor, i));
 		setSlotMouseEvents(slot);
 		addAndMakeVisible(slot);
 	}
@@ -42,9 +42,9 @@ void PerformanceView::createFaderSlots()
 
 void PerformanceView::createVcaFaderSlots()
 {
-	for (int i = 0; i < PluginConstants::numVcas; ++i)
+	for (int i = 1; i <= PluginConstants::numVcas; ++i)
 	{
-		auto* vca = vcaSlots.add(new VcaSlotItem(processor, i + 1));
+		auto* vca = vcaSlots.add(new VcaSlotItem(processor, i));
 		addAndMakeVisible(vca);
 	}
 }
@@ -304,7 +304,7 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 		addSingleSlotGroupOptions(activeSlots, menu);
 }
 
-void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
+void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu) const
 {
 	if (selectedArr.size() == 2)
 	{
@@ -366,7 +366,7 @@ void PerformanceView::addGroupMemberItems(int role, juce::PopupMenu& menu)
 		menu.addItem(DemoteMember, "Demote to Standard Member");
 }
 
-void PerformanceView::addVcaMenuItem(juce::PopupMenu& menu, int grpId)
+void PerformanceView::addVcaMenuItem(juce::PopupMenu& menu, int grpId) const
 {
 	menu.addSeparator();
 	bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, grpId);
@@ -608,30 +608,44 @@ void PerformanceView::resized()
 	setupAndFillArea();
 
 	float baselineWidth = SlotSizeValues::monoSlotMinWidth;
-	for (int i = 0; i < PluginConstants::numSlots; ++i) 
-	{
-		auto info = getSlotDisplayInfo(i);
-		if (info.shouldProcess && info.isVisible && !info.isStereoMain) 
-		{
-			baselineWidth = slots[i]->getWidth();
-			break;
-		}
-	}
+	setBaselineWidth(baselineWidth);
 
 	performanceLF.updateGlobalTypography(baselineWidth);
 
-	for (auto* item : slots) 
+	regularSlotsOnResized(baselineWidth);
+	vcaSlotsOnResized(baselineWidth);
+}
+
+void PerformanceView::setBaselineWidth(float& baselineWidth)
+{
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
-		if (item->isVisible()) 
+		auto info = getSlotDisplayInfo(i);
+		if (info.shouldProcess && info.isVisible && !info.isStereoMain)
+		{
+			baselineWidth = getSlotItem(i)->getWidth();
+			break;
+		}
+	}
+}
+
+void PerformanceView::regularSlotsOnResized(float baselineWidth)
+{
+	for (auto* item : slots)
+	{
+		if (item->isVisible())
 		{
 			item->setTargetSlotWidth(baselineWidth);
 			item->updateTypography();
 		}
 	}
+}
 
-	for (auto* vcaItem : vcaSlots) 
+void PerformanceView::vcaSlotsOnResized(float baselineWidth)
+{
+	for (auto* vcaItem : vcaSlots)
 	{
-		if (vcaItem->isVisible()) 
+		if (vcaItem->isVisible())
 		{
 			vcaItem->setTargetSlotWidth(baselineWidth);
 			vcaItem->updateTypography();
@@ -684,21 +698,22 @@ void PerformanceView::checkAndAddActiveSlots(juce::FlexBox& flexBox)
 
 void PerformanceView::plotRegularSlots(juce::FlexBox& flexBox)
 {
-	for (int i = 0; i < PluginConstants::numSlots; ++i)
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
 		auto info = getSlotDisplayInfo(i);
+		auto* slot = getSlotItem(i);
 
 		if (info.mode == SlotMode::Disabled || !info.shouldProcess)
 		{
-			slots[i]->setVisible(false);
+			slot->setVisible(false);
 			continue;
 		}
 
-		slots[i]->setMode(info.mode);
-		slots[i]->setVisible(info.isVisible);
+		slot->setMode(info.mode);
+		slot->setVisible(info.isVisible);
 
 		if (info.isVisible)
-			addSlotIfActive(true, flexBox, slots[i], info.isStereoMain);
+			addSlotIfActive(true, flexBox, slot, info.isStereoMain);
 	}
 }
 
@@ -718,18 +733,19 @@ void PerformanceView::hideSlotIfVcaCollapsed(int grpId, bool& shouldShow)
 
 void PerformanceView::plotVcaMasters(juce::FlexBox& flexBox)
 {
-	for (int g = 0; g < PluginConstants::numVcas; ++g)
+	for (int g = 1; g <= PluginConstants::numVcas; ++g)
 	{
-		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g + 1);
+		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g);
+		auto* vca = getVcaItem(g);
 
 		if (vcaEnabled) {
-			vcaSlots[g]->setVisible(true);
-			flexBox.items.add(juce::FlexItem(*vcaSlots[g])
+			vca->setVisible(true);
+			flexBox.items.add(juce::FlexItem(*vca)
 				.withMaxWidth(SlotSizeValues::vcaSlotMaxWidth)
 				.withFlex(SlotSizeValues::vcaSlotFlexGrowFactor));
 		}
 		else {
-			vcaSlots[g]->setVisible(false);
+			vca->setVisible(false);
 		}
 	}
 }
@@ -766,7 +782,7 @@ int PerformanceView::getIdealWidth()
 
 void PerformanceView::calculateRegularSlotTargetWidth(int& targetWidth, int& activeCount)
 {
-	for (int i = 0; i < PluginConstants::numSlots; ++i)
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
 		auto info = getSlotDisplayInfo(i);
 
@@ -778,13 +794,14 @@ void PerformanceView::calculateRegularSlotTargetWidth(int& targetWidth, int& act
 	}
 }
 
-void PerformanceView::calculateVcaTargetWidth(int& targetWidth, int& activeCount)
+void PerformanceView::calculateVcaTargetWidth(int& targetWidth, int& activeCount) const
 {
-	for (int g = 0; g < PluginConstants::numVcas; ++g)
+	for (int g = 1; g <= PluginConstants::numVcas; ++g)
 	{
-		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g + 1);
+		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g);
 
-		if (vcaEnabled) {
+		if (vcaEnabled) 
+		{
 			targetWidth += SlotSizeValues::vcaSlotTargetWidth;
 			activeCount++;
 		}
@@ -807,44 +824,46 @@ int PerformanceView::getMinWidth()
 
 void PerformanceView::calcRegularSlotMinWidth(int& minWidth, int& activeCount)
 {
-	for (int i = 0; i < PluginConstants::numSlots; ++i) {
+	for (int i = 1; i <= PluginConstants::numSlots; ++i) {
 		auto info = getSlotDisplayInfo(i);
 
-		if (info.shouldProcess && info.isVisible) {
+		if (info.shouldProcess && info.isVisible) 
+		{
 			minWidth += info.isStereoMain ? SlotSizeValues::stereoSlotMinWidth : SlotSizeValues::monoSlotMinWidth;
 			activeCount++;
 		}
 	}
 }
 
-void PerformanceView::calcVcaMinWidth(int& minWidth, int& activeCount)
+void PerformanceView::calcVcaMinWidth(int& minWidth, int& activeCount) const
 {
-	for (int g = 0; g < PluginConstants::numVcas; ++g)
+	for (int g = 1; g <= PluginConstants::numVcas; ++g)
 	{
-		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g + 1);
-		if (vcaEnabled) {
+		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g);
+		if (vcaEnabled)
+		{
 			minWidth += SlotSizeValues::vcaSlotMinWidth;
 			activeCount++;
 		}
 	}
 }
 
-PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
+PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int slotId)
 {
 	SlotDisplayInfo info;
 
-	bool isLocallyActive = SlotStateHelpers::isSlotActive(processor.apvts, i + 1);
-	info.mode = processor.globalSlotRegistry->getSlotMode(i + 1, processor.getInstanceId(), isLocallyActive);
+	bool isLocallyActive = SlotStateHelpers::isSlotActive(processor.apvts, slotId);
+	info.mode = processor.globalSlotRegistry->getSlotMode(slotId, processor.getInstanceId(), isLocallyActive);
 
 	if (info.mode == SlotMode::Disabled)
 		return info;
 
-	bool isLinked = SlotStateHelpers::isStereoLinked(processor.apvts.state, i + 1);
-	info.isStereoMain = SlotStateHelpers::isStereoMain(processor.apvts.state, i + 1);
+	bool isLinked = SlotStateHelpers::isStereoLinked(processor.apvts.state, slotId);
+	info.isStereoMain = SlotStateHelpers::isStereoMain(processor.apvts.state, slotId);
 
 	if (isLinked && !info.isStereoMain)
 	{
-		int linkedIdx = SlotStateHelpers::getLinkedSlotId(processor.apvts.state, i + 1);
+		int linkedIdx = SlotStateHelpers::getLinkedSlotId(processor.apvts.state, slotId);
 		if (linkedIdx != -1 && !SlotStateHelpers::isSlotActive(processor.apvts, linkedIdx))
 		{
 			// Orphaned sub-slot, treat it as a standard mono slot
@@ -857,7 +876,7 @@ PerformanceView::SlotDisplayInfo PerformanceView::getSlotDisplayInfo(int i)
 
 	info.shouldProcess = true;
 
-	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, i + 1);
+	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotId);
 	info.isVisible = true;
 	hideSlotIfVcaCollapsed(grpId, info.isVisible);
 

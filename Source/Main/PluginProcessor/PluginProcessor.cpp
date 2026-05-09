@@ -57,7 +57,7 @@ void KaiCBFaderControlAudioProcessor::initGlobalRegistry()
         bool isLocallyActive = SlotStateHelpers::isSlotActive(apvts, i);
         bool isOwned = (globalSlotRegistry->getSlotMode(i, getInstanceId(), isLocallyActive) == SlotMode::FullAccess);
 
-        wasSlotOwned.set(i - 1, isOwned);
+		setWasSlotOwned(i, isOwned);
     }
 }
 
@@ -296,12 +296,11 @@ void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadca
             bool isLocallyActive = SlotStateHelpers::isSlotActive(apvts, i);
             bool isCurrentlyOwned = (globalSlotRegistry->getSlotMode(i, getInstanceId(), isLocallyActive) == SlotMode::FullAccess);
 
-            if (wasSlotOwned[i - 1] && !isCurrentlyOwned)
-            {
-                clearSlotRouting(i);
+            if (getWasSlotOwned(i) && !isCurrentlyOwned)
+            { 
+                clearSlotRouting(i); 
             }
-
-            wasSlotOwned.set(i - 1, isCurrentlyOwned);
+            setWasSlotOwned(i, isCurrentlyOwned);
         }
     }
 }

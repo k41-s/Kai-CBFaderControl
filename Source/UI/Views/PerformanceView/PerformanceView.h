@@ -33,6 +33,12 @@ public:
 	void paint(juce::Graphics& g) override;
 	void resized() override;
 
+	void setBaselineWidth(float& baselineWidth);
+
+	void regularSlotsOnResized(float baselineWidth);
+
+	void vcaSlotsOnResized(float baselineWidth);
+
 	int getIdealWidth();
 	int getMinWidth();
 
@@ -72,7 +78,7 @@ private:
 
 	void addClaimSlotMenuItem(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu);
 	void addStandardMenuOptions(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu, juce::Array<int>& activeSlots);
-	void addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
+	void addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu) const;
 
 	void addGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 	void setupGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& groupMenu) const;
@@ -80,7 +86,7 @@ private:
 	void addSingleSlotGroupOptions(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 
 	void addGroupMemberItems(int role, juce::PopupMenu& menu);
-	void addVcaMenuItem(juce::PopupMenu& menu, int grpId);
+	void addVcaMenuItem(juce::PopupMenu& menu, int grpId) const;
 
 	void setupAndAddColourMenu(juce::PopupMenu& menu, int grpId);
 	void setupColourMenu(int grpId, juce::PopupMenu& colourMenu) const;
@@ -133,10 +139,13 @@ private:
 
 	// Width calculation helpers
 	void calculateRegularSlotTargetWidth(int& targetWidth, int& activeCount);
-	void calculateVcaTargetWidth(int& targetWidth, int& activeCount);
+	void calculateVcaTargetWidth(int& targetWidth, int& activeCount) const;
 
 	void calcRegularSlotMinWidth(int& minWidth, int& activeCount);
-	void calcVcaMinWidth(int& minWidth, int& activeCount);
+	void calcVcaMinWidth(int& minWidth, int& activeCount) const;
+
+	PerformanceSlotItem* getSlotItem(int slotId) const { return slots[slotId - 1]; }
+	VcaSlotItem* getVcaItem(int vcaId) const { return vcaSlots[vcaId - 1]; }
 
 	juce::TextButton setupButton{ "Setup" };
 

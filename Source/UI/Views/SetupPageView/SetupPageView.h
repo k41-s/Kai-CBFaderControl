@@ -55,12 +55,16 @@ private:
 	void setupSlots(int numColumns, int cellWidth, int cellHeight);
 	void setupGrid(juce::Rectangle<int>& area);
 
+	void calculateGridDimensions(int& numColumns, int& numRows) const;
+
 	void refreshControlStates();
 	void handleEmptySlots();
 	void checkSlotActivationStates(bool& allAreActive, bool& atLeastOneActive);
 	void updateToggleAllButton(bool allAreActive);
 	void updateNavigateBtn(bool atLeastOneActive);
 	void setAllSlotsActive(bool shouldBeActive);
+
+	SlotConfigItem* getSlotItem(int slotId) const { return slotItems[slotId - 1]; }
 
 	juce::TextButton navigateBtn{ "Go to Performance" };
 

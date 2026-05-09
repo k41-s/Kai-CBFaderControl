@@ -112,9 +112,10 @@ void SetupPageView::configGrid()
 
 void SetupPageView::configGridContainer()
 {
-	for (int i = 0; i < PluginConstants::numSlots; ++i) {
-		SlotConfigItem* item = new SlotConfigItem(processor, i + 1);
-		item->setupAttachment(processor.apvts, i + 1);
+	for (int i = 1; i <= PluginConstants::numSlots; ++i) 
+	{
+		SlotConfigItem* item = new SlotConfigItem(processor, i);
+		item->setupAttachment(processor.apvts, i);
 		item->onToggleChanged = [this] { refreshControlStates(); };
 		slotItems.add(item);
 		gridContainer.addAndMakeVisible(item);
@@ -273,11 +274,11 @@ void SetupPageView::placeXPatchImg(juce::Rectangle<int>& areaToUse)
 
 void SetupPageView::setupGrid(juce::Rectangle<int>& area)
 {
-
 	gridViewport.setBounds(area);
 
-	int numColumns = 4;
-	int numRows = 8;
+	int numColumns = 0;
+	int numRows = 0;
+	calculateGridDimensions(numColumns, numRows);
 
 	int cellWidth = area.getWidth() / numColumns;
 	int cellHeight = area.getHeight() / numRows;
@@ -287,17 +288,35 @@ void SetupPageView::setupGrid(juce::Rectangle<int>& area)
 	setupSlots(numColumns, cellWidth, cellHeight);
 }
 
+void SetupPageView::calculateGridDimensions(int& numColumns, int& numRows) const
+{
+	int maxColumns = 5;
+	numColumns = 4;
+
+	for (int c = maxColumns; c >= 3; --c)
+	{
+		if (PluginConstants::numSlots % c == 0)
+		{
+			numColumns = c;
+			break;
+		}
+	}
+
+	numRows = std::ceil(PluginConstants::numSlots / (float)numColumns);
+}
+
 void SetupPageView::setupSlots(int numColumns, int cellWidth, int cellHeight)
 {
-	for (int i = 0; i < slotItems.size(); ++i)
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
-		int column = i % numColumns;
-		int row = i / numColumns;
+		int zeroBasedIndex = i - 1;
+		int column = zeroBasedIndex % numColumns;
+		int row = zeroBasedIndex / numColumns;
 
 		int xPos = column * cellWidth;
 		int yPos = row * cellHeight;
 
-		if (auto* item = slotItems[i])
+		if (auto* item = getSlotItem(i))
 		{
 			item->setBounds(xPos, yPos, cellWidth, cellHeight);
 		}

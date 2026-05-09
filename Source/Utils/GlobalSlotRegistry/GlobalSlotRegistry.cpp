@@ -8,15 +8,15 @@ GlobalSlotRegistry::GlobalSlotRegistry()
 
 void GlobalSlotRegistry::claimSlot(int slotIndex, const juce::Uuid& instanceId)
 {
-    if (!juce::isPositiveAndBelow(slotIndex - 1, slotOwners.size()))
+    if (!isValidSlot(slotIndex))
         return;
 
     bool changed = false;
     {
         juce::ScopedLock sl(lock);
-        if (slotOwners[slotIndex - 1] != instanceId)
+        if (slotOwners[getArrayIndex(slotIndex)] != instanceId)
         {
-            slotOwners.set(slotIndex - 1, instanceId);
+            slotOwners.set(getArrayIndex(slotIndex), instanceId);
             changed = true;
         }
     }
@@ -27,13 +27,13 @@ void GlobalSlotRegistry::claimSlot(int slotIndex, const juce::Uuid& instanceId)
 
 void GlobalSlotRegistry::releaseSlot(int slotIndex, const juce::Uuid& instanceId)
 {
-    if (!juce::isPositiveAndBelow(slotIndex - 1, slotOwners.size()))
+    if (!isValidSlot(slotIndex))
         return;
 
     juce::ScopedLock sl(lock);
-    if (slotOwners[slotIndex - 1] == instanceId)
+    if (slotOwners[getArrayIndex(slotIndex)] == instanceId)
     {
-        slotOwners.set(slotIndex - 1, juce::Uuid::null());
+        slotOwners.set(getArrayIndex(slotIndex), juce::Uuid::null());
         sendChangeMessage();
     }
 }
@@ -43,11 +43,11 @@ SlotMode GlobalSlotRegistry::getSlotMode(int slotIndex, const juce::Uuid& instan
     if (!isLocallyActive)
         return SlotMode::Disabled;
 
-    if (!juce::isPositiveAndBelow(slotIndex - 1, slotOwners.size()))
+    if (!isValidSlot(slotIndex))
         return SlotMode::Disabled;
 
     juce::ScopedLock sl(lock);
-    if (slotOwners[slotIndex - 1] == instanceId)
+    if (slotOwners[getArrayIndex(slotIndex)] == instanceId)
         return SlotMode::FullAccess;
 
     return SlotMode::ReadOnly;
