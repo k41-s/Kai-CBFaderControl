@@ -11,6 +11,9 @@ SetupViewLookFeel::SetupViewLookFeel()
 
     setColour(juce::TextButton::textColourOffId, MyColours::white);
     setColour(juce::ToggleButton::tickColourId, MyColours::white);
+
+    setColour(juce::LassoComponent<int>::lassoFillColourId, MyColours::setupViewLassoBackground);
+    setColour(juce::LassoComponent<int>::lassoOutlineColourId, MyColours::setupViewLassoOutline);
 }
 
 void SetupViewLookFeel::drawTextEditorOutline(juce::Graphics& g, int width, int height, juce::TextEditor& textEditor)

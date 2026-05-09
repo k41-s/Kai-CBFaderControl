@@ -15,9 +15,10 @@ SlotConfigItem::SlotConfigItem(KaiCBFaderControlAudioProcessor& p, int slotNum)
 
 void SlotConfigItem::configSlotLabel(int slotNumber)
 {
+	addAndMakeVisible(slotLabel);
 	slotLabel.setText("Slot " + juce::String(slotNumber), juce::dontSendNotification);
 	slotLabel.setJustificationType(juce::Justification::centred);
-	addAndMakeVisible(slotLabel);
+	slotLabel.setInterceptsMouseClicks(false, false);
 }
 
 void SlotConfigItem::configNameEditor(int slotNumber)
@@ -104,6 +105,24 @@ void SlotConfigItem::resized()
 	activeToggle.setBounds(area.removeFromLeft(25));
 	slotLabel.setBounds(area.removeFromLeft(40));
 	customNameEditor.setBounds(area);
+}
+
+void SlotConfigItem::mouseDown(const juce::MouseEvent& e)
+{
+	if (onBackgroundMouseDown)
+		onBackgroundMouseDown(e);
+}
+
+void SlotConfigItem::mouseDrag(const juce::MouseEvent& e)
+{
+	if (onBackgroundMouseDrag)
+		onBackgroundMouseDrag(e);
+}
+
+void SlotConfigItem::mouseUp(const juce::MouseEvent& e)
+{
+	if (onBackgroundMouseUp)
+		onBackgroundMouseUp(e);
 }
 
 void SlotConfigItem::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)

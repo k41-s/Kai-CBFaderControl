@@ -15,6 +15,9 @@ void SetupPageView::init()
 	setLookAndFeel(&customLF);
 	configComponents();
 	refreshControlStates();
+
+	addAndMakeVisible(lasso);
+	lasso.setInterceptsMouseClicks(false, false);
 }
 
 void SetupPageView::configComponents()
@@ -117,6 +120,51 @@ void SetupPageView::configGridContainer()
 		SlotConfigItem* item = new SlotConfigItem(processor, i);
 		item->setupAttachment(processor.apvts, i);
 		item->onToggleChanged = [this] { refreshControlStates(); };
+
+		// 1. Start the lasso
+		item->onBackgroundMouseDown = [this](const juce::MouseEvent& e)
+		{
+			if (!e.mods.isLeftButtonDown()) return;
+			selectedItems.deselectAll();
+			lasso.beginLasso(e.getEventRelativeTo(this), this);
+		};
+
+		// 2. Drag the lasso
+		item->onBackgroundMouseDrag = [this](const juce::MouseEvent& e)
+		{
+			if (!e.mods.isLeftButtonDown()) return;
+			lasso.dragLasso(e.getEventRelativeTo(this));
+		};
+
+		// 3. Finish and Apply
+		item->onBackgroundMouseUp = [this, item](const juce::MouseEvent& e) 
+		{
+			if (!e.mods.isLeftButtonDown()) return;
+
+			// ALWAYS end the lasso immediately on mouse release
+			lasso.endLasso();
+
+			// If it was just a normal click (no dragging), toggle this specific item
+			if (!e.mouseWasDraggedSinceMouseDown())
+			{
+				item->setToggleState(!item->isActive(), true);
+			}
+			// If it was a drag, invert all lassoed items
+			else if (selectedItems.getNumSelected() > 0)
+			{
+				for (int slotId : selectedItems.getItemArray())
+				{
+					if (auto* i = getSlotItem(slotId))
+					{
+						i->setToggleState(!i->isActive(), true);
+					}
+				}
+			}
+
+			// Clean up
+			selectedItems.deselectAll();
+		};
+
 		slotItems.add(item);
 		gridContainer.addAndMakeVisible(item);
 	}
@@ -174,6 +222,59 @@ SetupPageView::~SetupPageView()
 {
 	processor.apvts.state.removeListener(this);
 	setLookAndFeel(nullptr);
+}
+
+juce::SelectedItemSet<int>& SetupPageView::getLassoSelection()
+{
+	return selectedItems;
+}
+
+void SetupPageView::findLassoItemsInArea(juce::Array<int>& itemsFound, const juce::Rectangle<int>& area)
+{
+	auto mappedArea = gridContainer.getLocalArea(this, area);
+
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
+	{
+		if (auto* item = getSlotItem(i))
+		{
+			if (item->getBounds().intersects(mappedArea))
+			{
+				itemsFound.add(i);
+			}
+		}
+	}
+}
+
+void SetupPageView::mouseDown(const juce::MouseEvent& e)
+{
+	if (!e.mods.isLeftButtonDown()) return;
+	selectedItems.deselectAll();
+	lasso.beginLasso(e, this);
+}
+
+void SetupPageView::mouseDrag(const juce::MouseEvent& e)
+{
+	if (!e.mods.isLeftButtonDown()) return;
+	lasso.dragLasso(e);
+}
+
+void SetupPageView::mouseUp(const juce::MouseEvent& e)
+{
+	if (!e.mods.isLeftButtonDown()) return;
+
+	lasso.endLasso();
+
+	if (e.mouseWasDraggedSinceMouseDown() && selectedItems.getNumSelected() > 0)
+	{
+		for (int slotId : selectedItems.getItemArray())
+		{
+			if (auto* slot = getSlotItem(slotId))
+			{
+				slot->setToggleState(!slot->isActive(), true);
+			}
+		}
+	}
+	selectedItems.deselectAll();
 }
 
 void SetupPageView::paint(juce::Graphics& g)

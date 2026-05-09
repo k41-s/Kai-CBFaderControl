@@ -18,6 +18,14 @@ public:
 	void paint(juce::Graphics& g) override;
 	void resized() override;
 
+	std::function<void(const juce::MouseEvent&)> onBackgroundMouseDown;
+	std::function<void(const juce::MouseEvent&)> onBackgroundMouseDrag;
+	std::function<void(const juce::MouseEvent&)> onBackgroundMouseUp;
+
+	void mouseDown(const juce::MouseEvent& e) override;
+	void mouseDrag(const juce::MouseEvent& e) override;
+	void mouseUp(const juce::MouseEvent& e) override;
+
 	void valueTreePropertyChanged(juce::ValueTree& tree,
 		const juce::Identifier& property) override;
 

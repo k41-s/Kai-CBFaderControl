@@ -6,7 +6,10 @@
 #include "../../CustomLookAndFeel/SetupViewLookFeel/SetupViewLookFeel.h"
 #include "../../../Utils/BinaryImageComponent/BinaryImageComponent.h"
 
-class SetupPageView : public juce::Component, public juce::ValueTree::Listener
+class SetupPageView : 
+	public juce::Component,
+	public juce::ValueTree::Listener,
+	public juce::LassoSource<int>
 {
 public:
 	SetupPageView(KaiCBFaderControlAudioProcessor& p);
@@ -14,6 +17,13 @@ public:
 
 	void resized() override;
 	void paint(juce::Graphics& g) override;
+
+	void findLassoItemsInArea(juce::Array<int>& itemsFound, const juce::Rectangle<int>& area) override;
+	juce::SelectedItemSet<int>& getLassoSelection() override;
+
+	void mouseDown(const juce::MouseEvent& e) override;
+	void mouseDrag(const juce::MouseEvent& e) override;
+	void mouseUp(const juce::MouseEvent& e) override;
 
 	void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
 
@@ -96,6 +106,9 @@ private:
 
 	BinaryImageComponent logo{ BinaryData::cblogo_png, BinaryData::cblogo_pngSize };
 	BinaryImageComponent xPatchImg{ BinaryData::XPatch_png, BinaryData::XPatch_pngSize };
+
+	juce::LassoComponent<int> lasso;
+	juce::SelectedItemSet<int> selectedItems;
 
 	juce::Rectangle<int> footerArea;
 
