@@ -384,7 +384,12 @@ void PerformanceViewLookFeel::drawPanValueText(juce::Graphics& g, float sliderPo
 	else
 	{
 		int pct = juce::roundToInt(std::abs(sliderPos - 0.5f) * 200.0f);
-		panText = (sliderPos < 0.5f ? "L" : "R") + juce::String(pct); // maybe make L and R only for 100%
+		juce::String side = sliderPos < 0.5f ? "L" : "R";
+
+		if (pct == 100)
+			panText = side;
+		else
+			panText = side + juce::String(pct);
 	}
 
 	g.setColour(juce::Colours::white.withAlpha(0.85f));
