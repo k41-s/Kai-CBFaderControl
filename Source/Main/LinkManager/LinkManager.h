@@ -33,6 +33,8 @@ private:
     void handleMuteParameterChanged(const juce::String& parameterID, float newValue);
     void syncMutesWithinGroup(int slotIdx, int grpId, float newValue);
 
+    void applyVolumeDeltaToSlot(int slotIdx, float delta);
+
     // --- Array Wrappers ---
     float getLastVolume(int slotId) const { return lastVolume[slotId - 1]; }
     void setLastVolume(int slotId, float volume) { lastVolume[slotId - 1] = volume; }
@@ -40,9 +42,13 @@ private:
     float getLastVcaVolume(int vcaId) const { return lastVcaVolume[vcaId - 1]; }
     void setLastVcaVolume(int vcaId, float volume) { lastVcaVolume[vcaId - 1] = volume; }
 
+    float getUnclampedVolume(int slotId) const { return unclampedVolume[slotId - 1]; }
+    void setUnclampedVolume(int slotId, float volume) { unclampedVolume[slotId - 1] = volume; }
+
     KaiCBFaderControlAudioProcessor& processor;
 
     std::array<float, PluginConstants::numSlots> lastVolume;
+    std::array<float, PluginConstants::numSlots> unclampedVolume;
     std::array<float, PluginConstants::numVcas> lastVcaVolume;
 
     std::atomic<bool> isPropagating{ false };

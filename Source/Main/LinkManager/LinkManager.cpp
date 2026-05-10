@@ -21,7 +21,9 @@ void LinkManager::addRegularSlotListeners()
         processor.apvts.addParameterListener(SlotIDs::volume(i), this);
         processor.apvts.addParameterListener(SlotIDs::mute(i), this);
 
-        setLastVolume(i, SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::volume(i)));
+        float initialVol = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::volume(i));
+        setLastVolume(i, initialVol);
+        setUnclampedVolume(i, initialVol);
     }
 }
 
@@ -53,7 +55,8 @@ void LinkManager::removeRegularSlotListeners()
 
 void LinkManager::removeVcaMasterListeners()
 {
-    for (int i = 1; i <= PluginConstants::numVcas; ++i) {
+    for (int i = 1; i <= PluginConstants::numVcas; ++i) 
+    {
         processor.apvts.removeParameterListener(SlotIDs::vcaVolume(i), this);
         processor.apvts.removeParameterListener(SlotIDs::vcaMute(i), this);
     }
@@ -86,6 +89,7 @@ void LinkManager::handleProcessorRestoringState(const juce::String& parameterID,
     {
         int slotIdx = SlotStateHelpers::getIndexFromParamId(parameterID, SlotIdStringPrefixes::volume);
 		setLastVolume(slotIdx, newValue);
+		setUnclampedVolume(slotIdx, newValue);
     }
     else if (parameterID.startsWith(SlotIdStringPrefixes::vcaVolume)) 
     {
@@ -111,12 +115,7 @@ void LinkManager::applyDeltaToGroupFromVca(int grpIdx, float delta)
         int assignedGrp = SlotStateHelpers::getGroupId(processor.apvts.state, i);
         if (assignedGrp == grpIdx) 
         {
-            float targetVol = getLastVolume(i) + delta;
-            targetVol = juce::jlimit(-96.0f, 22.0f, targetVol);
-
-            SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(i), targetVol);
-
-            setLastVolume(i, targetVol);
+			applyVolumeDeltaToSlot(i, delta);
         }
     }
 	isPropagating = false;
@@ -148,6 +147,7 @@ void LinkManager::handleVolumeParameterChanged(const juce::String& parameterID, 
 
     float delta = newValue - getLastVolume(slotIdx);
     setLastVolume(slotIdx, newValue);
+    setUnclampedVolume(slotIdx, newValue);
 
     if (SlotStateHelpers::isGroupLeader(processor.apvts.state, slotIdx))
     {
@@ -168,12 +168,7 @@ void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
 
         if (otherGrpId == grpId && otherRoleId == 0)
         {
-            float targetVol = getLastVolume(i) + delta;
-            targetVol = juce::jlimit(-96.0f, 22.0f, targetVol);
-
-            SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(i), targetVol);
-            
-            setLastVolume(i, targetVol);
+			applyVolumeDeltaToSlot(i, delta);
         }
     }
 	isPropagating = false;
@@ -206,4 +201,14 @@ void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
         }
     }
 	isPropagating = false;
+}
+
+void LinkManager::applyVolumeDeltaToSlot(int slotIdx, float delta)
+{
+    float newUnclamped = getUnclampedVolume(slotIdx) + delta;
+    setUnclampedVolume(slotIdx, newUnclamped);
+
+    float targetVol = juce::jlimit(-96.0f, 22.0f, newUnclamped);
+    SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(slotIdx), targetVol);
+    setLastVolume(slotIdx, targetVol);
 }
