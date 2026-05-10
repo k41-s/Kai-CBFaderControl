@@ -9,6 +9,8 @@ public:
 
     bool hitTest(int x, int y) override;
 
+    void resized() override;
+
     void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
     void mouseDown(const juce::MouseEvent& e) override;
     void mouseDrag(const juce::MouseEvent& e) override;

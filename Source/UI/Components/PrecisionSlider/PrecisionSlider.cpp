@@ -19,6 +19,14 @@ bool PrecisionSlider::hitTest(int x, int y)
     return (dx <= maxDx && dy <= maxDy);
 }
 
+void PrecisionSlider::resized()
+{
+    juce::Slider::resized();
+
+    int trackHeight = juce::jmax(10, getHeight());
+    setMouseDragSensitivity(trackHeight);
+}
+
 void PrecisionSlider::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
 {
     // Intentionally left blank to override default 4dB JUCE jump
