@@ -392,11 +392,19 @@ void PerformanceViewLookFeel::drawPanValueText(juce::Graphics& g, float sliderPo
 			panText = side + juce::String(pct);
 	}
 
-	g.setColour(juce::Colours::white.withAlpha(0.85f));
-
 	float fontSize = juce::jlimit(7.0f, 9.5f, textArea.getWidth() * 0.45f);
 	g.setFont(juce::Font(fontSize, juce::Font::bold));
-	g.drawText(panText, textArea, juce::Justification::centred, false);
+
+	float boxHeight = fontSize + 4.0f;
+	auto backgroundArea = textArea.withSizeKeepingCentre(textArea.getWidth(), boxHeight);
+
+	backgroundArea.removeFromRight(1.0f);
+
+	g.setColour(MyColours::valueBackground);
+	g.fillRect(backgroundArea);
+
+	g.setColour(MyColours::white);
+	g.drawText(panText, backgroundArea, juce::Justification::centred, false);
 }
 
 void PerformanceViewLookFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button, 

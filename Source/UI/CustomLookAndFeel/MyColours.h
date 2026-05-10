@@ -14,6 +14,8 @@ namespace MyColours
     const juce::Colour black = juce::Colours::black.withAlpha(0.9f);
     const juce::Colour white = juce::Colours::white.withAlpha(0.9f);
 
+    const juce::Colour valueBackground = juce::Colour(0xFF171717);
+    
     const juce::Colour unpressedBtn = juce::Colour(0xFF2A2A2A);
     const juce::Colour mouseOverButton = juce::Colours::white.withAlpha(0.05f);
 	const juce::Colour muteBtnPressed = juce::Colour(0xFFD24242).withAlpha(0.8f);

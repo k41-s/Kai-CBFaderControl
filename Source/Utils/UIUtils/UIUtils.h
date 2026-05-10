@@ -13,8 +13,8 @@ namespace UIUtils
     {
         parent.addAndMakeVisible(label);
         label.setJustificationType(justification);
-        label.setColour(juce::Label::backgroundColourId, MyColours::unpressedBtn);
-        label.setColour(juce::Label::textColourId, juce::Colours::white);
+        label.setColour(juce::Label::backgroundColourId, MyColours::valueBackground);
+        label.setColour(juce::Label::textColourId, MyColours::white);
         label.setBorderSize(juce::BorderSize<int>(0, 1, 0, 0));
 
         if (text.isNotEmpty()) {
