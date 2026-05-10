@@ -27,7 +27,6 @@ private:
 	void configExpandBtn();
 	void configLabels();
 	void configIndexLabel();
-	void configNameLabel();
 	void updateColours();
 
 	// Attachments
@@ -38,7 +37,7 @@ private:
 	// Layout functions
 	void setupTopArea(juce::Rectangle<int>& area);
 	void setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight);
-	void setupNameLabel(juce::Rectangle<int>& topArea, int labelHeight);
+	void setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight);
 	void setupMuteButton(juce::Rectangle<int>& topArea);
 	void setupExpandButton(juce::Rectangle<int>& topArea);
 

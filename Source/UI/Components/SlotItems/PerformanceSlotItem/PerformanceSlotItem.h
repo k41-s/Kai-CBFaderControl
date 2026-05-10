@@ -51,16 +51,13 @@ private:
 	void configSoloButton();
 
 	void configLabels();
+	void configGroupLabels();
 	void configIndexLabel();
 	void configNameLabel();
-	void configGroupLabel();
 
 	// State update functions
 	void updateStereoState();
 	void updateGroupState();
-	void setupSlotForGroup(int role, int grpId);
-	void setGroupedSlotLabel(int role, int grpId);
-	void setGroupedSlotColour(int grpId);
 	void setAppropriateIndexLabelText();
 
 	void drawSelectedSlotItem(juce::Graphics& g);
@@ -91,7 +88,7 @@ private:
 	bool isStereoMain = false;
 	bool isStereoLinked = false;
 
-	juce::Label groupLabel;
+	juce::Label groupRoleLabel;
 	juce::Slider panSlider;
 	juce::TextButton soloButton{ UIButtonLabels::solo };
 

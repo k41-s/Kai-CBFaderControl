@@ -20,7 +20,7 @@ void VcaSlotItem::init()
     configButtons();
     configLabels();
     configAttachments();
-    updateNameFromValueTree();
+    updateBaseGroupState(index);
     updateValueLabel();
     updateColours();
 }
@@ -48,21 +48,15 @@ void VcaSlotItem::configExpandBtn()
 void VcaSlotItem::configLabels()
 {
     configIndexLabel();
-    configNameLabel();
     configBaseValueLabel();
+    configBaseGroupLabels([this]() { return index; });
 }
 
 void VcaSlotItem::configIndexLabel()
 {
     indexLabel.setJustificationType(juce::Justification::centred);
-    indexLabel.setText("VCA " + juce::String(index), juce::dontSendNotification);
+    indexLabel.setText(UIGroupLabelPrefixes::vca + juce::String(index), juce::dontSendNotification);
     addAndMakeVisible(indexLabel);
-}
-
-void VcaSlotItem::configNameLabel()
-{
-    nameLabel.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(nameLabel);
 }
 
 void VcaSlotItem::updateColours()
@@ -99,9 +93,8 @@ void VcaSlotItem::configExpandAttachment()
 
 void VcaSlotItem::updateNameFromValueTree()
 {
-    juce::String customName = SlotStateHelpers::getVcaName(processor.apvts.state, index);
-    nameLabel.setText(customName, juce::dontSendNotification);
-    resized();
+    // Deliberately left empty. 
+    // VcaSlotItem uses the base class updateBaseGroupState() logic instead.
 }
 
 VcaSlotItem::~VcaSlotItem()
@@ -111,10 +104,14 @@ VcaSlotItem::~VcaSlotItem()
 
 void VcaSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
-    if (property == juce::Identifier(SlotIDs::vcaName(index)))
-        updateNameFromValueTree();
-    else if (property == juce::Identifier(SlotIDs::groupColour(index)))
+    juce::String propName = property.toString();
+
+    if (propName == SlotIDs::vcaName(index) || propName == SlotIDs::groupColour(index))
+    {
+        updateBaseGroupState(index);
         updateColours();
+        resized();
+    }
 }
 
 void VcaSlotItem::paint(juce::Graphics& g)
@@ -153,7 +150,7 @@ void VcaSlotItem::setupTopArea(juce::Rectangle<int>& area)
     auto topArea = area.removeFromTop(topAreaHeight);
 
     setupIndexLabel(topArea, labelHeight);
-    setupNameLabel(topArea, labelHeight);
+    setupGroupLabel(topArea, labelHeight);
     setupMuteButton(topArea);
     setupExpandButton(topArea);
 
@@ -169,11 +166,14 @@ void VcaSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight
     indexLabel.setBounds(topArea.removeFromTop(labelHeight));
 }
 
-void VcaSlotItem::setupNameLabel(juce::Rectangle<int>& topArea, int labelHeight)
+void VcaSlotItem::setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight)
 {
     topArea.removeFromTop(5);
-    nameLabel.setFont(sharedFont.boldened());
-    nameLabel.setBounds(topArea.removeFromTop(labelHeight));
+
+    groupLabel.setBorderSize(juce::BorderSize<int>(0));
+
+    groupLabel.setFont(sharedFont.boldened());
+    groupLabel.setBounds(topArea.removeFromTop(labelHeight));
 }
 
 void VcaSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)

@@ -59,8 +59,19 @@ void PerformanceSlotItem::configLabels()
 {
 	configIndexLabel();
     configNameLabel();
-    configGroupLabel();
     configBaseValueLabel();
+    configGroupLabels();
+}
+
+void PerformanceSlotItem::configGroupLabels()
+{  
+    configBaseGroupLabels([this]() 
+    {
+        return SlotStateHelpers::getGroupId(processor.apvts.state, index);
+    });
+
+    addAndMakeVisible(groupRoleLabel);
+    groupRoleLabel.setJustificationType(juce::Justification::centred);
 }
 
 void PerformanceSlotItem::configIndexLabel()
@@ -85,21 +96,6 @@ void PerformanceSlotItem::configNameLabel()
     nameLabel.onTextChange = [this]()
     {
         SlotStateHelpers::setSlotCustomName(processor.apvts.state, index, nameLabel.getText());
-    };
-}
-
-void PerformanceSlotItem::configGroupLabel()
-{
-    addAndMakeVisible(groupLabel);
-    groupLabel.setJustificationType(juce::Justification::centred);
-
-    groupLabel.onTextChange = [this]()
-    {
-        int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, index);
-        if (grpId > 0) 
-        {
-            SlotStateHelpers::setVcaName(processor.apvts.state, grpId, groupLabel.getText());
-        }
     };
 }
 
@@ -153,54 +149,25 @@ void PerformanceSlotItem::updateGroupState()
     int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, index);
     int role = SlotStateHelpers::getGroupRole(processor.apvts.state, index);
 
-    if (grpId > 0) 
-    {
-        setupSlotForGroup(role, grpId);
-		groupLabel.setEditable(false, true, false);
-    }
-    else 
-    {
-        groupLabel.setText("", juce::dontSendNotification);
-		groupLabel.setEditable(false, false, false);
-        volumeFader.getProperties().remove(UIProperties::indicatorColour);
-    }
-	volumeFader.repaint();
-    groupLabel.setVisible(true);
-    repaint();
-}
+    updateBaseGroupState(grpId, true);
 
-void PerformanceSlotItem::setupSlotForGroup(int role, int grpId)
-{
-    setGroupedSlotLabel(role, grpId);
-    setGroupedSlotColour(grpId);
-}
-
-void PerformanceSlotItem::setGroupedSlotLabel(int role, int grpId)
-{
-    juce::String customVcaName = SlotStateHelpers::getVcaName(processor.apvts.state, grpId);
-
-    if (customVcaName.isNotEmpty())
+    if (grpId > 0)
     {
-        groupLabel.setText(customVcaName, juce::dontSendNotification); // Maybe still add indicator of grp role
+        int colourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, grpId);
+        juce::Colour groupColour = GroupColours::palette[colourIdx];
+
+        groupRoleLabel.setColour(juce::Label::textColourId, groupColour);
+        groupRoleLabel.setText(role == 1 ? "L" : "S", juce::dontSendNotification);
+        groupRoleLabel.setVisible(true);
     }
     else
     {
-        juce::String labelText = (role == 1)
-            ? UIGroupLabelPrefixes::leader
-            : UIGroupLabelPrefixes::group;
-
-        labelText += juce::String(grpId);
-        groupLabel.setText(labelText, juce::dontSendNotification);
+        groupRoleLabel.setText("", juce::dontSendNotification);
+        groupRoleLabel.setVisible(false);
     }
-}
 
-void PerformanceSlotItem::setGroupedSlotColour(int grpId)
-{
-    int colourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, grpId);
-    juce::Colour groupColour = GroupColours::palette[colourIdx];
-
-    groupLabel.setColour(juce::Label::textColourId, groupColour);
-    volumeFader.getProperties().set(UIProperties::indicatorColour, groupColour.toString());
+	resized();
+    repaint();
 }
 
 void PerformanceSlotItem::setAppropriateIndexLabelText()
@@ -427,8 +394,21 @@ void PerformanceSlotItem::setupSoloButton(juce::Rectangle<int>& topArea)
 void PerformanceSlotItem::setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight)
 {
     topArea.removeFromTop(5);
+    auto area = topArea.removeFromTop(labelHeight);
+
+    groupRoleLabel.setBorderSize(juce::BorderSize<int>(0));
+    groupLabel.setBorderSize(juce::BorderSize<int>(0));
+
+    groupRoleLabel.setFont(sharedFont.boldened());
     groupLabel.setFont(sharedFont);
-    groupLabel.setBounds(topArea.removeFromTop(labelHeight));
+
+    if (groupRoleLabel.isVisible())
+    {
+        int roleWidth = sharedFont.boldened().getStringWidth(groupRoleLabel.getText()) + 4;
+        groupRoleLabel.setBounds(area.removeFromLeft(roleWidth));
+    }
+
+    groupLabel.setBounds(area);
 }
 
 void PerformanceSlotItem::injectPanControl(juce::Rectangle<int>& area)

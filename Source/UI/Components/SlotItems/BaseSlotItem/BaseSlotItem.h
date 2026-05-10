@@ -30,6 +30,9 @@ protected:
     void setupBottomArea(juce::Rectangle<int>& area, int currentWidth);
     void setupFaderBounds(juce::Rectangle<int>& remainingArea);
 
+    void configBaseGroupLabels(std::function<int()> getGroupIdFunc);
+    void updateBaseGroupState(int grpId, bool applyFaderIndicator = false);
+
     int targetSlotWidth = -1; // -1 means unconstrained by default
 
     KaiCBFaderControlAudioProcessor& processor;
@@ -37,6 +40,7 @@ protected:
 
     juce::Font sharedFont;
 
+    juce::Label groupLabel;
     juce::Label nameLabel;
     juce::Label indexLabel;
     juce::Label valueLabel;

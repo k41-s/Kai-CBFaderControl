@@ -40,6 +40,7 @@ namespace UIButtonLabels
 
 namespace UIGroupLabelPrefixes
 {
+    static inline const juce::String vca = "VCA ";
     static inline const juce::String leader = "LDR ";
     static inline const juce::String group = "GRP ";
 }
@@ -85,6 +86,6 @@ namespace PluginConstants
     static constexpr int numVcas = 8;
     static constexpr int numGroups = 8;
     
-	static inline const int maxSlotNameLength = 7;
+	static inline const int maxSlotNameLength = 5;
 	static inline const int maxGroupNameLength = maxSlotNameLength; // for now unless they need to be different
 }

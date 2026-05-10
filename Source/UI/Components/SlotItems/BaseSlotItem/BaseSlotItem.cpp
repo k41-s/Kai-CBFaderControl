@@ -156,3 +156,56 @@ void BaseSlotItem::setTargetSlotWidth(int width)
         resized();
     }
 }
+
+void BaseSlotItem::configBaseGroupLabels(std::function<int()> getGroupIdFunc)
+{
+    addAndMakeVisible(groupLabel);
+    groupLabel.setJustificationType(juce::Justification::centred);
+
+    groupLabel.onTextChange = [this, getGroupIdFunc]()
+    {
+        int grpId = getGroupIdFunc();
+        if (grpId > 0) 
+        {
+            SlotStateHelpers::setVcaName(processor.apvts.state, grpId, groupLabel.getText());
+        }
+    };
+}
+
+void BaseSlotItem::updateBaseGroupState(int grpId, bool applyFaderIndicator)
+{
+    if (grpId > 0)
+    {
+        int colourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, grpId);
+        juce::Colour groupColour = GroupColours::palette[colourIdx];
+
+        groupLabel.setColour(juce::Label::textColourId, groupColour);
+        
+        if (applyFaderIndicator)
+            volumeFader.getProperties().set(UIProperties::indicatorColour, groupColour.toString());
+
+        juce::String customVcaName = SlotStateHelpers::getVcaName(processor.apvts.state, grpId);
+
+        if (customVcaName.isNotEmpty())
+        {
+            groupLabel.setText(customVcaName, juce::dontSendNotification);
+        }
+        else
+        {
+            groupLabel.setText(UIGroupLabelPrefixes::group + juce::String(grpId), juce::dontSendNotification);
+        }
+
+        groupLabel.setEditable(false, true, false);
+    }
+    else
+    {
+        groupLabel.setText("", juce::dontSendNotification);
+        groupLabel.setEditable(false, false, false);
+        
+        if (applyFaderIndicator)
+            volumeFader.getProperties().remove(UIProperties::indicatorColour);
+    }
+
+    volumeFader.repaint();
+    groupLabel.setVisible(true);
+}
