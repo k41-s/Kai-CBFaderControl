@@ -199,14 +199,16 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
     {
         updateNameFromValueTree();
     }
-    else if (propName.startsWith("isStereo") || propName.startsWith("linkedSlotId")) 
+    else if (propName.startsWith(SlotIdStringPrefixes::isStereoLinked) ||
+        propName.startsWith(SlotIdStringPrefixes::isStereoMain) ||
+        propName.startsWith(SlotIdStringPrefixes::linkedSlotId))
     {
         updateStereoState();
     }
-    else if (propName.startsWith("groupId") // still need to extract these strings into variables
-        || propName.startsWith("groupRole") 
-        || propName.startsWith("groupColour")
-        || propName.startsWith("vcaName")
+    else if (propName.startsWith(SlotIdStringPrefixes::groupId) ||
+        propName.startsWith(SlotIdStringPrefixes::groupRole) ||
+        propName.startsWith(SlotIdStringPrefixes::groupColour) ||
+        propName.startsWith(SlotIdStringPrefixes::vcaName)
     ) {
         updateGroupState();
     }
