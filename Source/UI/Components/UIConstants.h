@@ -84,4 +84,7 @@ namespace PluginConstants
     static constexpr int numSlots = 32;
     static constexpr int numVcas = 8;
     static constexpr int numGroups = 8;
+    
+	static inline const int maxSlotNameLength = 7;
+	static inline const int maxGroupNameLength = maxSlotNameLength; // for now unless they need to be different
 }

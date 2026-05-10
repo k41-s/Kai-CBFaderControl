@@ -1,4 +1,6 @@
 #include "BaseSlotItem.h"
+#include "../../../../Main/SlotIDs.h"
+#include "../../../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../../../../Utils/UIUtils/UIUtils.h"
 #include "../../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
 
@@ -27,6 +29,17 @@ void BaseSlotItem::configBaseValueLabel()
 {
     UIUtils::setupValueBoxLabel(*this, valueLabel, juce::Justification::centredRight);
     UIUtils::setupValueBoxLabel(*this, unitLabel, juce::Justification::centredLeft, "dB");
+
+    valueLabel.setEditable(false, true, false);
+
+    valueLabel.onTextChange = [this]()
+        {
+            float newValue = valueLabel.getText().getFloatValue();
+
+            newValue = juce::jlimit(-96.0f, 22.0f, newValue);
+
+            SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(index), newValue);
+        };
 }
 
 void BaseSlotItem::preSeedSlider(juce::RangedAudioParameter* param)

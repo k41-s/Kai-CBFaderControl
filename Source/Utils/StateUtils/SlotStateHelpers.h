@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "../../Main/SlotIDs.h"
+#include "../../UI/Components/UIConstants.h"
 
 namespace SlotStateHelpers
 {
@@ -147,10 +148,13 @@ namespace SlotStateHelpers
 
     static inline void setSlotCustomName(juce::ValueTree& state, int slotIdx, const juce::String& name, juce::UndoManager* undoManager = nullptr)
     {
-        if (name.isEmpty())
+		juce::String usableName = (name.length() > PluginConstants::maxSlotNameLength) 
+            ? name.substring(0, PluginConstants::maxSlotNameLength) : name;
+
+        if (usableName.isEmpty())
             removeProp(state, SlotIDs::slotName(slotIdx), undoManager);
         else
-            setStringProp(state, SlotIDs::slotName(slotIdx), name, undoManager);
+            setStringProp(state, SlotIDs::slotName(slotIdx), usableName, undoManager);
     }
 
     static inline void setGroupColour(juce::ValueTree& state, int grpId, int colourIdx, juce::UndoManager* undoManager = nullptr)
@@ -160,10 +164,13 @@ namespace SlotStateHelpers
 
     static inline void setVcaName(juce::ValueTree& state, int vcaIdx, const juce::String& name, juce::UndoManager* undoManager = nullptr)
     {
-        if (name.isEmpty())
+        juce::String usableName = (name.length() > PluginConstants::maxGroupNameLength)
+            ? name.substring(0, PluginConstants::maxGroupNameLength) : name;
+
+        if (usableName.isEmpty())
             removeProp(state, SlotIDs::vcaName(vcaIdx), undoManager);
         else
-            setStringProp(state, SlotIDs::vcaName(vcaIdx), name, undoManager);
+            setStringProp(state, SlotIDs::vcaName(vcaIdx), usableName, undoManager);
     }
 
     static inline void setTargetIP(juce::ValueTree& state, const juce::String& ip, juce::UndoManager* undoManager = nullptr)

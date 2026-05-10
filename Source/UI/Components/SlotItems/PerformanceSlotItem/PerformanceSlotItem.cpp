@@ -79,12 +79,28 @@ void PerformanceSlotItem::configNameLabel()
 
     auto name = SlotStateHelpers::getSlotCustomName(processor.apvts.state, index);
     nameLabel.setText(name, juce::dontSendNotification);
+
+    nameLabel.setEditable(false, true, false);
+
+    nameLabel.onTextChange = [this]()
+    {
+        SlotStateHelpers::setSlotCustomName(processor.apvts.state, index, nameLabel.getText());
+    };
 }
 
 void PerformanceSlotItem::configGroupLabel()
 {
     addAndMakeVisible(groupLabel);
     groupLabel.setJustificationType(juce::Justification::centred);
+
+    groupLabel.onTextChange = [this]()
+    {
+        int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, index);
+        if (grpId > 0) 
+        {
+            SlotStateHelpers::setVcaName(processor.apvts.state, grpId, groupLabel.getText());
+        }
+    };
 }
 
 void PerformanceSlotItem::configAttachments(int slotIndex)
@@ -140,10 +156,12 @@ void PerformanceSlotItem::updateGroupState()
     if (grpId > 0) 
     {
         setupSlotForGroup(role, grpId);
+		groupLabel.setEditable(false, true, false);
     }
     else 
     {
         groupLabel.setText("", juce::dontSendNotification);
+		groupLabel.setEditable(false, false, false);
         volumeFader.getProperties().remove(UIProperties::indicatorColour);
     }
 	volumeFader.repaint();
@@ -159,12 +177,21 @@ void PerformanceSlotItem::setupSlotForGroup(int role, int grpId)
 
 void PerformanceSlotItem::setGroupedSlotLabel(int role, int grpId)
 {
-    juce::String labelText = (role == 1)
-        ? UIGroupLabelPrefixes::leader
-        : UIGroupLabelPrefixes::group;
+    juce::String customVcaName = SlotStateHelpers::getVcaName(processor.apvts.state, grpId);
 
-    labelText += juce::String(grpId);
-    groupLabel.setText(labelText, juce::dontSendNotification);
+    if (customVcaName.isNotEmpty())
+    {
+        groupLabel.setText(customVcaName, juce::dontSendNotification); // Maybe still add indicator of grp role
+    }
+    else
+    {
+        juce::String labelText = (role == 1)
+            ? UIGroupLabelPrefixes::leader
+            : UIGroupLabelPrefixes::group;
+
+        labelText += juce::String(grpId);
+        groupLabel.setText(labelText, juce::dontSendNotification);
+    }
 }
 
 void PerformanceSlotItem::setGroupedSlotColour(int grpId)
@@ -209,9 +236,10 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
     {
         updateStereoState();
     }
-    else if (propName.startsWith("groupId") 
+    else if (propName.startsWith("groupId") // still need to extract these strings into variables
         || propName.startsWith("groupRole") 
         || propName.startsWith("groupColour")
+        || propName.startsWith("vcaName")
     ) {
         updateGroupState();
     }
@@ -374,11 +402,10 @@ void PerformanceSlotItem::setupNameLabel(juce::Rectangle<int>& topArea, int curr
 
 void PerformanceSlotItem::showNameLabelIfNeeded(int currentWidth)
 {
-    bool hasCustomName = nameLabel.getText().isNotEmpty();
     int textWidth = sharedFont.getStringWidth(nameLabel.getText());
     bool fits = currentWidth >= textWidth;
 
-    nameLabel.setVisible(hasCustomName && fits);
+    nameLabel.setVisible(fits);
 }
 
 void PerformanceSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
