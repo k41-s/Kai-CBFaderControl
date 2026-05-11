@@ -111,8 +111,8 @@ void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
 
     if (showSetupPage)
     {
-        int safeMinWidth = juce::jmin(WindowSizeValues::minWidth, trueMaxWidth);
-        int safeMinHeight = juce::jmin(WindowSizeValues::minHeight, trueMaxHeight);
+        int safeMinWidth = juce::jmin(WindowSizeValues::setupMinWidth, trueMaxWidth);
+        int safeMinHeight = juce::jmin(WindowSizeValues::setupMinHeight, trueMaxHeight);
 
         setResizeLimits(
             safeMinWidth,
@@ -144,8 +144,8 @@ void KaiCBFaderControlAudioProcessorEditor::updateWindowSize(int width, int heig
     int trueMaxWidth = maxSize.x;
     int trueMaxHeight = maxSize.y;
 
-    int currentMinWidth = showSetupPage ? WindowSizeValues::minWidth : performanceView.getMinWidth();
-    int currentMinHeight = showSetupPage ? WindowSizeValues::minHeight : WindowSizeValues::perfMinHeight;
+    int currentMinWidth = showSetupPage ? WindowSizeValues::setupMinWidth : performanceView.getMinWidth();
+    int currentMinHeight = showSetupPage ? WindowSizeValues::setupMinHeight : WindowSizeValues::perfMinHeight;
 
     currentMinWidth = juce::jmin(currentMinWidth, trueMaxWidth);
     currentMinHeight = juce::jmin(currentMinHeight, trueMaxHeight);
