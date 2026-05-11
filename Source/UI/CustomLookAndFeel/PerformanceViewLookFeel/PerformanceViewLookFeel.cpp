@@ -1,6 +1,7 @@
 #include "PerformanceViewLookFeel.h"
 #include "../MyColours.h"
 #include "../../Components/UIConstants.h"
+#include "../../../Utils/UIUtils/UIUtils.h"
 
 PerformanceViewLookFeel::PerformanceViewLookFeel()
 {
@@ -393,20 +394,7 @@ void PerformanceViewLookFeel::drawPanTicks(juce::Graphics& g, float radius, floa
 
 void PerformanceViewLookFeel::drawPanValueText(juce::Graphics& g, float sliderPos, juce::Rectangle<float>& textArea)
 {
-	juce::String panText;
-
-	if (std::abs(sliderPos - 0.5f) < 0.01f)
-		panText = "C";
-	else
-	{
-		int pct = juce::roundToInt(std::abs(sliderPos - 0.5f) * 200.0f);
-		juce::String side = sliderPos < 0.5f ? "L" : "R";
-
-		if (pct == 100)
-			panText = side;
-		else
-			panText = side + juce::String(pct);
-	}
+	juce::String panText = UIUtils::getPanValueText(sliderPos);
 
 	float fontSize = juce::jlimit(
 		UISizeConstants::panTextMinFont, 
