@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "../../Main/SlotIDs.h"
 #include "../../UI/Components/UIConstants.h"
+#include "../Enums/GroupRole.h"
 
 namespace SlotStateHelpers
 {
@@ -52,14 +53,19 @@ namespace SlotStateHelpers
     // SEMANTIC DOMAIN GETTERS (Slot Logic)
     // =========================================================================
 
+    static inline bool isValidGroup(int grpId)
+    {
+        return grpId > 0;
+    }
+
     static inline int getGroupId(const juce::ValueTree& state, int slotIdx)
     {
         return getIntProp(state, SlotIDs::groupId(slotIdx), 0);
     }
 
-    static inline int getGroupRole(const juce::ValueTree& state, int slotIdx)
+    static inline GroupRole getGroupRole(const juce::ValueTree& state, int slotIdx)
     {
-        return getIntProp(state, SlotIDs::groupRole(slotIdx), 0);
+        return static_cast<GroupRole>(getIntProp(state, SlotIDs::groupRole(slotIdx), 0));
     }
 
     static inline bool isSlotInGroup(const juce::ValueTree& state, int slotIdx)
@@ -69,7 +75,7 @@ namespace SlotStateHelpers
 
     static inline bool isGroupLeader(const juce::ValueTree& state, int slotIdx)
     {
-        return isSlotInGroup(state, slotIdx) && getGroupRole(state, slotIdx) == 1;
+        return isSlotInGroup(state, slotIdx) && getGroupRole(state, slotIdx) == GroupRole::Leader;
     }
 
     static inline bool isStereoLinked(const juce::ValueTree& state, int slotIdx)
@@ -126,9 +132,9 @@ namespace SlotStateHelpers
         setIntProp(state, SlotIDs::groupId(slotIdx), groupId, undoManager);
     }
 
-    static inline void setGroupRole(juce::ValueTree& state, int slotIdx, int role, juce::UndoManager* undoManager = nullptr)
+    static inline void setGroupRole(juce::ValueTree& state, int slotIdx, GroupRole role, juce::UndoManager* undoManager = nullptr)
     {
-        setIntProp(state, SlotIDs::groupRole(slotIdx), role, undoManager);
+        setIntProp(state, SlotIDs::groupRole(slotIdx), static_cast<int>(role), undoManager);
     }
 
     static inline void setStereoLinked(juce::ValueTree& state, int slotIdx, bool isLinked, juce::UndoManager* undoManager = nullptr)

@@ -164,9 +164,9 @@ void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
         if (i == slotIdx) continue;
 
         int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
-        int otherRoleId = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
+        GroupRole otherRoleId = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
 
-        if (otherGrpId == grpId && otherRoleId == 0)
+        if (otherGrpId == grpId && otherRoleId == GroupRole::Member)
         {
 			applyVolumeDeltaToSlot(i, delta);
         }
@@ -193,9 +193,9 @@ void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
         if (i == slotIdx) continue;
 
         int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
-        int otherRoleId = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
+        GroupRole otherRoleId = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
 
-        if (otherGrpId == grpId && otherRoleId == 0) 
+        if (otherGrpId == grpId && otherRoleId == GroupRole::Member)
         {
             SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(i), newValue);
         }

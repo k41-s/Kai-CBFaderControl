@@ -330,7 +330,7 @@ void KaiCBFaderControlAudioProcessor::clearSlotRouting(int slotIdx)
 void KaiCBFaderControlAudioProcessor::removeFromGroup(juce::ValueTree& state, int slotIdx)
 {
     SlotStateHelpers::setGroupId(state, slotIdx, 0);
-    SlotStateHelpers::setGroupRole(state, slotIdx, 0);
+    SlotStateHelpers::setGroupRole(state, slotIdx, GroupRole::Member);
 }
 
 void KaiCBFaderControlAudioProcessor::removeFromStereoPair(juce::ValueTree& state, int slotIdx)

@@ -339,7 +339,7 @@ void PerformanceView::setupGroupMenu(const juce::Array<int>& selectedArr, juce::
 	int slotIdx = selectedArr[0];
 	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
 	
-	if (grpId > 0)
+	if (SlotStateHelpers::isValidGroup(grpId))
 		groupMenu.addItem(RemoveGroup, "Remove from Group");
 }
 
@@ -347,9 +347,9 @@ void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selected
 {
 	int slotIdx = selectedArr[0];
 	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
-	int role = SlotStateHelpers::getGroupRole(processor.apvts.state, slotIdx);
+	GroupRole role = SlotStateHelpers::getGroupRole(processor.apvts.state, slotIdx);
 
-	if (grpId > 0)
+	if (SlotStateHelpers::isValidGroup(grpId))
 	{
 		menu.addSeparator();
 		addGroupMemberItems(role, menu);
@@ -358,11 +358,11 @@ void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selected
 	}
 }
 
-void PerformanceView::addGroupMemberItems(int role, juce::PopupMenu& menu)
+void PerformanceView::addGroupMemberItems(GroupRole role, juce::PopupMenu& menu)
 {
-	if (role == 0)
+	if (role == GroupRole::Member)
 		menu.addItem(PromoteLeader, "Promote to Group Leader");
-	else if (role == 1)
+	else if (role == GroupRole::Leader)
 		menu.addItem(DemoteMember, "Demote to Standard Member");
 }
 
@@ -436,7 +436,7 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 			break;
 
 		case RemoveGroup:
-			for (int idx : activeSlots) setSlotStandardGroup(idx, 0, 0);
+			for (int idx : activeSlots) setSlotStandardGroup(idx, 0, GroupRole::Member);
 			break;
 
 		case PromoteLeader:
@@ -481,7 +481,7 @@ void PerformanceView::handleGroupAssignment(int result, const juce::Array<int>& 
 {
 	int groupId = result - AssignGroupBase;
 	for (int idx : selectedArr)
-		setSlotStandardGroup(idx, groupId, 0);
+		setSlotStandardGroup(idx, groupId, GroupRole::Member);
 }
 
 void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr, int result)
@@ -491,7 +491,7 @@ void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr
 		int colourIdx = result - AssignColourBase;
 		int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, selectedArr[0]);
 
-		if (grpId > 0)
+		if (SlotStateHelpers::isValidGroup(grpId))
 			SlotStateHelpers::setGroupColour(processor.apvts.state, grpId, colourIdx);
 	}
 }
@@ -529,7 +529,7 @@ void PerformanceView::setSubSlotProperties(juce::ValueTree& state, int subIdx, i
 	SlotStateHelpers::setLinkedSlotId(state, subIdx, mainIdx);
 
 	SlotStateHelpers::setGroupId(state, subIdx, 0);
-	SlotStateHelpers::setGroupRole(state, subIdx, 0);
+	SlotStateHelpers::setGroupRole(state, subIdx, GroupRole::Member);
 }
 
 void PerformanceView::doStereoUnlink(int slotIdx)
@@ -557,7 +557,7 @@ void PerformanceView::promoteToGroupLeader(int slotIdx)
 	if (grpId == 0) return;
 
 	demoteExistingGroupLeaders(grpId);
-	setSlotStandardGroup(slotIdx, grpId, 1);
+	setSlotStandardGroup(slotIdx, grpId, GroupRole::Leader);
 }
 
 void PerformanceView::demoteExistingGroupLeaders(int grpId)
@@ -565,16 +565,16 @@ void PerformanceView::demoteExistingGroupLeaders(int grpId)
 	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
 		int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
-		int otherRole = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
+		GroupRole otherRole = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
 
-		if (otherGrpId == grpId && otherRole == 1) 
+		if (otherGrpId == grpId && otherRole == GroupRole::Leader)
 		{
-			setSlotStandardGroup(i, grpId, 0);
+			setSlotStandardGroup(i, grpId, GroupRole::Member);
 		}
 	}
 }
 
-void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, int role)
+void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, GroupRole role)
 {
 	auto& state = processor.apvts.state;
 	SlotStateHelpers::setGroupId(state, slotIdx, groupId);
@@ -584,7 +584,7 @@ void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, int role)
 void PerformanceView::demoteToStandardMember(int slotIdx)
 {
 	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
-	setSlotStandardGroup(slotIdx, grpId, 0);
+	setSlotStandardGroup(slotIdx, grpId, GroupRole::Member);
 }
 
 void PerformanceView::toggleVcaMaster(int slotIdx)

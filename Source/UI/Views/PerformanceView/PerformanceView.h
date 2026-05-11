@@ -5,6 +5,7 @@
 #include "../../Components/SlotItems/VcaSlotItem/VcaSlotItem.h"
 #include "../../../Main/PluginProcessor/PluginProcessor.h"
 #include "../../../Utils/BinaryImageComponent/BinaryImageComponent.h"
+#include "../../../Utils/Enums/GroupRole.h"
 
 class PerformanceView : 
 	public juce::Component,
@@ -85,7 +86,7 @@ private:
 
 	void addSingleSlotGroupOptions(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 
-	void addGroupMemberItems(int role, juce::PopupMenu& menu);
+	void addGroupMemberItems(GroupRole role, juce::PopupMenu& menu);
 	void addVcaMenuItem(juce::PopupMenu& menu, int grpId) const;
 
 	void setupAndAddColourMenu(juce::PopupMenu& menu, int grpId);
@@ -110,7 +111,7 @@ private:
 	void unlinkSlot(juce::ValueTree& state, int idx);
 
 	// Grouping functions
-	void setSlotStandardGroup(int slotIdx, int groupId, int role);
+	void setSlotStandardGroup(int slotIdx, int groupId, GroupRole role);
 	void promoteToGroupLeader(int slotIdx);
 	void demoteExistingGroupLeaders(int grpId);
 	void demoteToStandardMember(int slotIdx);

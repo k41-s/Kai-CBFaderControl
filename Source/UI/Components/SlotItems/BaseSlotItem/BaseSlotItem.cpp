@@ -174,7 +174,7 @@ void BaseSlotItem::configBaseGroupLabels(std::function<int()> getGroupIdFunc)
 
 void BaseSlotItem::updateBaseGroupState(int grpId, bool applyFaderIndicator)
 {
-    if (grpId > 0)
+    if (SlotStateHelpers::isValidGroup(grpId))
     {
         int colourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, grpId);
         juce::Colour groupColour = GroupColours::palette[colourIdx];

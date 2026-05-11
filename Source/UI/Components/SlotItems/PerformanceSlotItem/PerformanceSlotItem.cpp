@@ -147,17 +147,17 @@ void PerformanceSlotItem::updateStereoState()
 void PerformanceSlotItem::updateGroupState()
 {
     int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, index);
-    int role = SlotStateHelpers::getGroupRole(processor.apvts.state, index);
+    GroupRole role = SlotStateHelpers::getGroupRole(processor.apvts.state, index);
 
     updateBaseGroupState(grpId, true);
 
-    if (grpId > 0)
+    if (SlotStateHelpers::isValidGroup(grpId))
     {
         int colourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, grpId);
         juce::Colour groupColour = GroupColours::palette[colourIdx];
 
         groupRoleLabel.setColour(juce::Label::textColourId, groupColour);
-        groupRoleLabel.setText(role == 1 ? "L" : "S", juce::dontSendNotification);
+        groupRoleLabel.setText(role == GroupRole::Leader ? "L" : "S", juce::dontSendNotification);
         groupRoleLabel.setVisible(true);
     }
     else
