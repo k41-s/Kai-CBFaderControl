@@ -307,7 +307,7 @@ void SetupPageView::setupLeftPanel(juce::Rectangle<int>& area)
 
 void SetupPageView::placeIpComponents(juce::Rectangle<int>& area)
 {
-	localIpLabel.setBounds(area.removeFromTop(30));
+	localIpLabel.setBounds(area.removeFromTop(UISizeConstants::setupLabelHeight));
 	setLabelEditorPairBounds(area, targetIpLabel, targetIpEditor);
 }
 
@@ -322,40 +322,40 @@ void SetupPageView::setLabelEditorPairBounds(
 	juce::Label& label,
 	juce::TextEditor& editor)
 {
-	area.removeFromTop(10);
-	label.setBounds(area.removeFromTop(30));
-	area.removeFromTop(5);
-	editor.setBounds(area.removeFromTop(40));
+	area.removeFromTop(UISizeConstants::setupSectionPadding);
+	label.setBounds(area.removeFromTop(UISizeConstants::setupLabelHeight));
+	area.removeFromTop(UISizeConstants::slotPadding);
+	editor.setBounds(area.removeFromTop(UISizeConstants::setupEditorHeight));
 }
 
 void SetupPageView::placeToggleAllBtn(juce::Rectangle<int>& area)
 {
-	area.removeFromTop(20);
-	toggleAllButton.setBounds(area.removeFromTop(30).reduced(2));
+	area.removeFromTop(UISizeConstants::setupSectionPadding * 2);
+	toggleAllButton.setBounds(area.removeFromTop(UISizeConstants::setupLabelHeight).reduced(2));
 }
 
 void SetupPageView::placeStatusComponents(juce::Rectangle<int>& area)
 {
-	area.removeFromTop(10);
+	area.removeFromTop(UISizeConstants::setupSectionPadding);
 	setStatusBounds(area);
 }
 
 void SetupPageView::setStatusBounds(juce::Rectangle<int>& area)
 {
-	auto statusRow = area.removeFromTop(30);
+	auto statusRow = area.removeFromTop(UISizeConstants::setupSectionPadding * 3);
 	statusLabel.setBounds(statusRow.removeFromLeft(100));
-	statusLED.setBounds(statusRow.removeFromLeft(30).reduced(5));
+	statusLED.setBounds(statusRow.removeFromLeft(UISizeConstants::setupLabelHeight).reduced(5));
 }
 
 void SetupPageView::placeNavigateBtn(juce::Rectangle<int>& area)
 {
-	area.removeFromTop(20);
-	navigateBtn.setBounds(area.removeFromTop(40).reduced(2));
+	area.removeFromTop(UISizeConstants::setupSectionPadding * 2);
+	navigateBtn.setBounds(area.removeFromTop(UISizeConstants::setupEditorHeight).reduced(2));
 }
 
 void SetupPageView::placeImages(juce::Rectangle<int>& area)
 {
-	footerArea = area.removeFromBottom(50).reduced(5);
+	footerArea = area.removeFromBottom(UISizeConstants::setupSectionPadding * 5).reduced(5);
 	auto areaToUse = footerArea;
 	placeCBLogo(areaToUse);
 	placeXPatchImg(areaToUse);

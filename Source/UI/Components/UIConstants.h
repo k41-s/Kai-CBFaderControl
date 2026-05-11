@@ -22,12 +22,56 @@ namespace WindowSizeValues
     static inline const int maxHeight = 1200;
 }
 
+namespace UILayoutPercentages
+{
+    static constexpr float panHeightPct = 0.10f;
+    static constexpr float faderCapWidthPct = 0.70f;
+    static constexpr float faderCapMaxHeightPct = 0.15f;
+    static constexpr float faderTrackWidthPct = 0.12f;
+
+    static constexpr float tickAreaWidthPct = 0.30f;
+    static constexpr float rotaryTickAreaWidthPct = 0.35f;
+
+    static constexpr float knobDiameterPct = 0.95f;
+    static constexpr float knobInnerRadiusPct = 0.82f;
+    static constexpr float knobPointerLengthPct = 0.65f;
+}
+
 namespace UISizeConstants
 {
+    // --- FONT LIMITS ---
 	static inline const float minFontSize = 9.0f;
 	static inline const float standardFontSize = 12.0f;
 	static inline const float maxFontSize = 15.0f;
 	static inline const float fontSizeWidthRatio = 0.23f;
+
+    static constexpr float faderScaleMinFont = 8.5f;
+    static constexpr float faderScaleMaxFont = 13.0f;
+    static constexpr float panTextMinFont = 7.0f;
+    static constexpr float panTextMaxFont = 9.5f;
+    static constexpr float popupMenuFont = 14.0f;
+    static constexpr float btnTextMaxFont = 14.0f;
+
+    // --- LAYOUT PIXELS ---
+    static constexpr int slotPadding = 5;
+    static constexpr int slotBottomAreaHeight = 25;
+    static constexpr int slotBtnHeight = 30;
+    static constexpr int minPanHeight = 35;
+
+    static constexpr int setupLabelHeight = 30;
+    static constexpr int setupEditorHeight = 40;
+    static constexpr int setupSectionPadding = 10;
+
+    // LookAndFeel Constraints
+    static constexpr float faderCapMinWidth = 13.0f;
+    static constexpr float faderCapMaxWidth = 24.0f;
+    static constexpr float faderCapMinHeight = 16.0f;
+    static constexpr float faderTrackMinWidth = 2.0f;
+    static constexpr float faderTrackMaxWidth = 6.0f;
+    static constexpr float tickAreaMinWidth = 16.0f;
+    static constexpr float tickAreaMaxWidth = 30.0f;
+    static constexpr float knobMinDiameter = 24.0f;
+    static constexpr float knobMaxDiameter = 36.0f;
 }
 
 namespace UIButtonLabels
@@ -58,6 +102,7 @@ namespace UIStringConstants
 	static inline const juce::String inf = "-inf";
     static inline const juce::String unitDb = "dB";
     static inline const juce::String maxWidthValueStr = "-88.8 ";
+    static inline const juce::String infSymbol = juce::String::charToString(0x221E);
 }
 
 namespace SlotSizeValues

@@ -144,9 +144,9 @@ void VcaSlotItem::setupSlotBounds()
 void VcaSlotItem::setupTopArea(juce::Rectangle<int>& area)
 {
     juce::Font maxFont(UISizeConstants::maxFontSize);
-    int labelHeight = maxFont.getHeight() + 5;
+    int labelHeight = maxFont.getHeight() + UISizeConstants::slotPadding;
 
-    int topAreaHeight = (labelHeight + 5) * 3 + (30 + 5) * 2;
+    int topAreaHeight = (labelHeight + UISizeConstants::slotPadding) * 3 + (UISizeConstants::slotBtnHeight + UISizeConstants::slotPadding) * 2;
     auto topArea = area.removeFromTop(topAreaHeight);
 
     setupIndexLabel(topArea, labelHeight);
@@ -155,20 +155,20 @@ void VcaSlotItem::setupTopArea(juce::Rectangle<int>& area)
     setupExpandButton(topArea);
 
     // Allocate blank space matching where groupLabel sits in regular slots
-    topArea.removeFromTop(5);
+    topArea.removeFromTop(UISizeConstants::slotPadding);
     topArea.removeFromTop(labelHeight);
 }
 
 void VcaSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight)
 {
-    topArea.removeFromTop(5);
+    topArea.removeFromTop(UISizeConstants::slotPadding);
     indexLabel.setFont(sharedFont);
     indexLabel.setBounds(topArea.removeFromTop(labelHeight));
 }
 
 void VcaSlotItem::setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight)
 {
-    topArea.removeFromTop(5);
+    topArea.removeFromTop(UISizeConstants::slotPadding);
 
     groupLabel.setBorderSize(juce::BorderSize<int>(0));
 
@@ -178,14 +178,14 @@ void VcaSlotItem::setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight
 
 void VcaSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
 {
-    topArea.removeFromTop(5);
-    auto muteArea = topArea.removeFromTop(30).reduced(2);
+    topArea.removeFromTop(UISizeConstants::slotPadding);
+    auto muteArea = topArea.removeFromTop(UISizeConstants::slotBtnHeight).reduced(2);
     LayoutUtils::setCenteredMaxWidthBounds(muteButton, muteArea, SlotSizeValues::targetBtnWidth);
 }
 
 void VcaSlotItem::setupExpandButton(juce::Rectangle<int>& topArea)
 {
-    topArea.removeFromTop(5);
-    auto expandArea = topArea.removeFromTop(30).reduced(2);
+    topArea.removeFromTop(UISizeConstants::slotPadding);
+    auto expandArea = topArea.removeFromTop(UISizeConstants::slotBtnHeight).reduced(2);
     LayoutUtils::setCenteredMaxWidthBounds(expandButton, expandArea, SlotSizeValues::targetBtnWidth);
 }

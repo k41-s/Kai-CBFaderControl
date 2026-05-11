@@ -81,7 +81,7 @@ void BaseSlotItem::updateValueLabel()
 
 void BaseSlotItem::setupBottomArea(juce::Rectangle<int>& area, int currentWidth)
 {
-    auto bottomArea = area.removeFromBottom(25);
+    auto bottomArea = area.removeFromBottom(UISizeConstants::slotBottomAreaHeight);
     valueLabel.setFont(sharedFont);
     unitLabel.setFont(sharedFont);
 

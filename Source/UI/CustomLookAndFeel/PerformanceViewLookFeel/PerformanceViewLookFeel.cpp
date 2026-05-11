@@ -22,7 +22,10 @@ void PerformanceViewLookFeel::drawFader(int x, int y, int width, int height, juc
 {
 	auto area = juce::Rectangle<float>(x, y, width, height);
 
-	float tickAreaWidth = juce::jlimit(16.0f, 30.0f, area.getWidth() * 0.3f);
+	float tickAreaWidth = juce::jlimit(
+		UISizeConstants::tickAreaMinWidth, 
+		UISizeConstants::tickAreaMaxWidth, 
+		area.getWidth() * UILayoutPercentages::tickAreaWidthPct);
 	auto tickArea = area.removeFromLeft(tickAreaWidth);
 
 	area.removeFromLeft(2.0f);
@@ -45,7 +48,10 @@ void PerformanceViewLookFeel::drawFaderScale(juce::Graphics& g, juce::Slider& sl
 
 	std::vector<double> tickValues = { 20.0, 10.0, 5.0, 0.0, -5.0, -10.0, -20.0, -30.0, -40.0, -50.0, -75.0, inf };
 
-	float fontSize = juce::jlimit(8.5f, 13.0f, tickArea.getWidth() * 0.5f);
+	float fontSize = juce::jlimit(
+		UISizeConstants::faderScaleMinFont, 
+		UISizeConstants::faderScaleMaxFont, 
+		tickArea.getWidth() * 0.5f);
 	g.setFont(juce::Font(fontSize));
 
 	drawTickValues(tickValues, slider, tickArea, g);
@@ -80,7 +86,7 @@ void PerformanceViewLookFeel::drawTickText(bool isZero, bool isInf, double val, 
 {
 	juce::String text;
 	if (isZero) text = "0";
-	else if (isInf) text = juce::String::charToString(0x221E); // inf symbol hex
+	else if (isInf) text = UIStringConstants::infSymbol;
 	else text = juce::String((int)val);
 
 	auto textBounds = juce::Rectangle<float>(tickArea.getX(), y - 5.0f, tickArea.getWidth() - lineLength - 2.0f, 10.0f);
@@ -91,17 +97,23 @@ void PerformanceViewLookFeel::drawTickText(bool isZero, bool isInf, double val, 
 
 void PerformanceViewLookFeel::drawFaderTrack(juce::Graphics& g, juce::Slider& slider, juce::Rectangle<float>& area)
 {
-	float trackWidth = juce::jlimit(2.0f, 6.0f, area.getWidth() * 0.12f);
+	float trackWidth = juce::jlimit(
+		UISizeConstants::faderTrackMinWidth,
+		UISizeConstants::faderTrackMaxWidth, 
+		area.getWidth() * UILayoutPercentages::faderTrackWidthPct);
 	g.setColour(slider.findColour(juce::Slider::trackColourId));
 	g.fillRoundedRectangle(area.withSizeKeepingCentre(trackWidth, area.getHeight()), trackWidth * 0.5f);
 }
 
 juce::Rectangle<float> PerformanceViewLookFeel::getFaderCapBounds(juce::Rectangle<float>& area, float sliderPos)
 {
-	float capWidth = juce::jlimit(13.0f, 24.0f, area.getWidth() * 0.7f);
+	float capWidth = juce::jlimit(
+		UISizeConstants::faderCapMinWidth, 
+		UISizeConstants::faderCapMaxWidth, 
+		area.getWidth() * UILayoutPercentages::faderCapWidthPct);
 	float targetCapHeight = capWidth * 2.0f;
-	float maxAllowedHeight = area.getHeight() * 0.15f;
-	float capHeight = juce::jmax(16.0f, juce::jmin(targetCapHeight, maxAllowedHeight));
+	float maxAllowedHeight = area.getHeight() * UILayoutPercentages::faderCapMaxHeightPct;
+	float capHeight = juce::jmax(UISizeConstants::faderCapMinHeight, juce::jmin(targetCapHeight, maxAllowedHeight));
 
 	return juce::Rectangle<float>(0, 0, capWidth, capHeight).withCentre({ area.getCentreX(), sliderPos });
 }
@@ -224,9 +236,10 @@ void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, 
 ) {
 	auto bounds = juce::Rectangle<float>(x, y, width, height).reduced(2.0f);
 
-	// Carve out the left side using the EXACT same math as the fader dB scale 
-	// -> make this in one function to reuse
-	float tickAreaWidth = juce::jlimit(16.0f, 30.0f, width * 0.35f);
+	float tickAreaWidth = juce::jlimit(
+		UISizeConstants::tickAreaMinWidth,
+		UISizeConstants::tickAreaMaxWidth, 
+		width * UILayoutPercentages::rotaryTickAreaWidthPct);
 	auto textArea = bounds.removeFromLeft(tickAreaWidth);
 	bounds.removeFromLeft(2.0f);
 
@@ -234,7 +247,10 @@ void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, 
 
 	auto outline = bounds.reduced(1.0f);
 
-	float maxDiameter = juce::jlimit(24.0f, 36.0f, outline.getWidth() * 0.95f);
+	float maxDiameter = juce::jlimit(
+		UISizeConstants::knobMinDiameter, 
+		UISizeConstants::knobMaxDiameter, 
+		outline.getWidth() * UILayoutPercentages::knobDiameterPct);
 	float diameter = juce::jmin(outline.getWidth(), outline.getHeight() * 0.95f, maxDiameter);
 
 	auto knobArea = outline.withSizeKeepingCentre(diameter, diameter);
@@ -262,7 +278,7 @@ void PerformanceViewLookFeel::drawKnobBackground(juce::Graphics& g, float centre
 
 	drawKnobGrip(g, centreX, centreY, radius);
 
-	float innerRadius = radius * 0.82f;
+	float innerRadius = radius * UILayoutPercentages::knobInnerRadiusPct;
 	juce::ColourGradient innerGradient(juce::Colour(0xFF282828), centreX, centreY - innerRadius,
 		juce::Colour(0xFF1A1A1A), centreX, centreY + innerRadius, false);
 	g.setGradientFill(innerGradient);
@@ -283,8 +299,8 @@ void PerformanceViewLookFeel::drawKnobGrip(juce::Graphics& g, float centreX, flo
 	for (int i = 0; i < numGrips; ++i)
 	{
 		float angle = juce::MathConstants<float>::twoPi * i / numGrips;
-		float startX = centreX + (radius * 0.82f) * std::cos(angle);
-		float startY = centreY + (radius * 0.82f) * std::sin(angle);
+		float startX = centreX + (radius * UILayoutPercentages::knobInnerRadiusPct) * std::cos(angle);
+		float startY = centreY + (radius * UILayoutPercentages::knobInnerRadiusPct) * std::sin(angle);
 		float endX = centreX + radius * std::cos(angle);
 		float endY = centreY + radius * std::sin(angle);
 
@@ -305,7 +321,7 @@ void PerformanceViewLookFeel::configAndDrawIndicatorPointer(float radius, float 
 
 void PerformanceViewLookFeel::configIndicatorPointer(float radius, juce::Path& p, float angle, float centreX, float centreY)
 {
-	auto pointerLength = radius * 0.65f;
+	auto pointerLength = radius * UILayoutPercentages::knobPointerLengthPct;
 	auto pointerThickness = 3.0f;
 	p.addRoundedRectangle(-pointerThickness * 0.5f, -radius * 0.78f, pointerThickness, pointerLength, 1.5f);
 	p.applyTransform(juce::AffineTransform::rotation(angle).translated(centreX, centreY));
@@ -392,7 +408,10 @@ void PerformanceViewLookFeel::drawPanValueText(juce::Graphics& g, float sliderPo
 			panText = side + juce::String(pct);
 	}
 
-	float fontSize = juce::jlimit(7.0f, 9.5f, textArea.getWidth() * 0.45f);
+	float fontSize = juce::jlimit(
+		UISizeConstants::panTextMinFont, 
+		UISizeConstants::panTextMaxFont, 
+		textArea.getWidth() * 0.45f);
 	g.setFont(juce::Font(fontSize, juce::Font::bold));
 
 	float boxHeight = fontSize + 4.0f;
@@ -510,7 +529,7 @@ void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton
 ) {
 	g.setColour(button.getToggleState() ? juce::Colours::black : juce::Colours::white);
 
-	float fontSize = juce::jmin(14.0f, button.getWidth() * 0.6f);
+	float fontSize = juce::jmin(UISizeConstants::btnTextMaxFont, button.getWidth() * 0.6f);
 	g.setFont(juce::Font(fontSize, juce::Font::bold));
 
 	auto textBounds = button.getLocalBounds().toFloat();
@@ -560,7 +579,7 @@ void PerformanceViewLookFeel::drawPopupMenuItem(juce::Graphics& g, const juce::R
 	}
 
 	g.setColour(isActive ? juce::Colours::white : juce::Colours::grey.withAlpha(0.5f));
-	g.setFont(juce::Font(14.0f));
+	g.setFont(juce::Font(UISizeConstants::popupMenuFont));
 
 	auto r = area.reduced(12, 0);
 	g.drawText(text, r, juce::Justification::centredLeft, true);
@@ -599,7 +618,7 @@ void PerformanceViewLookFeel::getIdealPopupMenuItemSize(const juce::String& text
 	}
 	else
 	{
-		juce::Font font(14.0f);
+		juce::Font font(UISizeConstants::popupMenuFont);
 		idealWidth = font.getStringWidth(text) + 40;
 		idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : 28;
 	}

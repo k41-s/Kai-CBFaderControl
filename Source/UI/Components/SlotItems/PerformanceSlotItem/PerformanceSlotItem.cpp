@@ -349,9 +349,9 @@ void PerformanceSlotItem::setupSlotBounds()
 void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWidth)
 {
     juce::Font maxFont(UISizeConstants::maxFontSize);
-    int labelHeight = maxFont.getHeight() + 5;
+    int labelHeight = maxFont.getHeight() + UISizeConstants::slotPadding;
 
-    int topAreaHeight = (labelHeight + 5) * 3 + (30 + 5) * 2;
+    int topAreaHeight = (labelHeight + UISizeConstants::slotPadding) * 3 + (UISizeConstants::slotBtnHeight + UISizeConstants::slotPadding) * 2;
     auto topArea = area.removeFromTop(topAreaHeight);
 
     setupIndexLabel(topArea, labelHeight);
@@ -363,14 +363,14 @@ void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWi
 
 void PerformanceSlotItem::setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight)
 {
-    topArea.removeFromTop(5);
+    topArea.removeFromTop(UISizeConstants::slotPadding);
     indexLabel.setFont(sharedFont);
     indexLabel.setBounds(topArea.removeFromTop(labelHeight));
 }
 
 void PerformanceSlotItem::setupNameLabel(juce::Rectangle<int>& topArea, int currentWidth, int labelHeight)
 {
-	topArea.removeFromTop(5);
+	topArea.removeFromTop(UISizeConstants::slotPadding);
     auto nameLabelBounds = topArea.removeFromTop(labelHeight);
 
     nameLabel.setBounds(nameLabelBounds);
@@ -388,23 +388,23 @@ void PerformanceSlotItem::showNameLabelIfNeeded(int currentWidth)
 
 void PerformanceSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
 {
-	topArea.removeFromTop(5);
-    auto btnArea = topArea.removeFromTop(30).reduced(2);
+	topArea.removeFromTop(UISizeConstants::slotPadding);
+    auto btnArea = topArea.removeFromTop(UISizeConstants::slotBtnHeight).reduced(2);
 
     LayoutUtils::setCenteredMaxWidthBounds(muteButton, btnArea, SlotSizeValues::targetBtnWidth);
 }
 
 void PerformanceSlotItem::setupSoloButton(juce::Rectangle<int>& topArea)
 {
-	topArea.removeFromTop(5);
-    auto btnArea = topArea.removeFromTop(30).reduced(2);
+	topArea.removeFromTop(UISizeConstants::slotPadding);
+    auto btnArea = topArea.removeFromTop(UISizeConstants::slotBtnHeight).reduced(2);
 
     LayoutUtils::setCenteredMaxWidthBounds(soloButton, btnArea, SlotSizeValues::targetBtnWidth);
 }
 
 void PerformanceSlotItem::setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight)
 {
-    topArea.removeFromTop(5);
+    topArea.removeFromTop(UISizeConstants::slotPadding);
     auto area = topArea.removeFromTop(labelHeight);
 
     groupRoleLabel.setBorderSize(juce::BorderSize<int>(0));
@@ -426,7 +426,8 @@ void PerformanceSlotItem::injectPanControl(juce::Rectangle<int>& area)
 {
     if (isStereoMain) 
     {
-        int panHeight = juce::jmax(35, (int)(getLocalBounds().getHeight() * 0.10f));
+        int panHeight = juce::jmax(UISizeConstants::minPanHeight, 
+            (int)(getLocalBounds().getHeight() * UILayoutPercentages::panHeightPct));
         auto panArea = area.removeFromTop(panHeight);
 
         panSlider.setBounds(panArea.reduced(2));
