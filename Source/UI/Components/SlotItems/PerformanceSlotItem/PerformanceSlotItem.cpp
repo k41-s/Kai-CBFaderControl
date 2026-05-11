@@ -156,9 +156,18 @@ void PerformanceSlotItem::updateGroupState()
         int colourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, grpId);
         juce::Colour groupColour = GroupColours::palette[colourIdx];
 
-        groupRoleLabel.setColour(juce::Label::textColourId, groupColour);
-        groupRoleLabel.setText(role == GroupRole::Leader ? "L" : "S", juce::dontSendNotification);
-        groupRoleLabel.setVisible(true);
+        if (role == GroupRole::Leader)
+        {
+            groupRoleLabel.setText("L", juce::dontSendNotification);
+            groupRoleLabel.setColour(juce::Label::textColourId, groupColour);
+            groupRoleLabel.setVisible(true);
+        }
+        else
+        {
+            groupRoleLabel.setText("", juce::dontSendNotification);
+            groupRoleLabel.setVisible(false);
+        }
+
     }
     else
     {
