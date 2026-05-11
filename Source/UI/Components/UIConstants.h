@@ -56,6 +56,8 @@ namespace UIComponentNames
 namespace UIStringConstants
 {
 	static inline const juce::String inf = "-inf";
+    static inline const juce::String unitDb = "dB";
+    static inline const juce::String maxWidthValueStr = "-88.8 ";
 }
 
 namespace SlotSizeValues
@@ -85,6 +87,12 @@ namespace PluginConstants
     static constexpr int numSlots = 32;
     static constexpr int numVcas = 8;
     static constexpr int numGroups = 8;
+
+    static constexpr float volumeMax = 22.0f;
+    static constexpr float volumeMin = -96.0f;
+    static constexpr float infCutoff = -95.75f;
+    static constexpr float fineRes = 0.25f;
+    static constexpr float coarseRes = 1.0f;
     
 	static inline const int maxSlotNameLength = 5;
 	static inline const int maxGroupNameLength = maxSlotNameLength; // for now unless they need to be different

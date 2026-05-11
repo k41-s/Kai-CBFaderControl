@@ -26,7 +26,7 @@ namespace UIUtils
     {
         juce::String text;
 
-        if (val <= -95.75f)
+        if (val <= PluginConstants::infCutoff)
             text = UIStringConstants::inf;
         else if (isFineMode)
             text = juce::String(val, 2);

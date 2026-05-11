@@ -208,7 +208,7 @@ void LinkManager::applyVolumeDeltaToSlot(int slotIdx, float delta)
     float newUnclamped = getUnclampedVolume(slotIdx) + delta;
     setUnclampedVolume(slotIdx, newUnclamped);
 
-    float targetVol = juce::jlimit(-96.0f, 22.0f, newUnclamped);
+    float targetVol = juce::jlimit(PluginConstants::volumeMin, PluginConstants::volumeMax, newUnclamped);
     SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(slotIdx), targetVol);
     setLastVolume(slotIdx, targetVol);
 }

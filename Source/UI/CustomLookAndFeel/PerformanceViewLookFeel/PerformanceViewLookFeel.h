@@ -81,5 +81,5 @@ private:
     void drawSubMenu(const juce::Rectangle<int>& area, juce::Graphics& g);
 
     float globalSharedFont = UISizeConstants::standardFontSize;
-    double inf = -95.75;
+    double inf = PluginConstants::infCutoff;
 };

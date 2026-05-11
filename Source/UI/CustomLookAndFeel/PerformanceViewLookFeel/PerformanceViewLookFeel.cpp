@@ -58,7 +58,7 @@ void PerformanceViewLookFeel::drawTickValues(std::vector<double>& tickValues, ju
 		float y = (float)slider.getPositionOfValue(val);
 
 		bool isZero = (val == 0.0);
-		bool isInf = (val == inf);
+		bool isInf = (val <= inf);
 
 		float maxLineLength = isZero ? 4.0f : 2.0f;
 		float widthPercentage = isZero ? 0.2f : 0.1f;

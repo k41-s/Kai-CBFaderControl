@@ -28,7 +28,7 @@ void BaseSlotItem::configBaseVolumeFader()
 void BaseSlotItem::configBaseValueLabel()
 {
     UIUtils::setupValueBoxLabel(*this, valueLabel, juce::Justification::centredRight);
-    UIUtils::setupValueBoxLabel(*this, unitLabel, juce::Justification::centredLeft, "dB");
+    UIUtils::setupValueBoxLabel(*this, unitLabel, juce::Justification::centredLeft, UIStringConstants::unitDb);
 
     valueLabel.setEditable(false, true, false);
 
@@ -36,7 +36,7 @@ void BaseSlotItem::configBaseValueLabel()
         {
             float newValue = valueLabel.getText().getFloatValue();
 
-            newValue = juce::jlimit(-96.0f, 22.0f, newValue);
+            newValue = juce::jlimit(PluginConstants::volumeMin, PluginConstants::volumeMax, newValue);
 
             SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(index), newValue);
         };
@@ -64,7 +64,7 @@ void BaseSlotItem::updateValueLabel()
 {
     float val = (float)volumeFader.getValue();
     if (std::isnan(val) || std::isinf(val))
-        val = -96.0f;
+        val = PluginConstants::volumeMin;
 
     bool isFineMode = volumeFader
         .getProperties()
@@ -74,8 +74,8 @@ void BaseSlotItem::updateValueLabel()
         );
     juce::String text = UIUtils::getValueText(val, isFineMode);
 
-    bool isInf = (val <= -95.75f);
-    unitLabel.setText(isInf ? "" : "dB", juce::dontSendNotification);
+    bool isInf = (val <= PluginConstants::infCutoff);
+    unitLabel.setText(isInf ? "" : UIStringConstants::unitDb, juce::dontSendNotification);
     valueLabel.setText(isInf ? text : text + " ", juce::dontSendNotification);
 }
 
@@ -85,8 +85,8 @@ void BaseSlotItem::setupBottomArea(juce::Rectangle<int>& area, int currentWidth)
     valueLabel.setFont(sharedFont);
     unitLabel.setFont(sharedFont);
 
-    int unitWidth = sharedFont.getStringWidth("dB") + 4;
-    int valueWidth = sharedFont.getStringWidth("-88.8 ");
+    int unitWidth = sharedFont.getStringWidth(UIStringConstants::unitDb) + 4;
+    int valueWidth = sharedFont.getStringWidth(UIStringConstants::maxWidthValueStr);
     int requiredWidth = valueWidth + unitWidth;
 
     bool fits = currentWidth >= requiredWidth;
@@ -126,7 +126,7 @@ void BaseSlotItem::mouseWheelMove(const juce::MouseEvent& event, const juce::Mou
     {
         float currentVal = (float)volumeFader.getValue();
         bool isFineMode = volumeFader.getProperties().getWithDefault(UIProperties::isHighRes, false);
-        float step = isFineMode ? 0.25f : 1.0f;
+        float step = isFineMode ? PluginConstants::fineRes : PluginConstants::coarseRes;
         float increment = (wheel.deltaY > 0) ? step : -step;
 
         volumeFader.setValue(currentVal + increment, juce::sendNotificationSync);

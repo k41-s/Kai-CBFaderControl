@@ -72,7 +72,7 @@ double PrecisionSlider::snapValue(double attemptedValue, DragMode dragMode)
         return attemptedValue;
 
     bool isHighRes = getProperties().getWithDefault(UIProperties::isHighRes, UIProperties::defaultHighRes);
-    double interval = isHighRes ? 0.25 : 1.0;
+    double interval = isHighRes ? PluginConstants::fineRes : PluginConstants::coarseRes;
 
     return juce::roundToInt(attemptedValue / interval) * interval;
 }

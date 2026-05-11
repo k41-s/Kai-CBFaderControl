@@ -97,7 +97,11 @@ void KaiCBFaderControlAudioProcessor::addParamsForSlot(juce::AudioProcessorValue
     params.add(std::make_unique<juce::AudioParameterFloat>(
         SlotIDs::volume(i),
         ParamSlotNames::volume(i),
-        juce::NormalisableRange<float>(-96.0f, 22.0f, 0.25f, 1.0f),
+        juce::NormalisableRange<float>(
+            PluginConstants::volumeMin, 
+            PluginConstants::volumeMax, 
+            PluginConstants::fineRes,
+            1.0f),
         0.0f
     ));
     params.add(std::make_unique<juce::AudioParameterBool>(
@@ -131,7 +135,11 @@ void KaiCBFaderControlAudioProcessor::addParamsForVca(juce::AudioProcessorValueT
     params.add(std::make_unique<juce::AudioParameterFloat>(
         SlotIDs::vcaVolume(i),
         ParamSlotNames::vcaVolume(i),
-        juce::NormalisableRange<float>(-96.0f, 22.0f, 0.25f, 1.0f),
+        juce::NormalisableRange<float>(
+            PluginConstants::volumeMin,
+            PluginConstants::volumeMax, 
+            PluginConstants::fineRes, 
+            1.0f),
         0.0f
     ));
     params.add(std::make_unique<juce::AudioParameterBool>(
