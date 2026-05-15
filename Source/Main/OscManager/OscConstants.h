@@ -3,9 +3,6 @@
 
 namespace OscAddressPatterns
 {
-    // The root address to listen to EVERYTHING from XPatch
-    static const juce::String root = "/XP4/#";
-
     // Base prefixes
     static const juce::String prefix = "/XP4";
     static const juce::String fader = "/fader/";
@@ -17,4 +14,9 @@ namespace OscAddressPatterns
     static const juce::String mute = "/mute";
     static const juce::String pan = "/pan";
     static const juce::String solo = "/solo";
+}
+
+namespace OscConstants
+{
+    static constexpr int fifoSize = 512;
 }

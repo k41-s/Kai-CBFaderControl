@@ -1,11 +1,3 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "../PluginEditor/PluginEditor.h"
 #include "../SlotIDs.h"
@@ -25,6 +17,7 @@ KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
 void KaiCBFaderControlAudioProcessor::init()
 {
     InitialiseNetworkingDefaults();
+    initOscManager();
     initLinkManager();
     initGlobalRegistry();
 }
@@ -40,6 +33,12 @@ void KaiCBFaderControlAudioProcessor::InitialiseNetworkingDefaults()
 
     if (!state.hasProperty(SlotIDs::outgoingPort()))
         SlotStateHelpers::setOutgoingPort(state, 8001);
+}
+
+void KaiCBFaderControlAudioProcessor::initOscManager()
+{
+    oscManager = std::make_unique<OscManager>(*this);
+    oscManager->connect();
 }
 
 void KaiCBFaderControlAudioProcessor::initLinkManager()

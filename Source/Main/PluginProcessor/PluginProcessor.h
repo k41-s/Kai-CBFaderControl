@@ -1,19 +1,10 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #pragma once
 #include <JuceHeader.h>
 #include "../LinkManager/LinkManager.h"
+#include "../OscManager/OscManager.h"
 #include "../../Utils/GlobalSlotRegistry/GlobalSlotRegistry.h"
 
 //==============================================================================
-/**
-*/
 class KaiCBFaderControlAudioProcessor :
     public juce::AudioProcessor,
     public juce::ChangeListener
@@ -70,15 +61,17 @@ public:
     juce::AudioProcessorValueTreeState apvts;
 
 	std::unique_ptr<LinkManager> linkManager;
+    std::unique_ptr<OscManager> oscManager;
 
     std::atomic<bool> isRestoringState{ false };
 
     juce::SharedResourcePointer<GlobalSlotRegistry> globalSlotRegistry;
 private:
     void init();
-    void initGlobalRegistry();
     void InitialiseNetworkingDefaults();
+    void initOscManager();
     void initLinkManager();
+    void initGlobalRegistry();
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     void addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
