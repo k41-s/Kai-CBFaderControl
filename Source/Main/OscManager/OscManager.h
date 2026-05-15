@@ -36,6 +36,13 @@ private:
     void timerCallback() override;
     void processQueuedMessage(const juce::OSCMessage& message);
 
+    void handleIncomingMessage(const juce::String& targetType, const juce::String& paramType, const juce::OSCMessage& message, int slotId);
+    void handleIncomingVolumeMessage(const juce::OSCMessage& message, bool isVca, int slotId);
+    void handleIncomingMuteMessage(const juce::OSCMessage& message, bool isVca, int slotId);
+    void handleIncomingNameMessage(const juce::OSCMessage& message, bool isVca, int slotId);
+    void handleIncomingPanMessage(const juce::OSCMessage& message, int slotId);
+    void handleIncomingSoloMessage(const juce::OSCMessage& message, int slotId);
+
     KaiCBFaderControlAudioProcessor& processor;
     juce::OSCSender sender;
     juce::OSCReceiver receiver;

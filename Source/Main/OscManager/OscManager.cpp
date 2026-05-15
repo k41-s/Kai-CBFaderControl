@@ -86,7 +86,7 @@ void OscManager::oscBundleReceived(const juce::OSCBundle& bundle)
 
 void OscManager::oscMessageReceived(const juce::OSCMessage& message)
 {
-    if (!message.getAddressPattern().toString().startsWith(OscAddressPatterns::prefix))
+    if (!message.getAddressPattern().toString().startsWith(OscConstants::prefix))
         return;
 
     pushMessageIntoFifoQueue(message);
@@ -126,8 +126,113 @@ void OscManager::timerCallback()
 
 void OscManager::processQueuedMessage(const juce::OSCMessage& message)
 {
-    // We are now safely on the GUI/Message Thread!
-    DBG("Processed from Queue: " << message.getAddressPattern().toString());
+    juce::String address = message.getAddressPattern().toString();
+
+    juce::StringArray parts;
+    parts.addTokens(address, "/", "");
+
+    if (parts.size() < OscConstants::Parsing::standardPathDepth) return;
+
+    juce::String targetType = parts[2];
+    int slotId = parts[3].getIntValue();
+    juce::String paramType = parts[4];
+
+    if (targetType == OscConstants::TargetTypes::fader() || targetType == OscConstants::TargetTypes::vca())
+    {
+        handleIncomingMessage(targetType, paramType, message, slotId);
+    }
+}
+
+void OscManager::handleIncomingMessage(const juce::String& targetType, const juce::String& paramType, const juce::OSCMessage& message, int slotId)
+{
+    bool isVca = (targetType == OscConstants::TargetTypes::vca());
+
+    if (paramType == OscConstants::ParamTypes::volume() && OscHelpers::isValidFloatMessage(message))
+    {
+        handleIncomingVolumeMessage(message, isVca, slotId);
+    }
+    else if (paramType == OscConstants::ParamTypes::mute() && OscHelpers::isValidIntMessage(message))
+    {
+        handleIncomingMuteMessage(message, isVca, slotId);
+    }
+    else if (paramType == OscConstants::ParamTypes::name() && OscHelpers::isValidStringMessage(message))
+    {
+        handleIncomingNameMessage(message, isVca, slotId);
+    }
+    else if (!isVca && paramType == OscConstants::ParamTypes::pan() && OscHelpers::isValidFloatMessage(message))
+    {
+        handleIncomingPanMessage(message, slotId);
+    }
+    else if (!isVca && paramType == OscConstants::ParamTypes::solo() && OscHelpers::isValidIntMessage(message))
+    {
+        handleIncomingSoloMessage(message, slotId);
+    }
+}
+
+void OscManager::handleIncomingVolumeMessage(const juce::OSCMessage& message, bool isVca, int slotId)
+{
+    float incomingVolumeRaw = message[0].getFloat32();
+
+    juce::String paramId = isVca ? SlotIDs::vcaVolume(slotId) : SlotIDs::volume(slotId);
+    float currentVolumeRaw = SlotStateHelpers::getRawParamValue(processor.apvts, paramId);
+
+    if (OscHelpers::volumeRawChanged(currentVolumeRaw, incomingVolumeRaw))
+    {
+        SlotStateHelpers::setParamUnnormalized(processor.apvts, paramId, incomingVolumeRaw);
+    }
+}
+
+void OscManager::handleIncomingMuteMessage(const juce::OSCMessage& message, bool isVca, int slotId)
+{
+    bool isMuted = message[0].getInt32() != 0;
+    juce::String paramId = isVca ? SlotIDs::vcaMute(slotId) : SlotIDs::mute(slotId);
+    bool currentlyMuted = SlotStateHelpers::getRawParamValue(processor.apvts, paramId) > 0.5f;
+
+    if (currentlyMuted != isMuted)
+    {
+        SlotStateHelpers::setParamNormalized(processor.apvts, paramId, isMuted ? 1.0f : 0.0f);
+    }
+}
+
+void OscManager::handleIncomingNameMessage(const juce::OSCMessage& message, bool isVca, int slotId)
+{
+    juce::String incomingName = message[0].getString();
+
+    juce::String currentName = isVca
+        ? SlotStateHelpers::getVcaName(processor.apvts.state, slotId)
+        : SlotStateHelpers::getSlotCustomName(processor.apvts.state, slotId);
+
+    if (currentName != incomingName)
+    {
+        if (isVca)
+            SlotStateHelpers::setVcaName(processor.apvts.state, slotId, incomingName);
+        else
+            SlotStateHelpers::setSlotCustomName(processor.apvts.state, slotId, incomingName);
+    }
+}
+
+void OscManager::handleIncomingPanMessage(const juce::OSCMessage& message, int slotId)
+{
+    float incomingPanRaw = message[0].getFloat32();
+    juce::String paramId = SlotIDs::pan(slotId);
+    float currentPanRaw = SlotStateHelpers::getRawParamValue(processor.apvts, paramId);
+
+    if (OscHelpers::panRawChanged(currentPanRaw, incomingPanRaw))
+    {
+        SlotStateHelpers::setParamUnnormalized(processor.apvts, paramId, incomingPanRaw);
+    }
+}
+
+void OscManager::handleIncomingSoloMessage(const juce::OSCMessage& message, int slotId)
+{
+    bool isSoloed = message[0].getInt32() != 0;
+    juce::String paramId = SlotIDs::solo(slotId);
+    bool currentlySoloed = SlotStateHelpers::getRawParamValue(processor.apvts, paramId) > 0.5f;
+
+    if (currentlySoloed != isSoloed)
+    {
+        SlotStateHelpers::setParamNormalized(processor.apvts, paramId, isSoloed ? 1.0f : 0.0f);
+    }
 }
 
 void OscManager::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
