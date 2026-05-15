@@ -14,6 +14,11 @@
           <FILE id="SmxDnf" name="LinkManager.cpp" compile="1" resource="0" file="Source/Main/LinkManager/LinkManager.cpp"/>
           <FILE id="rKx0C0" name="LinkManager.h" compile="0" resource="0" file="Source/Main/LinkManager/LinkManager.h"/>
         </GROUP>
+        <GROUP id="{DCBA6C18-4676-4186-1DE2-76CF86F3E3D2}" name="OscManager">
+          <FILE id="Zwo4YX" name="OscConstants.h" compile="0" resource="0" file="Source/Main/OscManager/OscConstants.h"/>
+          <FILE id="cSc96W" name="OscManager.cpp" compile="1" resource="0" file="Source/Main/OscManager/OscManager.cpp"/>
+          <FILE id="Z9pFc2" name="OscManager.h" compile="0" resource="0" file="Source/Main/OscManager/OscManager.h"/>
+        </GROUP>
         <GROUP id="{89ED6CA5-1CE0-9ACC-3855-C2C720CEEB79}" name="PluginEditor">
           <FILE id="zdherh" name="PluginEditor.cpp" compile="1" resource="0"
                 file="Source/Main/PluginEditor/PluginEditor.cpp"/>
