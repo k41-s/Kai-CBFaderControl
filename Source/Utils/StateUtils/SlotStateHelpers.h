@@ -232,6 +232,13 @@ namespace SlotStateHelpers
             param->setValueNotifyingHost(param->convertTo0to1(unnormalizedValue));
     }
 
+    static inline float denormalizeValue(const juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float normalizedValue)
+    {
+        if (auto* param = apvts.getParameter(paramId))
+            return param->convertFrom0to1(normalizedValue);
+        return 0.0f;
+    }
+
     static inline void setSlotActive(juce::AudioProcessorValueTreeState& apvts, int slotIdx, bool shouldBeActive)
     {
         setParamNormalized(apvts, SlotIDs::isActive(slotIdx), shouldBeActive ? 1.0f : 0.0f);

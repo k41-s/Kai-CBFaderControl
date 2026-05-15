@@ -7,7 +7,8 @@ class KaiCBFaderControlAudioProcessor; // Forward declaration
 class OscManager : 
     public juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>,
     public juce::ValueTree::Listener,
-    public juce::Timer
+    public juce::Timer,
+    public juce::AudioProcessorValueTreeState::Listener
 {
 public:
     OscManager(KaiCBFaderControlAudioProcessor& p);
@@ -19,6 +20,13 @@ public:
 
 private:
     void init();
+    void addListeners();
+    void addRegularSlotListeners();
+    void addVcaListeners();
+
+    void removeListeners();
+    void removeRegularSlotListeners();
+    void removeVcaListeners();
 
     void clearOscReceiver();
     void clearOscSender();
@@ -43,12 +51,22 @@ private:
     void handleIncomingPanMessage(const juce::OSCMessage& message, int slotId);
     void handleIncomingSoloMessage(const juce::OSCMessage& message, int slotId);
 
+    void parameterChanged(const juce::String& parameterID, float newValue) override;
+    void handleRegularParametersChanged(const juce::String& parameterID, float newValue);
+    void handleVcaParametersChanged(const juce::String& parameterID, float newValue);
+
+    void broadcastFloatParameter(const juce::String& targetType, const juce::String& paramType, const juce::String& prefix, const juce::String& parameterID, float newValue);
+    void broadcastToggleParameter(const juce::String& targetType, const juce::String& paramType, const juce::String& prefix, const juce::String& parameterID, float newValue);
+    void broadcastNameChange(const juce::String& targetType, const juce::String& prefix, const juce::Identifier& property, juce::ValueTree& tree);
+
     KaiCBFaderControlAudioProcessor& processor;
     juce::OSCSender sender;
     juce::OSCReceiver receiver;
 
     juce::AbstractFifo messageFifo{ OscConstants::fifoSize };
     std::vector<juce::OSCMessage> messageQueue;
+
+    bool isProcessingQueue{ false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscManager)
 };

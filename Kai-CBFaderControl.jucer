@@ -119,6 +119,9 @@
         <GROUP id="{6641C19B-C8BE-D82C-67FD-49F295D718F0}" name="LayoutUtils">
           <FILE id="rCd6Fe" name="LayoutUtils.h" compile="0" resource="0" file="Source/Utils/LayoutUtils/LayoutUtils.h"/>
         </GROUP>
+        <GROUP id="{B4F04243-B42F-AB96-A8EB-6348DC5C010C}" name="OSCUtils">
+          <FILE id="YxMaUz" name="OscHelpers.h" compile="0" resource="0" file="Source/Utils/OSCUtils/OscHelpers.h"/>
+        </GROUP>
         <GROUP id="{11F74A62-B3FA-6749-1143-595D38E13CC6}" name="StateUtils">
           <FILE id="auO3OS" name="SlotStateHelpers.h" compile="0" resource="0"
                 file="Source/Utils/StateUtils/SlotStateHelpers.h"/>
