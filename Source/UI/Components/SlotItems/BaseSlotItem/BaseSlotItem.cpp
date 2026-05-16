@@ -35,10 +35,9 @@ void BaseSlotItem::configBaseValueLabel()
     valueLabel.onTextChange = [this]()
         {
             float newValue = valueLabel.getText().getFloatValue();
-
             newValue = juce::jlimit(PluginConstants::volumeMin, PluginConstants::volumeMax, newValue);
 
-            SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(index), newValue);
+            SlotStateHelpers::setParamUnnormalized(processor.apvts, getVolumeParamID(), newValue);
         };
 }
 

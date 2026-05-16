@@ -33,6 +33,8 @@ protected:
     void configBaseGroupLabels(std::function<int()> getGroupIdFunc);
     void updateBaseGroupState(int grpId, bool applyFaderIndicator = false);
 
+    virtual juce::String getVolumeParamID() const = 0; // Dynamic Id
+
     int targetSlotWidth = -1; // -1 means unconstrained by default
 
     KaiCBFaderControlAudioProcessor& processor;

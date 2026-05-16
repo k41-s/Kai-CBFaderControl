@@ -3,6 +3,7 @@
 #include "../BaseSlotItem/BaseSlotItem.h"
 #include "../../../../Main/PluginProcessor/PluginProcessor.h"
 #include "../../PrecisionSlider/PrecisionSlider.h"
+#include "../../../../Main/SlotIDs.h"
 
 class VcaSlotItem : public BaseSlotItem
 {
@@ -40,6 +41,8 @@ private:
 	void setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight);
 	void setupMuteButton(juce::Rectangle<int>& topArea);
 	void setupExpandButton(juce::Rectangle<int>& topArea);
+
+	juce::String getVolumeParamID() const override { return SlotIDs::vcaVolume(index); }
 
 	juce::TextButton expandButton{ UIButtonLabels::expand };
 

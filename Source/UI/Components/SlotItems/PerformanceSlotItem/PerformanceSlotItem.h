@@ -4,6 +4,7 @@
 #include "../../UIConstants.h"
 #include "../../PrecisionSlider/PrecisionSlider.h"
 #include "../BaseSlotItem/BaseSlotItem.h"
+#include "../../../../Main/SlotIDs.h"
 
 class PerformanceSlotItem : public BaseSlotItem
 {
@@ -33,6 +34,8 @@ public:
 protected:
 	void updateNameFromValueTree() override;
 	void setupSlotBounds() override;
+
+	juce::String getVolumeParamID() const override { return SlotIDs::volume(index); }
 
 private:
 	void init(int slotIndex);
