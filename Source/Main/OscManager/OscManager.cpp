@@ -137,27 +137,6 @@ void OscManager::timerCallback()
     pollAndBroadcastFaders();
 }
 
-bool OscManager::shouldBroadcastFloat(const juce::String& paramId, float newValue, const juce::String& paramType)
-{
-    if (lastReceivedOscFloats.count(paramId) > 0 && !OscHelpers::hasFloatChanged(paramType, lastReceivedOscFloats[paramId], newValue))
-        return false;
-
-    if (lastSentOscFloats.count(paramId) > 0 && !OscHelpers::hasFloatChanged(paramType, lastSentOscFloats[paramId], newValue))
-        return false;
-
-    return true;
-}
-
-bool OscManager::shouldBroadcastInt(const juce::String& paramId, int newValue)
-{
-    if (lastReceivedOscInts.count(paramId) > 0 && lastReceivedOscInts[paramId] == newValue)
-        return false;
-
-    if (lastSentOscInts.count(paramId) > 0 && lastSentOscInts[paramId] == newValue)
-        return false;
-
-    return true;
-}
 
 void OscManager::pollAndBroadcastFaders()
 {
@@ -166,6 +145,24 @@ void OscManager::pollAndBroadcastFaders()
         sendOscVolume(i);
         sendOscMute(i);
     }
+}
+
+bool OscManager::shouldBroadcastFloat(const juce::String& paramId, float newValue, const juce::String& paramType) const
+{
+    if (OscHelpers::isDuplicateFloat(lastReceivedOscFloats, paramId, newValue, paramType))
+        return false;
+    if (OscHelpers::isDuplicateFloat(lastSentOscFloats, paramId, newValue, paramType))
+        return false;
+    return true;
+}
+
+bool OscManager::shouldBroadcastInt(const juce::String& paramId, int newValue) const
+{
+    if (OscHelpers::isDuplicateValue(lastReceivedOscInts, paramId, newValue))
+        return false;
+    if (OscHelpers::isDuplicateValue(lastSentOscInts, paramId, newValue))
+        return false;
+    return true;
 }
 
 void OscManager::sendOscVolume(int i)
@@ -230,7 +227,7 @@ void OscManager::handleIncomingVolumeMessage(const juce::OSCMessage& message, in
     float incomingVolumeRaw = message[0].getFloat32();
     juce::String paramId = SlotIDs::volume(slotId);
 
-    if (lastSentOscFloats.count(paramId) > 0 && !OscHelpers::volumeRawChanged(lastSentOscFloats[paramId], incomingVolumeRaw))
+    if (OscHelpers::isDuplicateFloat(lastSentOscFloats, paramId, incomingVolumeRaw, OscConstants::ParamTypes::volume()))
         return;
 
     lastReceivedOscFloats[paramId] = incomingVolumeRaw;
@@ -248,7 +245,7 @@ void OscManager::handleIncomingMuteMessage(const juce::OSCMessage& message, int 
     int isMutedInt = isMuted ? 1 : 0;
     juce::String paramId = SlotIDs::mute(slotId);
 
-    if (lastSentOscInts.count(paramId) > 0 && lastSentOscInts[paramId] == isMutedInt)
+    if (OscHelpers::isDuplicateValue(lastSentOscInts, paramId, isMutedInt))
         return;
 
     lastReceivedOscInts[paramId] = isMutedInt;
@@ -265,7 +262,7 @@ void OscManager::handleIncomingNameMessage(const juce::OSCMessage& message, int 
     juce::String incomingName = message[0].getString();
     juce::String dictKey = SlotIdStringPrefixes::slotName + juce::String(slotId);
 
-    if (lastSentOscStrings.count(dictKey) > 0 && lastSentOscStrings[dictKey] == incomingName)
+    if (OscHelpers::isDuplicateValue(lastSentOscStrings, dictKey, incomingName))
         return;
 
     lastReceivedOscStrings[dictKey] = incomingName;
@@ -301,8 +298,10 @@ void OscManager::broadcastNameChange(const juce::String& targetType, const juce:
 
     juce::String dictKey = SlotIdStringPrefixes::slotName + juce::String(id);
 
-    if (lastReceivedOscStrings.count(dictKey) > 0 && lastReceivedOscStrings[dictKey] == newName) return;
-    if (lastSentOscStrings.count(dictKey) > 0 && lastSentOscStrings[dictKey] == newName) return;
+    if (OscHelpers::isDuplicateValue(lastReceivedOscStrings, dictKey, newName))
+        return;
+    if (OscHelpers::isDuplicateValue(lastSentOscStrings, dictKey, newName)) 
+        return;
 
     lastSentOscStrings[dictKey] = newName;
 

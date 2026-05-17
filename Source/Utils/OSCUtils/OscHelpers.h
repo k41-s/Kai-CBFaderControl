@@ -41,4 +41,17 @@ namespace OscHelpers
     {
         return message.size() > 0 && message[0].isString();
     }
+
+    template <typename T>
+    static inline bool isDuplicateValue(const std::unordered_map<juce::String, T>& map, const juce::String& key, const T& newValue)
+    {
+        auto it = map.find(key);
+        return (it != map.end() && it->second == newValue);
+    }
+
+    static inline bool isDuplicateFloat(const std::unordered_map<juce::String, float>& map, const juce::String& key, float newValue, const juce::String& paramType)
+    {
+        auto it = map.find(key);
+        return (it != map.end() && !OscHelpers::hasFloatChanged(paramType, it->second, newValue));
+    }
 }

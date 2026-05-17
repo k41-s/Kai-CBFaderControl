@@ -32,9 +32,9 @@ private:
     void pushMessageIntoFifoQueue(const juce::OSCMessage& message);
 
     void timerCallback() override;
-    bool shouldBroadcastFloat(const juce::String& paramId, float newValue, const juce::String& paramType);
-    bool shouldBroadcastInt(const juce::String& paramId, int newValue);
     void pollAndBroadcastFaders();
+    bool shouldBroadcastFloat(const juce::String& paramId, float newValue, const juce::String& paramType) const;
+    bool shouldBroadcastInt(const juce::String& paramId, int newValue) const;
     void sendOscVolume(int i);
     void sendOscMute(int i);
 
@@ -45,10 +45,7 @@ private:
     void handleIncomingNameMessage(const juce::OSCMessage& message, int slotId);
 
     void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
-    
-    void handleRegularParametersChanged(const juce::String& parameterID, float newValue);
-    void broadcastFloatParameter(const juce::String& targetType, const juce::String& paramType, const juce::String& prefix, const juce::String& parameterID, float newValue);
-    void broadcastToggleParameter(const juce::String& targetType, const juce::String& paramType, const juce::String& prefix, const juce::String& parameterID, float newValue);
+
     void broadcastNameChange(const juce::String& targetType, const juce::String& prefix, const juce::Identifier& property, juce::ValueTree& tree);
 
     KaiCBFaderControlAudioProcessor& processor;
