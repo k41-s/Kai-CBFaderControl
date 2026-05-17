@@ -14,9 +14,17 @@ namespace OscHelpers
         return std::abs(currentRaw - incomingRaw) > OscConstants::Parsing::panThreshold;
     }
 
+    static inline bool hasFloatChanged(const juce::String& paramType, float a, float b)
+    {
+        if (paramType == OscConstants::ParamTypes::pan())
+            return panRawChanged(a, b);
+        else
+            return volumeRawChanged(a, b);
+    }
+
     static inline juce::String buildAddress(const juce::String& target, int id, const juce::String& param)
     {
-        return OscConstants::prefix + "/" + target + "/" + juce::String(id) + "/" + param;
+        return OscConstants::outgoingPrefix + "/" + target + "/" + juce::String(id) + "/" + param;
     }
 
     static inline bool isValidIntMessage(const juce::OSCMessage& message)

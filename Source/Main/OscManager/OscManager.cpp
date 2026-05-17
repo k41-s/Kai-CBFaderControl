@@ -21,35 +21,11 @@ void OscManager::addListeners()
 {
     processor.apvts.state.addListener(this);
     receiver.addListener(this);
-
-    addRegularSlotListeners();
-    addVcaListeners();
-}
-
-void OscManager::addRegularSlotListeners()
-{
-    for (int i = 1; i <= PluginConstants::numSlots; ++i)
-    {
-        processor.apvts.addParameterListener(SlotIDs::volume(i), this);
-        processor.apvts.addParameterListener(SlotIDs::mute(i), this);
-        processor.apvts.addParameterListener(SlotIDs::pan(i), this);
-        processor.apvts.addParameterListener(SlotIDs::solo(i), this);
-    }
-}
-
-void OscManager::addVcaListeners()
-{
-    for (int i = 1; i <= PluginConstants::numVcas; ++i)
-    {
-        processor.apvts.addParameterListener(SlotIDs::vcaVolume(i), this);
-        processor.apvts.addParameterListener(SlotIDs::vcaMute(i), this);
-    }
 }
 
 OscManager::~OscManager()
 {
 	stopTimer();
-    processor.apvts.state.removeListener(this);
 
     removeListeners();
     clearOscReceiver();
@@ -58,28 +34,7 @@ OscManager::~OscManager()
 
 void OscManager::removeListeners()
 {
-    removeRegularSlotListeners();
-    removeVcaListeners();
-}
-
-void OscManager::removeRegularSlotListeners()
-{
-    for (int i = 1; i <= PluginConstants::numSlots; ++i)
-    {
-        processor.apvts.removeParameterListener(SlotIDs::volume(i), this);
-        processor.apvts.removeParameterListener(SlotIDs::mute(i), this);
-        processor.apvts.removeParameterListener(SlotIDs::pan(i), this);
-        processor.apvts.removeParameterListener(SlotIDs::solo(i), this);
-    }
-}
-
-void OscManager::removeVcaListeners()
-{
-    for (int i = 1; i <= PluginConstants::numVcas; ++i)
-    {
-        processor.apvts.removeParameterListener(SlotIDs::vcaVolume(i), this);
-        processor.apvts.removeParameterListener(SlotIDs::vcaMute(i), this);
-    }
+    processor.apvts.state.removeListener(this);
 }
 
 void OscManager::clearOscReceiver()
@@ -141,7 +96,7 @@ void OscManager::oscBundleReceived(const juce::OSCBundle& bundle)
 
 void OscManager::oscMessageReceived(const juce::OSCMessage& message)
 {
-    if (!message.getAddressPattern().toString().startsWith(OscConstants::prefix))
+    if (!message.getAddressPattern().toString().startsWith(OscConstants::incomingPrefix))
         return;
 
     pushMessageIntoFifoQueue(message);
@@ -164,22 +119,79 @@ void OscManager::pushMessageIntoFifoQueue(const juce::OSCMessage& message)
 void OscManager::timerCallback()
 {
     int numReady = messageFifo.getNumReady();
-    if (numReady == 0) return;
-
-    auto readHandle = messageFifo.read(numReady);
-
-	isProcessingQueue = true;
-
-    for (int i = 0; i < readHandle.blockSize1; ++i)
+    if (numReady > 0)
     {
-        processQueuedMessage(messageQueue[(size_t)(readHandle.startIndex1 + i)]);
+        auto readHandle = messageFifo.read(numReady);
+
+        isProcessingQueue = true;
+
+        for (int i = 0; i < readHandle.blockSize1; ++i)
+            processQueuedMessage(messageQueue[(size_t)(readHandle.startIndex1 + i)]);
+
+        for (int i = 0; i < readHandle.blockSize2; ++i)
+            processQueuedMessage(messageQueue[(size_t)(readHandle.startIndex2 + i)]);
+
+        isProcessingQueue = false;
     }
 
-    for (int i = 0; i < readHandle.blockSize2; ++i)
+    pollAndBroadcastFaders();
+}
+
+bool OscManager::shouldBroadcastFloat(const juce::String& paramId, float newValue, const juce::String& paramType)
+{
+    if (lastReceivedOscFloats.count(paramId) > 0 && !OscHelpers::hasFloatChanged(paramType, lastReceivedOscFloats[paramId], newValue))
+        return false;
+
+    if (lastSentOscFloats.count(paramId) > 0 && !OscHelpers::hasFloatChanged(paramType, lastSentOscFloats[paramId], newValue))
+        return false;
+
+    return true;
+}
+
+bool OscManager::shouldBroadcastInt(const juce::String& paramId, int newValue)
+{
+    if (lastReceivedOscInts.count(paramId) > 0 && lastReceivedOscInts[paramId] == newValue)
+        return false;
+
+    if (lastSentOscInts.count(paramId) > 0 && lastSentOscInts[paramId] == newValue)
+        return false;
+
+    return true;
+}
+
+void OscManager::pollAndBroadcastFaders()
+{
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
     {
-        processQueuedMessage(messageQueue[(size_t)(readHandle.startIndex2 + i)]);
+        sendOscVolume(i);
+        sendOscMute(i);
     }
-	isProcessingQueue = false;
+}
+
+void OscManager::sendOscVolume(int i)
+{
+    juce::String volId = SlotIDs::volume(i);
+    float currentVol = SlotStateHelpers::getRawParamValue(processor.apvts, volId);
+
+    if (shouldBroadcastFloat(volId, currentVol, OscConstants::ParamTypes::volume()))
+    {
+        lastSentOscFloats[volId] = currentVol;
+        juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), i, OscConstants::ParamTypes::volume());
+        sendOSCMessage(juce::OSCMessage(address, currentVol));
+    }
+}
+
+void OscManager::sendOscMute(int i)
+{
+    juce::String muteId = SlotIDs::mute(i);
+    int currentMute = SlotStateHelpers::getRawParamValue(processor.apvts, muteId) > 0.5f ? 1 : 0;
+
+    if (shouldBroadcastInt(muteId, currentMute))
+    {
+        lastSentOscInts[muteId] = currentMute;
+        juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), i, OscConstants::ParamTypes::mute());
+        sendOSCMessage(juce::OSCMessage(address, currentMute));
+    }
 }
 
 void OscManager::processQueuedMessage(const juce::OSCMessage& message)
@@ -195,7 +207,7 @@ void OscManager::processQueuedMessage(const juce::OSCMessage& message)
     int slotId = parts[3].getIntValue();
     juce::String paramType = parts[4];
 
-    if (targetType == OscConstants::TargetTypes::fader() || targetType == OscConstants::TargetTypes::vca())
+    if (targetType == OscConstants::TargetTypes::fader())
     {
         handleIncomingMessage(targetType, paramType, message, slotId);
     }
@@ -203,93 +215,65 @@ void OscManager::processQueuedMessage(const juce::OSCMessage& message)
 
 void OscManager::handleIncomingMessage(const juce::String& targetType, const juce::String& paramType, const juce::OSCMessage& message, int slotId)
 {
-    bool isVca = (targetType == OscConstants::TargetTypes::vca());
-
     if (paramType == OscConstants::ParamTypes::volume() && OscHelpers::isValidFloatMessage(message))
-    {
-        handleIncomingVolumeMessage(message, isVca, slotId);
-    }
+        handleIncomingVolumeMessage(message, slotId);
+
     else if (paramType == OscConstants::ParamTypes::mute() && OscHelpers::isValidIntMessage(message))
-    {
-        handleIncomingMuteMessage(message, isVca, slotId);
-    }
+        handleIncomingMuteMessage(message, slotId);
+
     else if (paramType == OscConstants::ParamTypes::name() && OscHelpers::isValidStringMessage(message))
-    {
-        handleIncomingNameMessage(message, isVca, slotId);
-    }
-    else if (!isVca && paramType == OscConstants::ParamTypes::pan() && OscHelpers::isValidFloatMessage(message))
-    {
-        handleIncomingPanMessage(message, slotId);
-    }
-    else if (!isVca && paramType == OscConstants::ParamTypes::solo() && OscHelpers::isValidIntMessage(message))
-    {
-        handleIncomingSoloMessage(message, slotId);
-    }
+        handleIncomingNameMessage(message, slotId);
 }
 
-void OscManager::handleIncomingVolumeMessage(const juce::OSCMessage& message, bool isVca, int slotId)
+void OscManager::handleIncomingVolumeMessage(const juce::OSCMessage& message, int slotId)
 {
     float incomingVolumeRaw = message[0].getFloat32();
+    juce::String paramId = SlotIDs::volume(slotId);
 
-    juce::String paramId = isVca ? SlotIDs::vcaVolume(slotId) : SlotIDs::volume(slotId);
+    if (lastSentOscFloats.count(paramId) > 0 && !OscHelpers::volumeRawChanged(lastSentOscFloats[paramId], incomingVolumeRaw))
+        return;
+
+    lastReceivedOscFloats[paramId] = incomingVolumeRaw;
+
     float currentVolumeRaw = SlotStateHelpers::getRawParamValue(processor.apvts, paramId);
-
     if (OscHelpers::volumeRawChanged(currentVolumeRaw, incomingVolumeRaw))
     {
         SlotStateHelpers::setParamUnnormalized(processor.apvts, paramId, incomingVolumeRaw);
     }
 }
 
-void OscManager::handleIncomingMuteMessage(const juce::OSCMessage& message, bool isVca, int slotId)
+void OscManager::handleIncomingMuteMessage(const juce::OSCMessage& message, int slotId)
 {
     bool isMuted = message[0].getInt32() != 0;
-    juce::String paramId = isVca ? SlotIDs::vcaMute(slotId) : SlotIDs::mute(slotId);
-    bool currentlyMuted = SlotStateHelpers::getRawParamValue(processor.apvts, paramId) > 0.5f;
+    int isMutedInt = isMuted ? 1 : 0;
+    juce::String paramId = SlotIDs::mute(slotId);
 
+    if (lastSentOscInts.count(paramId) > 0 && lastSentOscInts[paramId] == isMutedInt)
+        return;
+
+    lastReceivedOscInts[paramId] = isMutedInt;
+
+    bool currentlyMuted = SlotStateHelpers::getRawParamValue(processor.apvts, paramId) > 0.5f;
     if (currentlyMuted != isMuted)
     {
         SlotStateHelpers::setParamNormalized(processor.apvts, paramId, isMuted ? 1.0f : 0.0f);
     }
 }
 
-void OscManager::handleIncomingNameMessage(const juce::OSCMessage& message, bool isVca, int slotId)
+void OscManager::handleIncomingNameMessage(const juce::OSCMessage& message, int slotId)
 {
     juce::String incomingName = message[0].getString();
+    juce::String dictKey = SlotIdStringPrefixes::slotName + juce::String(slotId);
 
-    juce::String currentName = isVca
-        ? SlotStateHelpers::getVcaName(processor.apvts.state, slotId)
-        : SlotStateHelpers::getSlotCustomName(processor.apvts.state, slotId);
+    if (lastSentOscStrings.count(dictKey) > 0 && lastSentOscStrings[dictKey] == incomingName)
+        return;
 
+    lastReceivedOscStrings[dictKey] = incomingName;
+
+    juce::String currentName = SlotStateHelpers::getSlotCustomName(processor.apvts.state, slotId);
     if (currentName != incomingName)
     {
-        if (isVca)
-            SlotStateHelpers::setVcaName(processor.apvts.state, slotId, incomingName);
-        else
-            SlotStateHelpers::setSlotCustomName(processor.apvts.state, slotId, incomingName);
-    }
-}
-
-void OscManager::handleIncomingPanMessage(const juce::OSCMessage& message, int slotId)
-{
-    float incomingPanRaw = message[0].getFloat32();
-    juce::String paramId = SlotIDs::pan(slotId);
-    float currentPanRaw = SlotStateHelpers::getRawParamValue(processor.apvts, paramId);
-
-    if (OscHelpers::panRawChanged(currentPanRaw, incomingPanRaw))
-    {
-        SlotStateHelpers::setParamUnnormalized(processor.apvts, paramId, incomingPanRaw);
-    }
-}
-
-void OscManager::handleIncomingSoloMessage(const juce::OSCMessage& message, int slotId)
-{
-    bool isSoloed = message[0].getInt32() != 0;
-    juce::String paramId = SlotIDs::solo(slotId);
-    bool currentlySoloed = SlotStateHelpers::getRawParamValue(processor.apvts, paramId) > 0.5f;
-
-    if (currentlySoloed != isSoloed)
-    {
-        SlotStateHelpers::setParamNormalized(processor.apvts, paramId, isSoloed ? 1.0f : 0.0f);
+        SlotStateHelpers::setSlotCustomName(processor.apvts.state, slotId, incomingName);
     }
 }
 
@@ -307,62 +291,21 @@ void OscManager::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Ide
     {
         if (propStr.startsWith(SlotIdStringPrefixes::slotName))
             broadcastNameChange(OscConstants::TargetTypes::fader(), SlotIdStringPrefixes::slotName, property, tree);
-
-        else if (propStr.startsWith(SlotIdStringPrefixes::vcaName))
-            broadcastNameChange(OscConstants::TargetTypes::vca(), SlotIdStringPrefixes::vcaName, property, tree);
     }
-}
-
-void OscManager::parameterChanged(const juce::String& parameterID, float newValue)
-{
-    if (isProcessingQueue) return;
-
-	handleRegularParametersChanged(parameterID, newValue);
-    handleVcaParametersChanged(parameterID, newValue);
-}
-
-void OscManager::handleRegularParametersChanged(const juce::String& parameterID, float newValue)
-{
-    if (parameterID.startsWith(SlotIdStringPrefixes::volume))
-        broadcastFloatParameter(OscConstants::TargetTypes::fader(), OscConstants::ParamTypes::volume(), SlotIdStringPrefixes::volume, parameterID, newValue);
-
-    else if (parameterID.startsWith(SlotIdStringPrefixes::mute))
-        broadcastToggleParameter(OscConstants::TargetTypes::fader(), OscConstants::ParamTypes::mute(), SlotIdStringPrefixes::mute, parameterID, newValue);
-
-    else if (parameterID.startsWith(SlotIdStringPrefixes::pan))
-        broadcastFloatParameter(OscConstants::TargetTypes::fader(), OscConstants::ParamTypes::pan(), SlotIdStringPrefixes::pan, parameterID, newValue);
-
-    else if (parameterID.startsWith(SlotIdStringPrefixes::solo))
-        broadcastToggleParameter(OscConstants::TargetTypes::fader(), OscConstants::ParamTypes::solo(), SlotIdStringPrefixes::solo, parameterID, newValue);
-
-}
-
-void OscManager::handleVcaParametersChanged(const juce::String& parameterID, float newValue)
-{
-    if (parameterID.startsWith(SlotIdStringPrefixes::vcaVolume))
-        broadcastFloatParameter(OscConstants::TargetTypes::vca(), OscConstants::ParamTypes::volume(), SlotIdStringPrefixes::vcaVolume, parameterID, newValue);
-
-    else if (parameterID.startsWith(SlotIdStringPrefixes::vcaMute))
-        broadcastToggleParameter(OscConstants::TargetTypes::vca(), OscConstants::ParamTypes::mute(), SlotIdStringPrefixes::vcaMute, parameterID, newValue);
-}
-
-void OscManager::broadcastFloatParameter(const juce::String& targetType, const juce::String& paramType, const juce::String& prefix, const juce::String& parameterID, float newValue)
-{
-    int id = SlotStateHelpers::getIndexFromParamId(parameterID, prefix);
-    float rawValue = SlotStateHelpers::denormalizeValue(processor.apvts, parameterID, newValue);
-    sendOSCMessage(juce::OSCMessage(OscHelpers::buildAddress(targetType, id, paramType), rawValue));
-}
-
-void OscManager::broadcastToggleParameter(const juce::String& targetType, const juce::String& paramType, const juce::String& prefix, const juce::String& parameterID, float newValue)
-{
-    int id = SlotStateHelpers::getIndexFromParamId(parameterID, prefix);
-    int intValue = newValue > 0.5f ? 1 : 0;
-    sendOSCMessage(juce::OSCMessage(OscHelpers::buildAddress(targetType, id, paramType), intValue));
 }
 
 void OscManager::broadcastNameChange(const juce::String& targetType, const juce::String& prefix, const juce::Identifier& property, juce::ValueTree& tree)
 {
-    int id = SlotStateHelpers::getIndexFromParamId(property.toString(), prefix);
+    int id = SlotStateHelpers::getIndexFromParamId(property.toString(), SlotIdStringPrefixes::slotName);
     juce::String newName = tree.getProperty(property).toString();
-    sendOSCMessage(juce::OSCMessage(OscHelpers::buildAddress(targetType, id, OscConstants::ParamTypes::name()), newName));
+
+    juce::String dictKey = SlotIdStringPrefixes::slotName + juce::String(id);
+
+    if (lastReceivedOscStrings.count(dictKey) > 0 && lastReceivedOscStrings[dictKey] == newName) return;
+    if (lastSentOscStrings.count(dictKey) > 0 && lastSentOscStrings[dictKey] == newName) return;
+
+    lastSentOscStrings[dictKey] = newName;
+
+    juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), id, OscConstants::ParamTypes::name());
+    sendOSCMessage(juce::OSCMessage(address, newName));
 }

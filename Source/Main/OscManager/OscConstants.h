@@ -3,7 +3,9 @@
 
 namespace OscConstants
 {
-    static const juce::String prefix = "/XP4";
+    static const juce::String incomingPrefix = "/XP4";
+    static const juce::String outgoingPrefix = "/Plugin";
+
     static constexpr int fifoSize = 512;
 
     struct TargetTypes

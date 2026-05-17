@@ -64,46 +64,50 @@ void LinkManager::removeVcaMasterListeners()
 
 void LinkManager::parameterChanged(const juce::String& parameterID, float newValue)
 {
+    float rawValue = newValue;
+
     if (processor.isRestoringState || isPropagating)
     {
-        handleProcessorRestoringState(parameterID, newValue);
+        handleProcessorRestoringState(parameterID, rawValue);
         return;
     }
 
     if (parameterID.startsWith(SlotIdStringPrefixes::vcaVolume)) 
-        handleVcaVolumeParameterChanged(parameterID, newValue);
+        handleVcaVolumeParameterChanged(parameterID, rawValue);
 
     else if (parameterID.startsWith(SlotIdStringPrefixes::vcaMute))
         handleVcaMuteParameterChanged(parameterID, newValue);
 
     else if (parameterID.startsWith(SlotIdStringPrefixes::volume)) 
-        handleVolumeParameterChanged(parameterID, newValue);
+        handleVolumeParameterChanged(parameterID, rawValue);
 
     else if (parameterID.startsWith(SlotIdStringPrefixes::mute))
         handleMuteParameterChanged(parameterID, newValue);
 }
 
-void LinkManager::handleProcessorRestoringState(const juce::String& parameterID, float newValue)
+void LinkManager::handleProcessorRestoringState(const juce::String& parameterID, float rawValue)
 {
     if (parameterID.startsWith(SlotIdStringPrefixes::volume)) 
     {
         int slotIdx = SlotStateHelpers::getIndexFromParamId(parameterID, SlotIdStringPrefixes::volume);
-		setLastVolume(slotIdx, newValue);
-		setUnclampedVolume(slotIdx, newValue);
+		setLastVolume(slotIdx, rawValue);
+		setUnclampedVolume(slotIdx, rawValue);
     }
     else if (parameterID.startsWith(SlotIdStringPrefixes::vcaVolume)) 
     {
         int grpIdx = SlotStateHelpers::getIndexFromParamId(parameterID, SlotIdStringPrefixes::vcaVolume);
-        setLastVcaVolume(grpIdx, newValue);
+        setLastVcaVolume(grpIdx, rawValue);
     }
 }
 
-void LinkManager::handleVcaVolumeParameterChanged(const juce::String& parameterID, float newValue)
+void LinkManager::handleVcaVolumeParameterChanged(const juce::String& parameterID, float rawValue)
 {
     int grpIdx = SlotStateHelpers::getIndexFromParamId(parameterID, SlotIdStringPrefixes::vcaVolume);
-    float delta = newValue - getLastVcaVolume(grpIdx);
-    setLastVcaVolume(grpIdx, newValue);
+    float delta = rawValue - getLastVcaVolume(grpIdx);
 
+    if (std::abs(delta) < 0.001f) return;
+
+    setLastVcaVolume(grpIdx, rawValue);
     applyDeltaToGroupFromVca(grpIdx, delta);
 }
 
@@ -141,13 +145,15 @@ void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
 	isPropagating = false;
 }
 
-void LinkManager::handleVolumeParameterChanged(const juce::String& parameterID, float newValue)
+void LinkManager::handleVolumeParameterChanged(const juce::String& parameterID, float rawValue)
 {
     int slotIdx = SlotStateHelpers::getIndexFromParamId(parameterID, SlotIdStringPrefixes::volume);
+    float delta = rawValue - getLastVolume(slotIdx);
 
-    float delta = newValue - getLastVolume(slotIdx);
-    setLastVolume(slotIdx, newValue);
-    setUnclampedVolume(slotIdx, newValue);
+    if (std::abs(delta) < 0.001f) return;
+
+    setLastVolume(slotIdx, rawValue);
+    setUnclampedVolume(slotIdx, rawValue);
 
     if (SlotStateHelpers::isGroupLeader(processor.apvts.state, slotIdx))
     {
