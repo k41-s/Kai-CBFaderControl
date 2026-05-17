@@ -32,11 +32,11 @@ private:
     void pushMessageIntoFifoQueue(const juce::OSCMessage& message);
 
     void timerCallback() override;
-    void pollAndBroadcastFaders();
     bool shouldBroadcastFloat(const juce::String& paramId, float newValue, const juce::String& paramType) const;
     bool shouldBroadcastInt(const juce::String& paramId, int newValue) const;
-    void sendOscVolume(int i);
-    void sendOscMute(int i);
+    void pollAndBroadcastFaders();
+    void sendOscVolume(int i, juce::OSCBundle& frameBundle);
+    void sendOscMute(int i, juce::OSCBundle& frameBundle);
 
     void processQueuedMessage(const juce::OSCMessage& message);
     void handleIncomingMessage(const juce::String& targetType, const juce::String& paramType, const juce::OSCMessage& message, int slotId);

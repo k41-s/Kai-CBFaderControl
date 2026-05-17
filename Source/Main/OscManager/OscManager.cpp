@@ -137,16 +137,6 @@ void OscManager::timerCallback()
     pollAndBroadcastFaders();
 }
 
-
-void OscManager::pollAndBroadcastFaders()
-{
-    for (int i = 1; i <= PluginConstants::numSlots; ++i)
-    {
-        sendOscVolume(i);
-        sendOscMute(i);
-    }
-}
-
 bool OscManager::shouldBroadcastFloat(const juce::String& paramId, float newValue, const juce::String& paramType) const
 {
     if (OscHelpers::isDuplicateFloat(lastReceivedOscFloats, paramId, newValue, paramType))
@@ -165,7 +155,25 @@ bool OscManager::shouldBroadcastInt(const juce::String& paramId, int newValue) c
     return true;
 }
 
-void OscManager::sendOscVolume(int i)
+void OscManager::pollAndBroadcastFaders()
+{
+    juce::OSCBundle frameBundle;
+
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
+    {
+        sendOscVolume(i, frameBundle);
+        sendOscMute(i, frameBundle);
+    }
+
+    if (!frameBundle.isEmpty())
+    {
+        if (!sender.send(frameBundle))
+            DBG("Failed to send OSC Bundle.");
+    }
+}
+
+
+void OscManager::sendOscVolume(int i, juce::OSCBundle& frameBundle)
 {
     juce::String volId = SlotIDs::volume(i);
     float currentVol = SlotStateHelpers::getRawParamValue(processor.apvts, volId);
@@ -174,11 +182,12 @@ void OscManager::sendOscVolume(int i)
     {
         lastSentOscFloats[volId] = currentVol;
         juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), i, OscConstants::ParamTypes::volume());
-        sendOSCMessage(juce::OSCMessage(address, currentVol));
+        
+        frameBundle.addElement(juce::OSCMessage(address, currentVol));
     }
 }
 
-void OscManager::sendOscMute(int i)
+void OscManager::sendOscMute(int i, juce::OSCBundle& frameBundle)
 {
     juce::String muteId = SlotIDs::mute(i);
     int currentMute = SlotStateHelpers::getRawParamValue(processor.apvts, muteId) > 0.5f ? 1 : 0;
@@ -187,7 +196,8 @@ void OscManager::sendOscMute(int i)
     {
         lastSentOscInts[muteId] = currentMute;
         juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), i, OscConstants::ParamTypes::mute());
-        sendOSCMessage(juce::OSCMessage(address, currentMute));
+
+        frameBundle.addElement(juce::OSCMessage(address, currentMute));
     }
 }
 
