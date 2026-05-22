@@ -25,7 +25,7 @@ namespace OscConstants
 
     struct Parsing
     {
-        static constexpr int standardPathDepth = 5;
+        static constexpr int standardPathDepth = 4;
 
         static constexpr float volumeThresholdDb = 0.01f;
         static constexpr float panThreshold = 0.01f;

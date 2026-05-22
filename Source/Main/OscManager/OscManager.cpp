@@ -172,7 +172,6 @@ void OscManager::pollAndBroadcastFaders()
     }
 }
 
-
 void OscManager::sendOscVolume(int i, juce::OSCBundle& frameBundle)
 {
     juce::String volId = SlotIDs::volume(i);
@@ -181,6 +180,7 @@ void OscManager::sendOscVolume(int i, juce::OSCBundle& frameBundle)
     if (shouldBroadcastFloat(volId, currentVol, OscConstants::ParamTypes::volume()))
     {
         lastSentOscFloats[volId] = currentVol;
+        lastReceivedOscFloats[volId] = currentVol;
         juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), i, OscConstants::ParamTypes::volume());
         
         frameBundle.addElement(juce::OSCMessage(address, currentVol));
@@ -195,10 +195,29 @@ void OscManager::sendOscMute(int i, juce::OSCBundle& frameBundle)
     if (shouldBroadcastInt(muteId, currentMute))
     {
         lastSentOscInts[muteId] = currentMute;
-        juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), i, OscConstants::ParamTypes::mute());
+        lastReceivedOscInts[muteId] = currentMute;
 
+        juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), i, OscConstants::ParamTypes::mute());
         frameBundle.addElement(juce::OSCMessage(address, currentMute));
     }
+}
+
+void OscManager::broadcastNameChange(const juce::String& targetType, const juce::String& prefix, const juce::Identifier& property, juce::ValueTree& tree)
+{
+    int id = SlotStateHelpers::getIndexFromParamId(property.toString(), SlotIdStringPrefixes::slotName);
+    juce::String newName = tree.getProperty(property).toString();
+
+    juce::String dictKey = SlotIdStringPrefixes::slotName + juce::String(id);
+
+    if (OscHelpers::isDuplicateValue(lastReceivedOscStrings, dictKey, newName) ||
+        OscHelpers::isDuplicateValue(lastSentOscStrings, dictKey, newName))
+        return;
+
+    lastSentOscStrings[dictKey] = newName;
+    lastReceivedOscStrings[dictKey] = newName;
+
+    juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), id, OscConstants::ParamTypes::name());
+    sendOSCMessage(juce::OSCMessage(address, newName));
 }
 
 void OscManager::processQueuedMessage(const juce::OSCMessage& message)
@@ -228,7 +247,7 @@ void OscManager::handleIncomingMessage(const juce::String& targetType, const juc
     else if (paramType == OscConstants::ParamTypes::mute() && OscHelpers::isValidIntMessage(message))
         handleIncomingMuteMessage(message, slotId);
 
-    else if (paramType == OscConstants::ParamTypes::name() && OscHelpers::isValidStringMessage(message))
+    else if (paramType == OscConstants::ParamTypes::name())
         handleIncomingNameMessage(message, slotId);
 }
 
@@ -237,9 +256,7 @@ void OscManager::handleIncomingVolumeMessage(const juce::OSCMessage& message, in
     float incomingVolumeRaw = message[0].getFloat32();
     juce::String paramId = SlotIDs::volume(slotId);
 
-    if (OscHelpers::isDuplicateFloat(lastSentOscFloats, paramId, incomingVolumeRaw, OscConstants::ParamTypes::volume()))
-        return;
-
+    lastSentOscFloats[paramId] = incomingVolumeRaw;
     lastReceivedOscFloats[paramId] = incomingVolumeRaw;
 
     float currentVolumeRaw = SlotStateHelpers::getRawParamValue(processor.apvts, paramId);
@@ -255,9 +272,7 @@ void OscManager::handleIncomingMuteMessage(const juce::OSCMessage& message, int 
     int isMutedInt = isMuted ? 1 : 0;
     juce::String paramId = SlotIDs::mute(slotId);
 
-    if (OscHelpers::isDuplicateValue(lastSentOscInts, paramId, isMutedInt))
-        return;
-
+    lastSentOscInts[paramId] = isMutedInt;
     lastReceivedOscInts[paramId] = isMutedInt;
 
     bool currentlyMuted = SlotStateHelpers::getRawParamValue(processor.apvts, paramId) > 0.5f;
@@ -269,18 +284,74 @@ void OscManager::handleIncomingMuteMessage(const juce::OSCMessage& message, int 
 
 void OscManager::handleIncomingNameMessage(const juce::OSCMessage& message, int slotId)
 {
-    juce::String incomingName = message[0].getString();
+    juce::String rawName;
+
+    if (message.size() > 0)
+    {
+        extractNameFromPayload(message, rawName);
+    }
+
+    if (rawName.isEmpty())
+    {
+        parseNameFromAddressPath(message, slotId, rawName);
+    }
+
+    juce::String sanitizedName;
+    sanitizeString(rawName, sanitizedName);
+
+	// Maybe make helper for this key generation
     juce::String dictKey = SlotIdStringPrefixes::slotName + juce::String(slotId);
 
-    if (OscHelpers::isDuplicateValue(lastSentOscStrings, dictKey, incomingName))
-        return;
-
-    lastReceivedOscStrings[dictKey] = incomingName;
+    // Make helper for syncing these caches
+    lastSentOscStrings[dictKey] = sanitizedName;
+    lastReceivedOscStrings[dictKey] = sanitizedName;
 
     juce::String currentName = SlotStateHelpers::getSlotCustomName(processor.apvts.state, slotId);
-    if (currentName != incomingName)
+    if (currentName != sanitizedName)
     {
-        SlotStateHelpers::setSlotCustomName(processor.apvts.state, slotId, incomingName);
+        SlotStateHelpers::setSlotCustomName(processor.apvts.state, slotId, sanitizedName);
+    }
+}
+
+void OscManager::extractNameFromPayload(const juce::OSCMessage& message, juce::String& rawName)
+{
+    if (message[0].isString())
+        rawName = message[0].getString();
+    else if (message[0].isInt32())
+        rawName = juce::String(message[0].getInt32());
+    else if (message[0].isFloat32())
+        rawName = juce::String(message[0].getFloat32());
+    else if (message[0].isBlob())
+    {
+        auto& blob = message[0].getBlob();
+        rawName = juce::String::fromUTF8((const char*)blob.getData(), (int)blob.getSize());
+    }
+}
+
+void OscManager::parseNameFromAddressPath(const juce::OSCMessage& message, int slotId, juce::String& rawName)
+{
+    juce::String address = message.getAddressPattern().toString();
+    juce::String expectedPrefix = OscConstants::incomingPrefix + "/" +
+        OscConstants::TargetTypes::fader() + "/" + juce::String(slotId) + "/" +
+        OscConstants::ParamTypes::name() + "/";
+
+    if (address.startsWithIgnoreCase(expectedPrefix))
+        rawName = address.substring(expectedPrefix.length());
+}
+
+void OscManager::sanitizeString(juce::String& rawName, juce::String& sanitizedName)
+{
+    for (auto c : rawName)
+    {
+        if (c >= 32 && c <= 126)
+            sanitizedName += juce::String::charToString(c);
+    }
+
+    sanitizedName = sanitizedName.trim();
+
+    if (sanitizedName.length() > PluginConstants::maxSlotNameLength)
+    {
+        sanitizedName = sanitizedName.substring(0, PluginConstants::maxSlotNameLength);
     }
 }
 
@@ -299,22 +370,4 @@ void OscManager::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Ide
         if (propStr.startsWith(SlotIdStringPrefixes::slotName))
             broadcastNameChange(OscConstants::TargetTypes::fader(), SlotIdStringPrefixes::slotName, property, tree);
     }
-}
-
-void OscManager::broadcastNameChange(const juce::String& targetType, const juce::String& prefix, const juce::Identifier& property, juce::ValueTree& tree)
-{
-    int id = SlotStateHelpers::getIndexFromParamId(property.toString(), SlotIdStringPrefixes::slotName);
-    juce::String newName = tree.getProperty(property).toString();
-
-    juce::String dictKey = SlotIdStringPrefixes::slotName + juce::String(id);
-
-    if (OscHelpers::isDuplicateValue(lastReceivedOscStrings, dictKey, newName))
-        return;
-    if (OscHelpers::isDuplicateValue(lastSentOscStrings, dictKey, newName)) 
-        return;
-
-    lastSentOscStrings[dictKey] = newName;
-
-    juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), id, OscConstants::ParamTypes::name());
-    sendOSCMessage(juce::OSCMessage(address, newName));
 }

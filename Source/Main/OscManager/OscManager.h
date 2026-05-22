@@ -37,16 +37,19 @@ private:
     void pollAndBroadcastFaders();
     void sendOscVolume(int i, juce::OSCBundle& frameBundle);
     void sendOscMute(int i, juce::OSCBundle& frameBundle);
+    void broadcastNameChange(const juce::String& targetType, const juce::String& prefix, const juce::Identifier& property, juce::ValueTree& tree);
 
     void processQueuedMessage(const juce::OSCMessage& message);
     void handleIncomingMessage(const juce::String& targetType, const juce::String& paramType, const juce::OSCMessage& message, int slotId);
     void handleIncomingVolumeMessage(const juce::OSCMessage& message, int slotId);
     void handleIncomingMuteMessage(const juce::OSCMessage& message, int slotId);
+
     void handleIncomingNameMessage(const juce::OSCMessage& message, int slotId);
+    void extractNameFromPayload(const juce::OSCMessage& message, juce::String& rawName);
+    void parseNameFromAddressPath(const juce::OSCMessage& message, int slotId, juce::String& rawName);
+    void sanitizeString(juce::String& rawName, juce::String& sanitizedName);
 
     void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
-
-    void broadcastNameChange(const juce::String& targetType, const juce::String& prefix, const juce::Identifier& property, juce::ValueTree& tree);
 
     KaiCBFaderControlAudioProcessor& processor;
     juce::OSCReceiver receiver;
