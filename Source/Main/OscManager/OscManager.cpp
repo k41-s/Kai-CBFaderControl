@@ -306,27 +306,29 @@ void OscManager::handleIncomingStereoMessage(const juce::OSCMessage& message, in
 
     if (currentlyStereo != isStereo)
     {
-        // Update the state
         SlotStateHelpers::setXpStereo(processor.apvts.state, slotId, isStereo);
 
-        // If XPatch FORCES this channel to stereo, we must forcefully break any local plugin links
         if (isStereo && SlotStateHelpers::isStereoLinked(processor.apvts.state, slotId))
         {
-            int linkedIdx = SlotStateHelpers::getLinkedSlotId(processor.apvts.state, slotId);
-
-            // Remove local link properties from this slot
-            SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoLinked(slotId));
-            SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoMain(slotId));
-            SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::linkedSlotId(slotId));
-
-            // Remove local link properties from the previously linked partner
-            if (linkedIdx != -1)
-            {
-                SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoLinked(linkedIdx));
-                SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoMain(linkedIdx));
-                SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::linkedSlotId(linkedIdx));
-            }
+            removeExistingSlotLinks(slotId);
         }
+    }
+}
+
+void OscManager::removeExistingSlotLinks(int slotId)
+{
+    int linkedIdx = SlotStateHelpers::getLinkedSlotId(processor.apvts.state, slotId);
+
+    // make global helper for this and next section, it is used the same way somewhere else in the code
+    SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoLinked(slotId));
+    SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoMain(slotId));
+    SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::linkedSlotId(slotId));
+
+    if (linkedIdx != -1)
+    {
+        SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoLinked(linkedIdx));
+        SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoMain(linkedIdx));
+        SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::linkedSlotId(linkedIdx));
     }
 }
 

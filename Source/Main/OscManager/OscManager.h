@@ -44,7 +44,9 @@ private:
     void handleIncomingVolumeMessage(const juce::OSCMessage& message, int slotId);
     void handleIncomingMuteMessage(const juce::OSCMessage& message, int slotId);
     void handleIncomingColourMessage(const juce::OSCMessage& message, int slotId);
+
     void handleIncomingStereoMessage(const juce::OSCMessage& message, int slotId);
+    void removeExistingSlotLinks(int slotId);
 
     void handleIncomingNameMessage(const juce::OSCMessage& message, int slotId);
     void extractNameFromPayload(const juce::OSCMessage& message, juce::String& rawName);
