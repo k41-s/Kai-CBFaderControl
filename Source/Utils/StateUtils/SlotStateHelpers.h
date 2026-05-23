@@ -98,6 +98,11 @@ namespace SlotStateHelpers
         return getIntProp(state, SlotIDs::linkedSlotId(slotIdx), -1);
     }
 
+    static inline bool isSipMuted(const juce::ValueTree& state, int slotIdx)
+    {
+        return getBoolProp(state, SlotIDs::sipMuted(slotIdx), false);
+    }
+
     static inline juce::String getSlotCustomName(const juce::ValueTree& state, int slotIdx)
     {
         return getStringProp(state, SlotIDs::slotName(slotIdx), "");
@@ -165,6 +170,11 @@ namespace SlotStateHelpers
     static inline void setLinkedSlotId(juce::ValueTree& state, int slotIdx, int linkedIdx, juce::UndoManager* undoManager = nullptr)
     {
         setIntProp(state, SlotIDs::linkedSlotId(slotIdx), linkedIdx, undoManager);
+    }
+
+    static inline void setSipMuted(juce::ValueTree& state, int slotIdx, bool isMuted, juce::UndoManager* undoManager = nullptr)
+    {
+        setBoolProp(state, SlotIDs::sipMuted(slotIdx), isMuted, undoManager);
     }
 
     static inline void setSlotCustomName(juce::ValueTree& state, int slotIdx, const juce::String& name, juce::UndoManager* undoManager = nullptr)

@@ -9,6 +9,7 @@ class LinkManager : public juce::AudioProcessorValueTreeState::Listener
 public:
     LinkManager(KaiCBFaderControlAudioProcessor& processor);
     ~LinkManager() override;
+
     void parameterChanged(const juce::String& parameterID, float newValue) override;
 
 private:
@@ -32,6 +33,11 @@ private:
     
     void handleMuteParameterChanged(const juce::String& parameterID, float newValue);
     void syncMutesWithinGroup(int slotIdx, int grpId, float newValue);
+
+    void updateSipState();
+    void handleNotCurrentlyMuted(bool isCurrentlyMuted, int i);
+    void handleIsSipMuted(bool isSipMuted, int i);
+    void handleSIP(int i, bool mute);
 
     void applyVolumeDeltaToSlot(int slotIdx, float delta);
 

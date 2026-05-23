@@ -12,12 +12,13 @@ namespace SlotIdStringPrefixes
     static const juce::String pan = "pan_";
     static const juce::String solo = "solo_";
     static const juce::String soloSafe = "soloSafe_";
-    static const juce::String xpStereo = "xpStereo_";
+    static const juce::String sipMuted = "sipMuted_";
 
 	// Stereo linking parameters
     static const juce::String isStereoLinked = "isStereoLinked_";
     static const juce::String isStereoMain = "isStereoMain_";
     static const juce::String linkedSlotId = "linkedSlotId_";
+    static const juce::String xpStereo = "xpStereo_";
 
 	// Grouping parameters
     static const juce::String groupId = "groupId_";
@@ -42,11 +43,12 @@ struct SlotIDs
     static juce::String pan(int i) { return SlotIdStringPrefixes::pan + juce::String(i); }
     static juce::String solo(int i) { return SlotIdStringPrefixes::solo + juce::String(i); }
     static juce::String soloSafe(int i) { return SlotIdStringPrefixes::soloSafe + juce::String(i); }
-    static juce::String xpStereo(int i) { return SlotIdStringPrefixes::xpStereo + juce::String(i); }
+    static juce::String sipMuted(int i) { return SlotIdStringPrefixes::sipMuted + juce::String(i); }
 
     static juce::String isStereoLinked(int i) { return SlotIdStringPrefixes::isStereoLinked + juce::String(i); }
     static juce::String isStereoMain(int i) { return SlotIdStringPrefixes::isStereoMain + juce::String(i); }
     static juce::String linkedSlotId(int i) { return SlotIdStringPrefixes::linkedSlotId + juce::String(i); }
+    static juce::String xpStereo(int i) { return SlotIdStringPrefixes::xpStereo + juce::String(i); }
     
     static juce::String groupId(int i) { return SlotIdStringPrefixes::groupId + juce::String(i); }
     static juce::String groupRole(int i) { return SlotIdStringPrefixes::groupRole + juce::String(i); }

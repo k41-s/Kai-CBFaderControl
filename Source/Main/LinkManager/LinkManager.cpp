@@ -20,6 +20,8 @@ void LinkManager::addRegularSlotListeners()
     {
         processor.apvts.addParameterListener(SlotIDs::volume(i), this);
         processor.apvts.addParameterListener(SlotIDs::mute(i), this);
+        processor.apvts.addParameterListener(SlotIDs::solo(i), this);
+        processor.apvts.addParameterListener(SlotIDs::soloSafe(i), this);
 
         float initialVol = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::volume(i));
         setLastVolume(i, initialVol);
@@ -50,6 +52,8 @@ void LinkManager::removeRegularSlotListeners()
     {
         processor.apvts.removeParameterListener(SlotIDs::volume(i), this);
         processor.apvts.removeParameterListener(SlotIDs::mute(i), this);
+        processor.apvts.removeParameterListener(SlotIDs::solo(i), this);
+        processor.apvts.removeParameterListener(SlotIDs::soloSafe(i), this);
     }
 }
 
@@ -83,6 +87,12 @@ void LinkManager::parameterChanged(const juce::String& parameterID, float newVal
 
     else if (parameterID.startsWith(SlotIdStringPrefixes::mute))
         handleMuteParameterChanged(parameterID, newValue);
+
+    else if (parameterID.startsWith(SlotIdStringPrefixes::solo) ||
+        parameterID.startsWith(SlotIdStringPrefixes::soloSafe))
+    {
+        updateSipState();
+    }
 }
 
 void LinkManager::handleProcessorRestoringState(const juce::String& parameterID, float rawValue)
@@ -207,6 +217,72 @@ void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
         }
     }
 	isPropagating = false;
+}
+
+void LinkManager::updateSipState()
+{
+    // Step A: Check if ANY slot in the entire plugin is soloed
+    bool anySoloActive = false;
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
+    {
+        if (SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::solo(i)) > 0.5f)
+        {
+            anySoloActive = true;
+            break;
+        }
+    }
+
+    // Lock propagation so we don't trigger recursive group mute loops
+    isPropagating = true;
+
+    // Step B: Apply or Release SIP Mutes
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
+    {
+        bool isSoloed = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::solo(i)) > 0.5f;
+        bool isSafe = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::soloSafe(i)) > 0.5f;
+        bool isCurrentlyMuted = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::mute(i)) > 0.5f;
+        bool isSipMuted = SlotStateHelpers::isSipMuted(processor.apvts.state, i);
+
+        if (anySoloActive)
+        {
+            if (!isSoloed && !isSafe)
+            {
+                handleNotCurrentlyMuted(isCurrentlyMuted, i);
+            }
+            else
+            {
+				handleIsSipMuted(isSipMuted, i);
+            }
+        }
+        else
+        {
+            handleIsSipMuted(isSipMuted, i);
+        }
+    }
+
+    isPropagating = false;
+}
+
+void LinkManager::handleNotCurrentlyMuted(bool isCurrentlyMuted, int i)
+{
+    if (!isCurrentlyMuted)
+    {
+        handleSIP(i, true);
+    }
+}
+
+void LinkManager::handleIsSipMuted(bool isSipMuted, int i)
+{
+    if (isSipMuted)
+    {
+        handleSIP(i, false);
+    }
+}
+
+void LinkManager::handleSIP(int i, bool mute)
+{
+    SlotStateHelpers::setSipMuted(processor.apvts.state, i, mute);
+    SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(i), mute ? 1.0f : 0.0f);
 }
 
 void LinkManager::applyVolumeDeltaToSlot(int slotIdx, float delta)
