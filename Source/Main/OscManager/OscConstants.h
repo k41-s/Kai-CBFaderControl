@@ -11,12 +11,13 @@ namespace OscConstants
     struct TargetTypes
     {
         static const juce::String fader() { return "fader"; }
-        static const juce::String vca() { return "vca"; }
+        //static const juce::String vca() { return "vca"; }
     };
 
     struct ParamTypes
     {
         static const juce::String name() { return "name"; }
+        static const juce::String colour() { return "colour"; }
         static const juce::String volume() { return "volume"; }
         static const juce::String mute() { return "mute"; }
         static const juce::String pan() { return "pan"; }

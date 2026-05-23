@@ -6,6 +6,7 @@ namespace SlotIdStringPrefixes
 	// Regular slot parameters
     static const juce::String isActive = "isActive_";
     static const juce::String slotName = "slotName_";
+    static const juce::String slotColour = "slotColour_";
     static const juce::String volume = "volume_";
     static const juce::String mute = "mute_";
     static const juce::String pan = "pan_";
@@ -34,6 +35,7 @@ struct SlotIDs
 {
     static juce::String isActive(int i) { return SlotIdStringPrefixes::isActive + juce::String(i); }
     static juce::String slotName(int i) { return SlotIdStringPrefixes::slotName + juce::String(i); }
+    static juce::String slotColour(int i) { return SlotIdStringPrefixes::slotColour + juce::String(i); }
     static juce::String volume(int i) { return SlotIdStringPrefixes::volume + juce::String(i); }
     static juce::String mute(int i) { return SlotIdStringPrefixes::mute + juce::String(i); }
     static juce::String pan(int i) { return SlotIdStringPrefixes::pan + juce::String(i); }

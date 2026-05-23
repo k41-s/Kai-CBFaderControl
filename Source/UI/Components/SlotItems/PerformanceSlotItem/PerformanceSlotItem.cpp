@@ -20,6 +20,7 @@ void PerformanceSlotItem::init(int slotIndex)
     configAttachments(slotIndex);
     updateValueLabel();
     updateNameFromValueTree();
+	updateSlotColour();
     updateStereoState();
 	updateGroupState();
     addMouseListenerToChildren();
@@ -134,6 +135,35 @@ void PerformanceSlotItem::updateNameFromValueTree()
     resized();
 }
 
+void PerformanceSlotItem::updateSlotColour()
+{
+    juce::String hexColour = SlotStateHelpers::getSlotColour(processor.apvts.state, index);
+
+    if (hexColour.isNotEmpty())
+    {
+        applyXPatchSlotColour(hexColour);
+    }
+    else
+    {
+        revertSlotColourToDefault();
+    }
+
+    repaint();
+}
+
+void PerformanceSlotItem::applyXPatchSlotColour(juce::String& hexColour)
+{
+    juce::Colour xpColour = juce::Colour::fromString(hexColour).withAlpha(1.0f);
+    nameLabel.setColour(juce::Label::textColourId, xpColour);
+    nameLabel.setColour(juce::Label::outlineColourId, xpColour.withAlpha(0.6f));
+}
+
+void PerformanceSlotItem::revertSlotColourToDefault()
+{
+    nameLabel.setColour(juce::Label::textColourId, MyColours::white);
+    nameLabel.setColour(juce::Label::outlineColourId, juce::Colours::transparentBlack);
+}
+
 void PerformanceSlotItem::updateStereoState()
 {
     isStereoLinked = SlotStateHelpers::isStereoLinked(processor.apvts.state, index);
@@ -207,6 +237,10 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
     if (propName == SlotIDs::slotName(index))
     {
         updateNameFromValueTree();
+    }
+    else if (propName == SlotIDs::slotColour(index))
+    {
+        updateSlotColour();
     }
     else if (propName.startsWith(SlotIdStringPrefixes::isStereoLinked) ||
         propName.startsWith(SlotIdStringPrefixes::isStereoMain) ||

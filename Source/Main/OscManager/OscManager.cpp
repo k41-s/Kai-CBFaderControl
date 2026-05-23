@@ -247,6 +247,9 @@ void OscManager::handleIncomingMessage(const juce::String& targetType, const juc
     else if (paramType == OscConstants::ParamTypes::mute() && OscHelpers::isValidIntMessage(message))
         handleIncomingMuteMessage(message, slotId);
 
+    else if (paramType == OscConstants::ParamTypes::colour() && OscHelpers::isValidStringMessage(message))
+        handleIncomingColourMessage(message, slotId);
+
     else if (paramType == OscConstants::ParamTypes::name())
         handleIncomingNameMessage(message, slotId);
 }
@@ -279,6 +282,17 @@ void OscManager::handleIncomingMuteMessage(const juce::OSCMessage& message, int 
     if (currentlyMuted != isMuted)
     {
         SlotStateHelpers::setParamNormalized(processor.apvts, paramId, isMuted ? 1.0f : 0.0f);
+    }
+}
+
+void OscManager::handleIncomingColourMessage(const juce::OSCMessage& message, int slotId)
+{
+    juce::String incomingHexColour = message[0].getString();
+    juce::String currentColour = SlotStateHelpers::getSlotColour(processor.apvts.state, slotId);
+
+    if (currentColour != incomingHexColour)
+    {
+        SlotStateHelpers::setSlotColour(processor.apvts.state, slotId, incomingHexColour);
     }
 }
 

@@ -98,6 +98,11 @@ namespace SlotStateHelpers
         return getStringProp(state, SlotIDs::slotName(slotIdx), "");
     }
 
+    static inline juce::String getSlotColour(const juce::ValueTree& state, int slotIdx)
+    {
+        return getStringProp(state, SlotIDs::slotColour(slotIdx), "");
+    }
+
     static inline int getGroupColour(const juce::ValueTree& state, int grpId)
     {
         return getIntProp(state, SlotIDs::groupColour(grpId), 0);
@@ -158,6 +163,11 @@ namespace SlotStateHelpers
             ? name.substring(0, PluginConstants::maxSlotNameLength) : name;
 
         setStringProp(state, SlotIDs::slotName(slotIdx), usableName, undoManager);
+    }
+
+    static inline void setSlotColour(juce::ValueTree& state, int slotIdx, const juce::String& hexColour, juce::UndoManager* undoManager = nullptr)
+    {
+        setStringProp(state, SlotIDs::slotColour(slotIdx), hexColour, undoManager);
     }
 
     static inline void setGroupColour(juce::ValueTree& state, int grpId, int colourIdx, juce::UndoManager* undoManager = nullptr)

@@ -43,6 +43,7 @@ private:
     void handleIncomingMessage(const juce::String& targetType, const juce::String& paramType, const juce::OSCMessage& message, int slotId);
     void handleIncomingVolumeMessage(const juce::OSCMessage& message, int slotId);
     void handleIncomingMuteMessage(const juce::OSCMessage& message, int slotId);
+    void handleIncomingColourMessage(const juce::OSCMessage& message, int slotId);
 
     void handleIncomingNameMessage(const juce::OSCMessage& message, int slotId);
     void extractNameFromPayload(const juce::OSCMessage& message, juce::String& rawName);

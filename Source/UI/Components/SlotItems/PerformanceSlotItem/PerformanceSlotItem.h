@@ -58,7 +58,12 @@ private:
 	void configIndexLabel();
 	void configNameLabel();
 
+
 	// State update functions
+	void updateSlotColour();
+	void applyXPatchSlotColour(juce::String& hexColour);
+	void revertSlotColourToDefault();
+
 	void updateStereoState();
 	void updateGroupState();
 	void setAppropriateIndexLabelText();
