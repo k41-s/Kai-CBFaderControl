@@ -26,7 +26,6 @@ public:
 	bool getSelected() const { return isSelected; }
 	void setMode(SlotMode mode);
 
-
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDown;
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDrag;
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseUp;
@@ -57,7 +56,6 @@ private:
 	void configGroupLabels();
 	void configIndexLabel();
 	void configNameLabel();
-
 
 	// State update functions
 	void updateSlotColour();
@@ -95,6 +93,7 @@ private:
 	bool isSelected = false;
 	bool isStereoMain = false;
 	bool isStereoLinked = false;
+	bool isXpStereo = false;
 
 	juce::Label groupRoleLabel;
 	juce::Slider panSlider;

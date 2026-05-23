@@ -88,6 +88,11 @@ namespace SlotStateHelpers
         return getBoolProp(state, SlotIDs::isStereoMain(slotIdx), false);
     }
 
+    static inline bool isXpStereo(const juce::ValueTree& state, int slotIdx)
+    {
+        return getBoolProp(state, SlotIDs::xpStereo(slotIdx), false);
+    }
+
     static inline int getLinkedSlotId(const juce::ValueTree& state, int slotIdx)
     {
         return getIntProp(state, SlotIDs::linkedSlotId(slotIdx), -1);
@@ -150,6 +155,11 @@ namespace SlotStateHelpers
     static inline void setStereoMain(juce::ValueTree& state, int slotIdx, bool isMain, juce::UndoManager* undoManager = nullptr)
     {
         setBoolProp(state, SlotIDs::isStereoMain(slotIdx), isMain, undoManager);
+    }
+
+    static inline void setXpStereo(juce::ValueTree& state, int slotIdx, bool isStereo, juce::UndoManager* undoManager = nullptr)
+    {
+        setBoolProp(state, SlotIDs::xpStereo(slotIdx), isStereo, undoManager);
     }
 
     static inline void setLinkedSlotId(juce::ValueTree& state, int slotIdx, int linkedIdx, juce::UndoManager* undoManager = nullptr)

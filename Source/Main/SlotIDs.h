@@ -12,6 +12,7 @@ namespace SlotIdStringPrefixes
     static const juce::String pan = "pan_";
     static const juce::String solo = "solo_";
     static const juce::String soloSafe = "soloSafe_";
+    static const juce::String xpStereo = "xpStereo_";
 
 	// Stereo linking parameters
     static const juce::String isStereoLinked = "isStereoLinked_";
@@ -41,6 +42,7 @@ struct SlotIDs
     static juce::String pan(int i) { return SlotIdStringPrefixes::pan + juce::String(i); }
     static juce::String solo(int i) { return SlotIdStringPrefixes::solo + juce::String(i); }
     static juce::String soloSafe(int i) { return SlotIdStringPrefixes::soloSafe + juce::String(i); }
+    static juce::String xpStereo(int i) { return SlotIdStringPrefixes::xpStereo + juce::String(i); }
 
     static juce::String isStereoLinked(int i) { return SlotIdStringPrefixes::isStereoLinked + juce::String(i); }
     static juce::String isStereoMain(int i) { return SlotIdStringPrefixes::isStereoMain + juce::String(i); }

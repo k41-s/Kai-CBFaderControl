@@ -168,6 +168,8 @@ void PerformanceSlotItem::updateStereoState()
 {
     isStereoLinked = SlotStateHelpers::isStereoLinked(processor.apvts.state, index);
     isStereoMain = SlotStateHelpers::isStereoMain(processor.apvts.state, index);
+    isXpStereo = SlotStateHelpers::isXpStereo(processor.apvts.state, index);
+
     panSlider.setVisible(isStereoMain);
 
     setAppropriateIndexLabelText();
@@ -214,7 +216,11 @@ void PerformanceSlotItem::setAppropriateIndexLabelText()
     if (isStereoMain)
     {
         int linkedIdx = SlotStateHelpers::getLinkedSlotId(processor.apvts.state, index);
-        indexLabel.setText(juce::String(index) + "-" + juce::String(linkedIdx), juce::dontSendNotification);
+        indexLabel.setText(juce::String(index) + "   -   " + juce::String(linkedIdx), juce::dontSendNotification);
+    }
+    else if (isXpStereo)
+    {
+        indexLabel.setText(juce::String(index) + " (ST)", juce::dontSendNotification);
     }
     else 
     {
@@ -244,7 +250,8 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
     }
     else if (propName.startsWith(SlotIdStringPrefixes::isStereoLinked) ||
         propName.startsWith(SlotIdStringPrefixes::isStereoMain) ||
-        propName.startsWith(SlotIdStringPrefixes::linkedSlotId))
+        propName.startsWith(SlotIdStringPrefixes::linkedSlotId) ||
+        propName.startsWith(SlotIdStringPrefixes::xpStereo))
     {
         updateStereoState();
     }

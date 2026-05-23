@@ -11,7 +11,6 @@ namespace OscConstants
     struct TargetTypes
     {
         static const juce::String fader() { return "fader"; }
-        //static const juce::String vca() { return "vca"; }
     };
 
     struct ParamTypes
@@ -22,6 +21,7 @@ namespace OscConstants
         static const juce::String mute() { return "mute"; }
         static const juce::String pan() { return "pan"; }
         static const juce::String solo() { return "solo"; }
+        static const juce::String stereo() { return "stereo"; }
     };
 
     struct Parsing

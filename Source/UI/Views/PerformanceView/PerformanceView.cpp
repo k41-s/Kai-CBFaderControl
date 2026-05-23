@@ -306,6 +306,12 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 
 void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu) const
 {
+	for (int idx : selectedArr)
+	{
+		if (SlotStateHelpers::isXpStereo(processor.apvts.state, idx))
+			return;
+	}
+
 	if (selectedArr.size() == 2)
 	{
 		if (!SlotStateHelpers::isStereoLinked(processor.apvts.state, selectedArr[0]) &&
