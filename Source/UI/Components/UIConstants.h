@@ -78,7 +78,6 @@ namespace UIButtonLabels
 {
     static inline const juce::String mute = "M";
     static inline const juce::String solo = "S";
-    static inline const juce::String soloInPlace = "SIP";
     static inline const juce::String expand = "EXP";
 }
 

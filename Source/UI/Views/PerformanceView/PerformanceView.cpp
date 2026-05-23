@@ -299,6 +299,7 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 
 	addStereoMenuItems(activeSlots, menu);
 	addGroupMenu(activeSlots, menu);
+	addSoloSafeMenuItem(activeSlots, menu);
 
 	if (activeSlots.size() == 1)
 		addSingleSlotGroupOptions(activeSlots, menu);
@@ -457,6 +458,10 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 			if (activeSlots.size() == 1) toggleVcaMaster(activeSlots[0]);
 			break;
 
+		case ToggleSoloSafe:
+			toggleSoloSafe(activeSlots);
+			break;
+
 		default:
 			break;
 	}
@@ -488,6 +493,23 @@ void PerformanceView::handleGroupAssignment(int result, const juce::Array<int>& 
 	int groupId = result - AssignGroupBase;
 	for (int idx : selectedArr)
 		setSlotStandardGroup(idx, groupId, GroupRole::Member);
+}
+
+void PerformanceView::addSoloSafeMenuItem(const juce::Array<int>& activeSlots, juce::PopupMenu& menu) const
+{
+	if (activeSlots.isEmpty()) return;
+
+	menu.addSeparator();
+
+	if (activeSlots.size() == 1)
+	{
+		bool isSafe = SlotStateHelpers::isSlotSoloSafe(processor.apvts, activeSlots[0]);
+		menu.addItem(ToggleSoloSafe, isSafe ? "Disable Solo Safe" : "Enable Solo Safe");
+	}
+	else
+	{
+		menu.addItem(ToggleSoloSafe, "Toggle Solo Safe (Bulk)");
+	}
 }
 
 void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr, int result)
@@ -599,6 +621,16 @@ void PerformanceView::toggleVcaMaster(int slotIdx)
 
 	bool currentlyEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, grpId);
 	SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaEnabled(grpId), currentlyEnabled ? 0.0f : 1.0f);
+}
+
+void PerformanceView::toggleSoloSafe(const juce::Array<int>& activeSlots)
+{
+	for (int idx : activeSlots)
+	{
+		bool isCurrentlySafe = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::soloSafe(idx)) > 0.5f;
+
+		SlotStateHelpers::setSlotSoloSafe(processor.apvts, idx, !isCurrentlySafe);
+	}
 }
 
 void PerformanceView::paint(juce::Graphics& g)

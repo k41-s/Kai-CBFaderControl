@@ -244,6 +244,11 @@ namespace SlotStateHelpers
         return getRawParamValue(apvts, SlotIDs::isActive(slotIdx)) > 0.5f;
     }
 
+    static inline bool isSlotSoloSafe(const juce::AudioProcessorValueTreeState& apvts, int slotIdx)
+    {
+        return getRawParamValue(apvts, SlotIDs::soloSafe(slotIdx)) > 0.5f;
+    }
+
     static inline void setParamNormalized(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float normalizedValue)
     {
         if (auto* param = apvts.getParameter(paramId))
@@ -266,6 +271,11 @@ namespace SlotStateHelpers
     static inline void setSlotActive(juce::AudioProcessorValueTreeState& apvts, int slotIdx, bool shouldBeActive)
     {
         setParamNormalized(apvts, SlotIDs::isActive(slotIdx), shouldBeActive ? 1.0f : 0.0f);
+    }
+
+    static inline void setSlotSoloSafe(juce::AudioProcessorValueTreeState& apvts, int slotIdx, bool shouldBeSoloSafe)
+    {
+        setParamNormalized(apvts, SlotIDs::soloSafe(slotIdx), shouldBeSoloSafe ? 1.0f : 0.0f);
     }
 
     // =========================================================================

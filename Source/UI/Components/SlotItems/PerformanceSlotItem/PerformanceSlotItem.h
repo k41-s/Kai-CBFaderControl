@@ -6,7 +6,9 @@
 #include "../BaseSlotItem/BaseSlotItem.h"
 #include "../../../../Main/SlotIDs.h"
 
-class PerformanceSlotItem : public BaseSlotItem
+class PerformanceSlotItem : 
+	public BaseSlotItem,
+	public juce::AudioProcessorValueTreeState::Listener
 {
 public:
 	PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex);
@@ -19,8 +21,12 @@ public:
 	void mouseDrag(const juce::MouseEvent& e) override;
 	void mouseUp(const juce::MouseEvent& e) override;
 
+	void parameterChanged(const juce::String& parameterID, float newValue) override;
+
 	void paint(juce::Graphics& g) override;
 	void resized() override;
+	void paintOverChildren(juce::Graphics& g) override;
+	void drawSoloSafeIndicator(juce::Graphics& g);
 
 	void setSelected(bool selected);
 	bool getSelected() const { return isSelected; }
@@ -38,6 +44,7 @@ protected:
 
 private:
 	void init(int slotIndex);
+	void addListeners();
 	void addMouseListenerToChildren();
 
 	// Attachment configuration
@@ -65,6 +72,7 @@ private:
 	void updateStereoState();
 	void updateGroupState();
 	void setAppropriateIndexLabelText();
+	void updateSoloSafeVisuals();
 
 	void drawSelectedSlotItem(juce::Graphics& g);
 	void drawSlotItem(juce::Graphics& g);

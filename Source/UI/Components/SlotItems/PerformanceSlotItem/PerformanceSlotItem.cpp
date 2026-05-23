@@ -14,8 +14,7 @@ PerformanceSlotItem::PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int
 
 void PerformanceSlotItem::init(int slotIndex)
 {
-    processor.apvts.state.addListener(this);
-
+    addListeners();
     configComponents();
     configAttachments(slotIndex);
     updateValueLabel();
@@ -23,7 +22,14 @@ void PerformanceSlotItem::init(int slotIndex)
 	updateSlotColour();
     updateStereoState();
 	updateGroupState();
+	updateSoloSafeVisuals();
     addMouseListenerToChildren();
+}
+
+void PerformanceSlotItem::addListeners()
+{
+    processor.apvts.state.addListener(this);
+    processor.apvts.addParameterListener(SlotIDs::soloSafe(index), this);
 }
 
 void PerformanceSlotItem::configComponents()
@@ -228,6 +234,11 @@ void PerformanceSlotItem::setAppropriateIndexLabelText()
     }
 }
 
+void PerformanceSlotItem::updateSoloSafeVisuals()
+{
+    repaint();
+}
+
 void PerformanceSlotItem::addMouseListenerToChildren()
 {
     for (auto* child : getChildren())
@@ -311,6 +322,18 @@ void PerformanceSlotItem::setSelected(bool selected)
 PerformanceSlotItem::~PerformanceSlotItem()
 {
     processor.apvts.state.removeListener(this);
+    processor.apvts.removeParameterListener(SlotIDs::soloSafe(index), this);
+}
+
+void PerformanceSlotItem::parameterChanged(const juce::String& parameterID, float newValue)
+{
+    if (parameterID == SlotIDs::soloSafe(index))
+    {
+        juce::MessageManager::callAsync([this]()
+        {
+            repaint();
+        });
+    }
 }
 
 void PerformanceSlotItem::paint(juce::Graphics& g)
@@ -374,6 +397,26 @@ void PerformanceSlotItem::drawReadonlySlotOutline(juce::Graphics& g, const juce:
 void PerformanceSlotItem::resized()
 {
     setupSlotBounds();
+}
+
+void PerformanceSlotItem::paintOverChildren(juce::Graphics& g)
+{
+    if (SlotStateHelpers::isSlotSoloSafe(processor.apvts, index) && soloButton.isVisible())
+    {
+        drawSoloSafeIndicator(g);
+    }
+}
+
+void PerformanceSlotItem::drawSoloSafeIndicator(juce::Graphics& g)
+{
+    auto bounds = soloButton.getBounds().reduced(3).toFloat();
+    g.setColour(juce::Colours::red.withAlpha(0.3f));
+    float thickness = 2.0f;
+    g.drawLine(bounds.getBottomLeft().x,
+        bounds.getBottomLeft().y,
+        bounds.getTopRight().x,
+        bounds.getTopRight().y,
+        thickness);
 }
 
 void PerformanceSlotItem::setupSlotBounds()

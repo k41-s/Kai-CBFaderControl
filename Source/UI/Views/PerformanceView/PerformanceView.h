@@ -101,6 +101,8 @@ private:
 	void handleColourAssignment(const juce::Array<int>& selectedArr, int result);
 	void handleGroupAssignment(int result, const juce::Array<int>& selectedArr);
 
+	void addSoloSafeMenuItem(const juce::Array<int>& activeSlots, juce::PopupMenu& menu) const;
+
 	// Stereo link functions
 	void doStereoLink(int slotA, int slotB);
 
@@ -116,6 +118,7 @@ private:
 	void demoteExistingGroupLeaders(int grpId);
 	void demoteToStandardMember(int slotIdx);
 	void toggleVcaMaster(int slotIdx);
+	void toggleSoloSafe(const juce::Array<int>& activeSlots);
 
 	// Layout and drawing functions
 	void setHeaderArea();

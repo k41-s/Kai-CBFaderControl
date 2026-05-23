@@ -7,5 +7,6 @@ enum ContextMenuID {
     PromoteLeader = 50,
     DemoteMember = 51,
     ToggleVCA = 60,
+    ToggleSoloSafe = 70,
     AssignColourBase = 100
 };
