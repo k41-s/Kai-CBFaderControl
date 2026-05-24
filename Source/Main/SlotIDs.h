@@ -63,6 +63,7 @@ struct SlotIDs
     static juce::Identifier targetIP() { return "targetIP"; }
     static juce::Identifier incomingPort() { return "incomingPort"; }
     static juce::Identifier outgoingPort() { return "outgoingPort"; }
+    static juce::Identifier isConnected() { return "isConnected"; }
 };
 
 namespace ParamSlotNameStringPrefixes

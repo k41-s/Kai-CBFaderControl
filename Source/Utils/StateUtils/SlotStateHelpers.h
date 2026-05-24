@@ -138,6 +138,11 @@ namespace SlotStateHelpers
         return getIntProp(state, SlotIDs::outgoingPort().toString(), 8001);
     }
 
+    static inline int isPluginConnected(const juce::ValueTree& state)
+    {
+        return getBoolProp(state, SlotIDs::isConnected().toString(), false);
+    }
+
     // =========================================================================
     // SEMANTIC DOMAIN SETTERS (Slot Logic)
     // =========================================================================
@@ -216,6 +221,11 @@ namespace SlotStateHelpers
     static inline void setOutgoingPort(juce::ValueTree& state, int port, juce::UndoManager* undoManager = nullptr)
     {
         setIntProp(state, SlotIDs::outgoingPort().toString(), port, undoManager);
+    }
+
+    static inline void setPluginConnected(juce::ValueTree& state, bool isConnected, juce::UndoManager* undoManager = nullptr)
+    {
+        setBoolProp(state, SlotIDs::isConnected().toString(), isConnected, undoManager);
     }
 
     // =========================================================================

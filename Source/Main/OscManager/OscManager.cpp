@@ -118,6 +118,13 @@ void OscManager::pushMessageIntoFifoQueue(const juce::OSCMessage& message)
 
 void OscManager::timerCallback()
 {
+	handleConnectionLogic();
+    processFifoQueue();
+    pollAndBroadcastFaders();
+}
+
+void OscManager::processFifoQueue()
+{
     int numReady = messageFifo.getNumReady();
     if (numReady > 0)
     {
@@ -133,8 +140,50 @@ void OscManager::timerCallback()
 
         isProcessingQueue = false;
     }
+}
 
-    pollAndBroadcastFaders();
+void OscManager::handleConnectionLogic()
+{
+    juce::uint32 currentTime = juce::Time::getMillisecondCounter();
+    handlePingSending(currentTime);
+    handleTimeoutThreshold(currentTime);
+}
+
+void OscManager::handlePingSending(juce::uint32 currentTime)
+{
+    if (OscHelpers::shouldSendPing(currentTime, lastMessageReceivedTime, lastPingSentTime))
+    {
+        sendPing();
+        lastPingSentTime = currentTime;
+    }
+}
+
+void OscManager::handleTimeoutThreshold(juce::uint32 currentTime)
+{
+    if (currentlyConnected && (currentTime - lastMessageReceivedTime >= OscConstants::timeoutThreshold))
+    {
+		setConnectionStatus(false);
+        DBG("OSC Connection Lost (Timeout due to silence)");
+    }
+}
+
+void OscManager::setConnectionStatus(bool isConnected)
+{
+	currentlyConnected = isConnected;
+	SlotStateHelpers::setPluginConnected(processor.apvts.state, isConnected);
+}
+
+void OscManager::sendPing()
+{
+    juce::String address = OscConstants::outgoingPrefix + "/" + OscConstants::SystemCommands::ping();
+    sendOSCMessage(juce::OSCMessage(address));
+}
+
+void OscManager::sendStartupRequest()
+{
+    juce::String address = OscConstants::outgoingPrefix + "/" + OscConstants::SystemCommands::startup();
+    sendOSCMessage(juce::OSCMessage(address));
+    DBG("Sent Startup Request");
 }
 
 bool OscManager::shouldBroadcastFloat(const juce::String& paramId, float newValue, const juce::String& paramType) const
@@ -157,6 +206,8 @@ bool OscManager::shouldBroadcastInt(const juce::String& paramId, int newValue) c
 
 void OscManager::pollAndBroadcastFaders()
 {
+	if (!currentlyConnected) return; // Can remove this if needed for testing
+
     juce::OSCBundle frameBundle;
 
     for (int i = 1; i <= PluginConstants::numSlots; ++i)
@@ -222,6 +273,15 @@ void OscManager::broadcastNameChange(const juce::String& targetType, const juce:
 
 void OscManager::processQueuedMessage(const juce::OSCMessage& message)
 {
+    lastMessageReceivedTime = juce::Time::getMillisecondCounter();
+
+    if (!currentlyConnected)
+    {
+		setConnectionStatus(true);
+        DBG("OSC Connection Established / Restored");
+        sendStartupRequest();
+    }
+
     juce::String address = message.getAddressPattern().toString();
 
     juce::StringArray parts;

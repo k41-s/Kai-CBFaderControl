@@ -42,6 +42,12 @@ namespace OscHelpers
         return message.size() > 0 && message[0].isString();
     }
 
+    static inline bool shouldSendPing(juce::uint32 currentTime, juce::uint32 lastMessageReceivedTime, juce::uint32 lastPingSentTime)
+    {
+        return (currentTime - lastMessageReceivedTime >= OscConstants::pingFrequency) &&
+            (currentTime - lastPingSentTime >= OscConstants::pingFrequency);
+    }
+
     template <typename T>
     static inline bool isDuplicateValue(const std::unordered_map<juce::String, T>& map, const juce::String& key, const T& newValue)
     {

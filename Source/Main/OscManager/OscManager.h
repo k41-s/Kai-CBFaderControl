@@ -32,6 +32,14 @@ private:
     void pushMessageIntoFifoQueue(const juce::OSCMessage& message);
 
     void timerCallback() override;
+    void processFifoQueue();
+    void handleConnectionLogic();
+    void handlePingSending(juce::uint32 currentTime);
+    void handleTimeoutThreshold(juce::uint32 currentTime);
+	void setConnectionStatus(bool isConnected);
+    void sendPing();
+    void sendStartupRequest();
+
     bool shouldBroadcastFloat(const juce::String& paramId, float newValue, const juce::String& paramType) const;
     bool shouldBroadcastInt(const juce::String& paramId, int newValue) const;
     void pollAndBroadcastFaders();
@@ -71,6 +79,10 @@ private:
     std::unordered_map<juce::String, float> lastSentOscFloats;
     std::unordered_map<juce::String, int> lastSentOscInts;
     std::unordered_map<juce::String, juce::String> lastSentOscStrings;
+
+    juce::uint32 lastPingSentTime = 0;
+    juce::uint32 lastMessageReceivedTime = 0;
+    bool currentlyConnected = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscManager)
 };

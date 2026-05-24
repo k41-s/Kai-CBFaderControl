@@ -103,7 +103,9 @@ void SetupPageView::restrictPortEditors()
 
 void SetupPageView::configStatusComponents()
 {
+	statusLED.setConnected(SlotStateHelpers::isPluginConnected(processor.apvts.state));
 	statusLabel.setText("Connection Status:", juce::dontSendNotification);
+
 	addAndMakeVisible(statusLabel);
 	addAndMakeVisible(statusLED);
 }
@@ -432,6 +434,8 @@ void SetupPageView::valueTreePropertyChanged(juce::ValueTree& tree, const juce::
 		incomingPortEditor.setText(tree[property], juce::dontSendNotification);
 	if (property == SlotIDs::outgoingPort())
 		outgoingPortEditor.setText(tree[property], juce::dontSendNotification);
+	if (property == SlotIDs::isConnected())
+		statusLED.setConnected(SlotStateHelpers::isPluginConnected(tree));
 }
 
 void SetupPageView::changeListenerCallback(juce::ChangeBroadcaster* source)

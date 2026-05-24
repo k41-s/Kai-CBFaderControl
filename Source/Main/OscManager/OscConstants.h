@@ -8,9 +8,18 @@ namespace OscConstants
 
     static constexpr int fifoSize = 512;
 
+    static constexpr int pingFrequency = 1000;
+    static constexpr int timeoutThreshold = 3000;
+
     struct TargetTypes
     {
         static const juce::String fader() { return "fader"; }
+    };
+
+    struct SystemCommands
+    {
+        static const juce::String ping() { return "ping"; }
+        static const juce::String startup() { return "startup"; }
     };
 
     struct ParamTypes
