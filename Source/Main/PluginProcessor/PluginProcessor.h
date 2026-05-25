@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "../LinkManager/LinkManager.h"
 #include "../OscManager/OscManager.h"
+#include "../PresetManager/PresetManager.h"
 #include "../../Utils/GlobalSlotRegistry/GlobalSlotRegistry.h"
 
 //==============================================================================
@@ -13,7 +14,6 @@ public:
     //==============================================================================
     KaiCBFaderControlAudioProcessor();
     ~KaiCBFaderControlAudioProcessor() override;
-
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -48,7 +48,6 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-
     //==============================================================================
     
     const juce::Uuid& getInstanceId() const { return instanceId; }
@@ -62,15 +61,17 @@ public:
 
 	std::unique_ptr<LinkManager> linkManager;
     std::unique_ptr<OscManager> oscManager;
+    std::unique_ptr<PresetManager> presetManager;
 
     std::atomic<bool> isRestoringState{ false };
 
     juce::SharedResourcePointer<GlobalSlotRegistry> globalSlotRegistry;
 private:
     void init();
-    void InitialiseNetworkingDefaults();
+    void initialiseNetworkingDefaults();
     void initOscManager();
     void initLinkManager();
+	void initPresetManager();
     void initGlobalRegistry();
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
@@ -85,6 +86,12 @@ private:
 
     bool getWasSlotOwned(int slotId) const { return wasSlotOwned[slotId - 1]; }
     void setWasSlotOwned(int slotId, bool isOwned) { wasSlotOwned.set(slotId - 1, isOwned); }
+
+    void saveApvtsState(juce::XmlElement& parentXml);
+    void saveSnapshotState(juce::XmlElement& parentXml) const;
+
+    void restoreApvts(std::unique_ptr<juce::XmlElement>& parentXml);
+    void restoreSnapshots(std::unique_ptr<juce::XmlElement>& parentXml) const;
 
     juce::Uuid instanceId;
     juce::Array<bool> wasSlotOwned;

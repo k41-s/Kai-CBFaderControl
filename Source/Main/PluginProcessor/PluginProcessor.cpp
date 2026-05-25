@@ -3,6 +3,7 @@
 #include "../SlotIDs.h"
 #include "../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../../UI/Components/UIConstants.h"
+#include "../PresetManager/PresetConstants.h"
 
 //==============================================================================
 KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
@@ -16,13 +17,14 @@ KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
 
 void KaiCBFaderControlAudioProcessor::init()
 {
-    InitialiseNetworkingDefaults();
+    initialiseNetworkingDefaults();
     initOscManager();
     initLinkManager();
+	initPresetManager();
     initGlobalRegistry();
 }
 
-void KaiCBFaderControlAudioProcessor::InitialiseNetworkingDefaults()
+void KaiCBFaderControlAudioProcessor::initialiseNetworkingDefaults()
 {
     auto& state = apvts.state;
     if (!state.hasProperty(SlotIDs::targetIP()))
@@ -44,6 +46,11 @@ void KaiCBFaderControlAudioProcessor::initOscManager()
 void KaiCBFaderControlAudioProcessor::initLinkManager()
 {
     linkManager = std::make_unique<LinkManager>(*this);
+}
+
+void KaiCBFaderControlAudioProcessor::initPresetManager()
+{
+    presetManager = std::make_unique<PresetManager>();
 }
 
 void KaiCBFaderControlAudioProcessor::initGlobalRegistry()
@@ -274,25 +281,66 @@ juce::AudioProcessorEditor* KaiCBFaderControlAudioProcessor::createEditor()
 }
 
 //==============================================================================
-void KaiCBFaderControlAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+
+void KaiCBFaderControlAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
+{
+    juce::XmlElement parentXml(PresetTags::RootXmlTag);
+
+    saveApvtsState(parentXml);
+    saveSnapshotState(parentXml);
+    copyXmlToBinary(parentXml, destData);
+}
+
+void KaiCBFaderControlAudioProcessor::saveApvtsState(juce::XmlElement& parentXml)
 {
     auto state = apvts.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
-    copyXmlToBinary(*xml, destData);
+    std::unique_ptr<juce::XmlElement> apvtsXml(state.createXml());
+    if (apvtsXml != nullptr)
+        parentXml.addChildElement(apvtsXml.release());
 }
 
-void KaiCBFaderControlAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void KaiCBFaderControlAudioProcessor::saveSnapshotState(juce::XmlElement& parentXml) const
+{
+    std::unique_ptr<juce::XmlElement> snapshotsXml(presetManager->createXml());
+    if (snapshotsXml != nullptr)
+        parentXml.addChildElement(snapshotsXml.release());
+}
+
+void KaiCBFaderControlAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     isRestoringState = true;
-    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-    if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName(apvts.state.getType()))
-            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+    std::unique_ptr<juce::XmlElement> parentXml(getXmlFromBinary(data, sizeInBytes));
+
+    if (parentXml.get() != nullptr)
+    {
+        if (parentXml->hasTagName(PresetTags::RootXmlTag))
+        {
+            restoreApvts(parentXml);
+            restoreSnapshots(parentXml);
+        }
+        else if (parentXml->hasTagName(apvts.state.getType()))
+        {
+            apvts.replaceState(juce::ValueTree::fromXml(*parentXml));
+        }
+    }
 
     claimActiveSlots();
-	isRestoringState = false;
+    isRestoringState = false;
 }
 
+void KaiCBFaderControlAudioProcessor::restoreApvts(std::unique_ptr<juce::XmlElement>& parentXml)
+{
+    auto* apvtsXml = parentXml->getChildByName(apvts.state.getType());
+    if (apvtsXml != nullptr)
+        apvts.replaceState(juce::ValueTree::fromXml(*apvtsXml));
+}
+
+void KaiCBFaderControlAudioProcessor::restoreSnapshots(std::unique_ptr<juce::XmlElement>& parentXml) const
+{
+    auto* snapshotsXml = parentXml->getChildByName(PresetTags::SnapshotsTreeType.toString());
+    if (snapshotsXml != nullptr)
+        presetManager->loadFromXml(snapshotsXml);
+}
 
 void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadcaster* source)
 {

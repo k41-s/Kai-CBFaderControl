@@ -30,6 +30,13 @@
           <FILE id="tjF6Iw" name="PluginProcessor.h" compile="0" resource="0"
                 file="Source/Main/PluginProcessor/PluginProcessor.h"/>
         </GROUP>
+        <GROUP id="{381811E2-F5E2-A6C6-2710-E2E61D80E364}" name="PresetManager">
+          <FILE id="l8GXxW" name="PresetConstants.h" compile="0" resource="0"
+                file="Source/Main/PresetManager/PresetConstants.h"/>
+          <FILE id="hb4lpV" name="PresetManager.cpp" compile="1" resource="0"
+                file="Source/Main/PresetManager/PresetManager.cpp"/>
+          <FILE id="CxsfYd" name="PresetManager.h" compile="0" resource="0" file="Source/Main/PresetManager/PresetManager.h"/>
+        </GROUP>
         <FILE id="z5Ofjk" name="SlotIDs.h" compile="0" resource="0" file="Source/Main/SlotIDs.h"/>
       </GROUP>
       <GROUP id="{C7A96202-9678-0F48-8CA3-6DBA8FCD9D92}" name="UI">
