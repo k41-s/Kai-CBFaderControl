@@ -1,5 +1,6 @@
 #include "PerformanceView.h"
 #include "../../../Main/SlotIDs.h"
+#include "../../../Main/PresetManager/PresetConstants.h"
 #include "../../Components/UIConstants.h"
 #include "../../CustomLookAndFeel/MyColours.h"
 #include "../../../Utils/Enums/ContextMenuId.h"
@@ -27,6 +28,8 @@ void PerformanceView::configComponents()
 	createFaderSlots();
 	createVcaFaderSlots();
 	configSetupButton();
+	configSnapshotComponents();
+	configPresetsButton();
 	configImages();
 }
 
@@ -64,6 +67,73 @@ void PerformanceView::configSetupButton()
 			if (onNavigateToSetup)
 				onNavigateToSetup();
 		};
+}
+
+void PerformanceView::configSnapshotComponents()
+{
+	// Configure the Mode Label
+	snapshotModeLabel.setFont(juce::Font(14.0f, juce::Font::bold));
+	snapshotModeLabel.setJustificationType(juce::Justification::centredRight);
+	snapshotModeLabel.setText(PresetTags::ModeLabelRecall, juce::dontSendNotification);
+	snapshotModeLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
+	addAndMakeVisible(snapshotModeLabel);
+
+	// Configure the Save Button
+	saveSnapshotButton.setButtonText(PresetTags::SaveButtonDefaultText);
+	addAndMakeVisible(saveSnapshotButton);
+	saveSnapshotButton.onClick = [this]() { toggleSaveSnapshotMode(); };
+
+	// Configure the 1-8 Buttons
+	for (int i = 0; i < numSnapshots; ++i)
+	{
+		auto* btn = snapshotButtons.add(new juce::TextButton(juce::String(i + 1)));
+		addAndMakeVisible(btn);
+		btn->onClick = [this, i]() { handleSnapshotButtonClicked(i + 1); };
+	}
+}
+
+void PerformanceView::configPresetsButton()
+{
+	presetsButton.setButtonText(PresetTags::PresetsButtonText);
+	addAndMakeVisible(presetsButton);
+
+	presetsButton.onClick = [this]()
+		{
+			// TODO: Phase 1, Part 3 - Open Preset Dialog Window
+		};
+}
+
+void PerformanceView::toggleSaveSnapshotMode()
+{
+	isSaveSnapshotModeActive = !isSaveSnapshotModeActive;
+
+	if (isSaveSnapshotModeActive)
+	{
+		snapshotModeLabel.setText(PresetTags::ModeLabelSave, juce::dontSendNotification);
+		snapshotModeLabel.setColour(juce::Label::textColourId, juce::Colours::red);
+	}
+	else
+	{
+		snapshotModeLabel.setText(PresetTags::ModeLabelRecall, juce::dontSendNotification);
+		snapshotModeLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
+	}
+}
+
+void PerformanceView::handleSnapshotButtonClicked(int index)
+{
+	if (isSaveSnapshotModeActive)
+	{
+		processor.presetManager->saveSnapshot(index, processor.apvts.copyState());
+		toggleSaveSnapshotMode();
+	}
+	else
+	{
+		auto snap = processor.presetManager->getSnapshot(index);
+		if (snap.isValid())
+		{
+			processor.apvts.replaceState(snap);
+		}
+	}
 }
 
 void PerformanceView::configImages()
@@ -642,7 +712,7 @@ void PerformanceView::paint(juce::Graphics& g)
 
 void PerformanceView::resized()
 {
-	setHeaderArea();
+	setupAndFillHeader();
 	setupAndFillArea();
 
 	float baselineWidth = SlotSizeValues::monoSlotMinWidth;
@@ -691,15 +761,28 @@ void PerformanceView::vcaSlotsOnResized(float baselineWidth)
 	}
 }
 
-void PerformanceView::setHeaderArea()
+void PerformanceView::setupAndFillHeader()
 {
 	auto area = getLocalBounds();
-	headerArea = area.removeFromTop(area.getHeight() * 0.045f);
+
+	int slotNumberBlueHeight = (int)(area.getHeight() * 0.045f);
+	headerArea = area.removeFromTop(topButtonStripHeight + slotNumberBlueHeight);
+
+	auto buttonStrip = headerArea.withHeight(topButtonStripHeight);
+	auto buttonArea = buttonStrip.removeFromRight(80).reduced(4, 4);
+	presetsButton.setBounds(buttonArea);
+
+	xPatchImg.setBounds(headerArea.withHeight(topButtonStripHeight)
+		.withSizeKeepingCentre(75, topButtonStripHeight)
+		.reduced(4));
 }
 
 void PerformanceView::setupAndFillArea()
 {
 	auto area = getLocalBounds();
+
+	area.removeFromTop(topButtonStripHeight);
+
 	setupAndFillFooter(area);
 	juce::FlexBox flexBox = configFlexBox();
 	checkAndAddActiveSlots(flexBox);
@@ -711,11 +794,39 @@ void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 	footerArea = area.removeFromBottom(40);
 	auto areaToUse = footerArea;
 
-	xPatchImg.setBounds(footerArea.withSizeKeepingCentre(90, footerArea.getHeight()).reduced(5));
-	setupButton.setBounds(areaToUse.removeFromLeft(100).reduced(5));
+	setupButton.setBounds(areaToUse.removeFromLeft(80).reduced(5));
 
 	auto logoArea = areaToUse.removeFromRight(100);
 	cbLogo.setBounds(logoArea.withSizeKeepingCentre(50, logoArea.getHeight()).reduced(5));
+
+	// Snapshots btns in center
+	juce::FlexBox snapBox;
+	snapBox.flexDirection = juce::FlexBox::Direction::row;
+	snapBox.justifyContent = juce::FlexBox::JustifyContent::center;
+	snapBox.alignItems = juce::FlexBox::AlignItems::center;
+
+	// NEW: Add the Mode Label first
+	snapBox.items.add(juce::FlexItem(snapshotModeLabel)
+		.withWidth(100)
+		.withHeight(24)
+		.withMargin(juce::FlexItem::Margin(0, 10, 0, 0)));
+
+	// fix this, need another way of indicating save mode rather than changing btn text
+	snapBox.items.add(juce::FlexItem(saveSnapshotButton)
+		.withWidth(60)
+		.withHeight(24)
+		.withMargin(juce::FlexItem::Margin(0, 10, 0, 0)));
+
+	// Add the 1-8 preset slot buttons
+	for (auto* btn : snapshotButtons)
+	{
+		snapBox.items.add(juce::FlexItem(*btn)
+			.withWidth(30)
+			.withHeight(24)
+			.withMargin(juce::FlexItem::Margin(0, 3, 0, 3)));
+	}
+
+	snapBox.performLayout(areaToUse);
 }
 
 juce::FlexBox PerformanceView::configFlexBox()
@@ -755,7 +866,7 @@ void PerformanceView::plotRegularSlots(juce::FlexBox& flexBox)
 	}
 }
 
-void PerformanceView::hideSlotIfVcaCollapsed(int grpId, bool& shouldShow)
+void PerformanceView::hideSlotIfVcaCollapsed(int grpId, bool& shouldShow) const
 {
 	if (grpId >= 1 && grpId <= PluginConstants::numGroups)
 	{

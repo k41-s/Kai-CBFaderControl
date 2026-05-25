@@ -55,6 +55,12 @@ private:
 	void setSlotMouseEvents(PerformanceSlotItem* slot);
 	void configSetupButton();
 
+	// Presets & Snapshots UI
+	void configSnapshotComponents();
+	void configPresetsButton();
+	void toggleSaveSnapshotMode();
+	void handleSnapshotButtonClicked(int index);
+
 	// Listener management
 	void registerListeners();
 	void addRegularSlotListeners();
@@ -121,13 +127,13 @@ private:
 	void toggleSoloSafe(const juce::Array<int>& activeSlots);
 
 	// Layout and drawing functions
-	void setHeaderArea();
+	void setupAndFillHeader();
 	void setupAndFillArea();
 	void setupAndFillFooter(juce::Rectangle<int>& area);
 	juce::FlexBox configFlexBox();
 	void checkAndAddActiveSlots(juce::FlexBox& flexBox);
 	void plotRegularSlots(juce::FlexBox& flexBox);
-	void hideSlotIfVcaCollapsed(int grpId, bool& shouldShow);
+	void hideSlotIfVcaCollapsed(int grpId, bool& shouldShow) const;
 	void plotVcaMasters(juce::FlexBox& flexBox);
 	void addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot, bool isMainStereo);
 
@@ -156,6 +162,15 @@ private:
 	KaiCBFaderControlAudioProcessor& processor;
 	PerformanceViewLookFeel performanceLF;
 
+	static constexpr int numSnapshots = 8;
+	juce::OwnedArray<juce::TextButton> snapshotButtons;
+
+	juce::TextButton saveSnapshotButton;
+	juce::Label snapshotModeLabel;
+	bool isSaveSnapshotModeActive = false;
+
+	juce::TextButton presetsButton;
+
 	juce::OwnedArray<PerformanceSlotItem> slots;
 	juce::OwnedArray<VcaSlotItem> vcaSlots;
 
@@ -164,6 +179,8 @@ private:
 
 	BinaryImageComponent cbLogo{ BinaryData::cblogo_png, BinaryData::cblogo_pngSize };
 	BinaryImageComponent xPatchImg{ BinaryData::XPatch_png, BinaryData::XPatch_pngSize };
+
+	static constexpr int topButtonStripHeight = 35;
 
 	juce::Rectangle<int> headerArea;
 	juce::Rectangle<int> footerArea;
