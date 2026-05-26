@@ -3,12 +3,14 @@
 #include "../LinkManager/LinkManager.h"
 #include "../OscManager/OscManager.h"
 #include "../PresetManager/PresetManager.h"
+#include "../PresetManager/PresetConstants.h"
 #include "../../Utils/GlobalSlotRegistry/GlobalSlotRegistry.h"
 
 //==============================================================================
 class KaiCBFaderControlAudioProcessor :
     public juce::AudioProcessor,
-    public juce::ChangeListener
+    public juce::ChangeListener,
+	public juce::AudioProcessorValueTreeState::Listener
 {
 public:
     //==============================================================================
@@ -57,6 +59,10 @@ public:
 
     //==============================================================================
 
+    void parameterChanged(const juce::String& parameterID, float newValue) override;
+
+	//==============================================================================
+
     juce::AudioProcessorValueTreeState apvts;
 
 	std::unique_ptr<LinkManager> linkManager;
@@ -68,15 +74,20 @@ public:
     juce::SharedResourcePointer<GlobalSlotRegistry> globalSlotRegistry;
 private:
     void init();
+    void initListeners();
     void initialiseNetworkingDefaults();
     void initOscManager();
     void initLinkManager();
 	void initPresetManager();
     void initGlobalRegistry();
 
+    void removeListeners();
+    void clearGlobalSlotRegistry();
+
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     void addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
     void addParamsForVca(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i);
+    void addActiveSnapshotParam(juce::AudioProcessorValueTreeState::ParameterLayout& params);
 
     void removeFromGroup(juce::ValueTree& state, int slotIdx);
     void removeFromStereoPair(juce::ValueTree& state, int slotIdx);
@@ -92,6 +103,8 @@ private:
 
     void restoreApvts(std::unique_ptr<juce::XmlElement>& parentXml);
     void restoreSnapshots(std::unique_ptr<juce::XmlElement>& parentXml) const;
+
+    void handleActiveSnapshotParameterChanged(float newValue);
 
     juce::Uuid instanceId;
     juce::Array<bool> wasSlotOwned;

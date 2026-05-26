@@ -3,7 +3,6 @@
 #include "../SlotIDs.h"
 #include "../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../../UI/Components/UIConstants.h"
-#include "../PresetManager/PresetConstants.h"
 
 //==============================================================================
 KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
@@ -17,11 +16,17 @@ KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
 
 void KaiCBFaderControlAudioProcessor::init()
 {
+    initListeners();
     initialiseNetworkingDefaults();
     initOscManager();
     initLinkManager();
 	initPresetManager();
     initGlobalRegistry();
+}
+
+void KaiCBFaderControlAudioProcessor::initListeners()
+{
+    apvts.addParameterListener(PresetTags::ActiveSnapshotParamId, this);
 }
 
 void KaiCBFaderControlAudioProcessor::initialiseNetworkingDefaults()
@@ -69,6 +74,17 @@ void KaiCBFaderControlAudioProcessor::initGlobalRegistry()
 
 KaiCBFaderControlAudioProcessor::~KaiCBFaderControlAudioProcessor()
 {
+    removeListeners();
+    clearGlobalSlotRegistry();
+}
+
+void KaiCBFaderControlAudioProcessor::removeListeners()
+{
+    apvts.removeParameterListener(PresetTags::ActiveSnapshotParamId, this);
+}
+
+void KaiCBFaderControlAudioProcessor::clearGlobalSlotRegistry()
+{
     globalSlotRegistry->removeChangeListener(this);
     releaseOwnedSlots();
 }
@@ -87,8 +103,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout KaiCBFaderControlAudioProces
 
     for (int i = 1; i <= PluginConstants::numSlots; ++i) 
         addParamsForSlot(params, i);
-    for (int i = 1; i <= 8; ++i)
+    for (int i = 1; i <= PluginConstants::numVcas; ++i)
         addParamsForVca(params, i);
+
+    addActiveSnapshotParam(params);
 
     return params;
 }
@@ -153,6 +171,15 @@ void KaiCBFaderControlAudioProcessor::addParamsForVca(juce::AudioProcessorValueT
 
     params.add(std::make_unique<juce::AudioParameterBool>(
         SlotIDs::isVcaExpanded(i), ParamSlotNames::isVcaExpanded(i), true));
+}
+
+void KaiCBFaderControlAudioProcessor::addActiveSnapshotParam(juce::AudioProcessorValueTreeState::ParameterLayout& params)
+{
+    params.add(std::make_unique<juce::AudioParameterInt>(
+        juce::ParameterID(PresetTags::ActiveSnapshotParamId, 1),
+        PresetTags::ActiveSnapshotParamName,
+        0, 127, 0
+    ));
 }
 
 //==============================================================================
@@ -399,4 +426,29 @@ void KaiCBFaderControlAudioProcessor::claimActiveSlots() const
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new KaiCBFaderControlAudioProcessor();
+}
+
+void KaiCBFaderControlAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
+{
+    if (parameterID == PresetTags::ActiveSnapshotParamId)
+    {
+        handleActiveSnapshotParameterChanged(newValue);
+    }
+}
+
+void KaiCBFaderControlAudioProcessor::handleActiveSnapshotParameterChanged(float newValue)
+{
+    int snapshotIdx = juce::roundToInt(newValue);
+
+    if (snapshotIdx > 0 && !isRestoringState)
+    {
+        juce::MessageManager::callAsync([this, snapshotIdx]()
+            {
+                auto snapState = presetManager->getSnapshot(snapshotIdx);
+                if (snapState.isValid())
+                {
+                    apvts.replaceState(snapState);
+                }
+            });
+    }
 }

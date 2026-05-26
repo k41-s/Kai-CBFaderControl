@@ -11,11 +11,21 @@ public:
     void saveSnapshot(int index, const juce::ValueTree& currentState);
     juce::ValueTree getSnapshot(int index) const;
 
+    void setSnapshotName(int index, const juce::String& newName);
+    juce::String getSnapshotName(int index) const;
+
+    void setSnapshotPinned(int index, bool shouldPin);
+    bool isSnapshotPinned(int index) const;
+
+    juce::Array<int> getPinnedSnapshots() const;
+
     std::unique_ptr<juce::XmlElement> createXml() const;
     void loadFromXml(juce::XmlElement* xml);
 
 private:
-    juce::String getSnapshotName(int index) const;
+    juce::String getSnapshotNodeName(int index) const;
+    juce::String getDefaultSnapshotName(int index) const;
+    juce::ValueTree getOrCreateSnapshotNode(int index);
 
     juce::ValueTree snapshotsTree{ PresetTags::SnapshotsTreeType };
 
