@@ -22,4 +22,13 @@ namespace PresetTags
     inline const juce::Identifier SnapshotNameProp{ "name" };
     inline const juce::Identifier SnapshotPinnedProp{ "isPinned" };
     inline const juce::String DefaultSnapshotNamePrefix{ "Snapshot " };
+
+    inline const juce::Identifier VisibleSnapshotsProp{ "visibleSnapshots" };
+}
+
+namespace PresetConstants
+{
+	inline const int noSnapshot = 0;
+	inline const int defaultSnapshots = 10;
+	inline const int maxSnapshots = 127;
 }

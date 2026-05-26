@@ -178,7 +178,7 @@ void KaiCBFaderControlAudioProcessor::addActiveSnapshotParam(juce::AudioProcesso
     params.add(std::make_unique<juce::AudioParameterInt>(
         juce::ParameterID(PresetTags::ActiveSnapshotParamId, 1),
         PresetTags::ActiveSnapshotParamName,
-        0, 127, 0
+        0, PresetConstants::maxSnapshots, PresetConstants::noSnapshot
     ));
 }
 

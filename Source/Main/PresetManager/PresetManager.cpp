@@ -65,12 +65,26 @@ bool PresetManager::isSnapshotPinned(int index) const
 juce::Array<int> PresetManager::getPinnedSnapshots() const
 {
     juce::Array<int> pinned;
-    for (int i = 1; i <= 127; ++i)
+    for (int i = 1; i <= PresetConstants::maxSnapshots; ++i)
     {
         if (isSnapshotPinned(i))
             pinned.add(i);
     }
     return pinned;
+}
+
+int PresetManager::getNumVisibleSnapshots() const
+{
+    if (snapshotsTree.hasProperty(PresetTags::VisibleSnapshotsProp))
+        return snapshotsTree.getProperty(PresetTags::VisibleSnapshotsProp);
+
+    return PresetConstants::defaultSnapshots;
+}
+
+void PresetManager::setNumVisibleSnapshots(int num)
+{
+    int safeNum = juce::jlimit(1, PresetConstants::maxSnapshots, num);
+    snapshotsTree.setProperty(PresetTags::VisibleSnapshotsProp, safeNum, nullptr);
 }
 
 std::unique_ptr<juce::XmlElement> PresetManager::createXml() const

@@ -19,6 +19,9 @@ public:
 
     juce::Array<int> getPinnedSnapshots() const;
 
+    int getNumVisibleSnapshots() const;
+    void setNumVisibleSnapshots(int num);
+
     std::unique_ptr<juce::XmlElement> createXml() const;
     void loadFromXml(juce::XmlElement* xml);
 
