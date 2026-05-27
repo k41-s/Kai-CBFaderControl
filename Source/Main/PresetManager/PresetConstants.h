@@ -8,8 +8,7 @@ namespace PresetTags
     inline const juce::String RootXmlTag{ "KaiCBFaderControlData" };
     inline const juce::String SnapshotPrefix{ "Snapshot_" };
 
-    // Different btn text
-    inline const juce::String SaveButtonDefaultText{ "Save" };
+    inline const juce::String StoresButtonText{ "Stores" };
     inline const juce::String PresetsButtonText{ "Presets" };
 
     // probably will remove these

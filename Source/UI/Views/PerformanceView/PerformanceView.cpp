@@ -4,6 +4,7 @@
 #include "../../Components/UIConstants.h"
 #include "../../CustomLookAndFeel/MyColours.h"
 #include "../../../Utils/Enums/ContextMenuId.h"
+#include "../../../Utils/Enums/StoresMenuIds.h"
 #include "../../../Utils/StateUtils/SlotStateHelpers.h"
 
 PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
@@ -28,8 +29,8 @@ void PerformanceView::configComponents()
 	createFaderSlots();
 	createVcaFaderSlots();
 	configSetupButton();
-	configSnapshotComponents();
 	configPresetsButton();
+	configStoresButton();
 	configImages();
 }
 
@@ -69,29 +70,6 @@ void PerformanceView::configSetupButton()
 		};
 }
 
-void PerformanceView::configSnapshotComponents()
-{
-	// Configure the Mode Label
-	snapshotModeLabel.setFont(juce::Font(14.0f, juce::Font::bold));
-	snapshotModeLabel.setJustificationType(juce::Justification::centredRight);
-	snapshotModeLabel.setText(PresetTags::ModeLabelRecall, juce::dontSendNotification);
-	snapshotModeLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
-	addAndMakeVisible(snapshotModeLabel);
-
-	// Configure the Save Button
-	saveSnapshotButton.setButtonText(PresetTags::SaveButtonDefaultText);
-	addAndMakeVisible(saveSnapshotButton);
-	saveSnapshotButton.onClick = [this]() { toggleSaveSnapshotMode(); };
-
-	// Configure the 1-8 Buttons
-	for (int i = 0; i < numSnapshots; ++i)
-	{
-		auto* btn = snapshotButtons.add(new juce::TextButton(juce::String(i + 1)));
-		addAndMakeVisible(btn);
-		btn->onClick = [this, i]() { handleSnapshotButtonClicked(i + 1); };
-	}
-}
-
 void PerformanceView::configPresetsButton()
 {
 	presetsButton.setButtonText(PresetTags::PresetsButtonText);
@@ -103,37 +81,121 @@ void PerformanceView::configPresetsButton()
 		};
 }
 
-void PerformanceView::toggleSaveSnapshotMode()
+void PerformanceView::configStoresButton()
 {
-	isSaveSnapshotModeActive = !isSaveSnapshotModeActive;
+	storesButton.setButtonText(PresetTags::StoresButtonText);
+	addAndMakeVisible(storesButton);
+	storesButton.onClick = [this]() { showStoresMenu(); };
+}
 
-	if (isSaveSnapshotModeActive)
+void PerformanceView::showStoresMenu()
+{
+	juce::PopupMenu menu;
+
+	int numVisible = processor.presetManager->getNumVisibleSnapshots();
+
+	for (int i = 1; i <= numVisible; ++i)
 	{
-		snapshotModeLabel.setText(PresetTags::ModeLabelSave, juce::dontSendNotification);
-		snapshotModeLabel.setColour(juce::Label::textColourId, juce::Colours::red);
+		juce::PopupMenu snapshotSubMenu;
+		juce::String name = processor.presetManager->getSnapshotName(i);
+
+		// Add the 4 actions to this specific snapshot's submenu
+		snapshotSubMenu.addItem(BaseRecall + i, "Recall");
+		snapshotSubMenu.addItem(BaseSave + i, "Save (Overwrite)");
+		snapshotSubMenu.addItem(BaseRename + i, "Rename...");
+
+		bool isPinned = processor.presetManager->isSnapshotPinned(i);
+		snapshotSubMenu.addItem(BasePin + i, "Pin to Footer", true, isPinned);
+
+		// Add this snapshot to the main menu as a submenu
+		menu.addSubMenu(name, snapshotSubMenu);
 	}
-	else
+
+	menu.addSeparator();
+	menu.addItem(AddMore, "Add More Slots...");
+
+	menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(storesButton).withParentComponent(this),
+		[this](int result) { handleStoresMenuResult(result); });
+}
+
+void PerformanceView::handleStoresMenuResult(int result)
+{
+	if (result == 0) return;
+
+	if (result == AddMore)
 	{
-		snapshotModeLabel.setText(PresetTags::ModeLabelRecall, juce::dontSendNotification);
-		snapshotModeLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
+		promptForAddMoreSnapshots();
+		return;
+	}
+	if (result > BaseRename)
+	{
+		int index = result - BaseRename;
+		promptForSnapshotName(index);
+	}
+	else if (result > BasePin)
+	{
+		int index = result - BasePin;
+		bool isPinned = processor.presetManager->isSnapshotPinned(index);
+		processor.presetManager->setSnapshotPinned(index, !isPinned);
+		triggerAsyncUpdate();
+	}
+	else if (result > BaseSave)
+	{
+		int index = result - BaseSave;
+		processor.presetManager->saveSnapshot(index, processor.apvts.copyState());
+	}
+	else if (result > BaseRecall)
+	{
+		int index = result - BaseRecall;
+		if (auto* param = processor.apvts.getParameter(PresetTags::ActiveSnapshotParamId))
+		{
+			float normalizedValue = param->convertTo0to1((float)index);
+			param->setValueNotifyingHost(normalizedValue);
+		}
 	}
 }
 
-void PerformanceView::handleSnapshotButtonClicked(int index)
+void PerformanceView::promptForSnapshotName(int index)
 {
-	if (isSaveSnapshotModeActive)
-	{
-		processor.presetManager->saveSnapshot(index, processor.apvts.copyState());
-		toggleSaveSnapshotMode();
-	}
-	else
-	{
-		auto snap = processor.presetManager->getSnapshot(index);
-		if (snap.isValid())
+	auto* alert = new juce::AlertWindow("Rename Snapshot", "Enter a new name:", juce::AlertWindow::NoIcon);
+
+	alert->addTextEditor("nameField", processor.presetManager->getSnapshotName(index), "Name");
+	alert->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
+	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+
+	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert, index](int result)
 		{
-			processor.apvts.replaceState(snap);
-		}
-	}
+			if (result == 1)
+			{
+				juce::String newName = alert->getTextEditorContents("nameField");
+				if (newName.isNotEmpty())
+				{
+					processor.presetManager->setSnapshotName(index, newName);
+					triggerAsyncUpdate();
+				}
+				processor.presetManager->saveSnapshot(index, processor.apvts.copyState());
+			}
+		}), true);
+}
+
+void PerformanceView::promptForAddMoreSnapshots()
+{
+	auto* alert = new juce::AlertWindow("Add Snapshots",
+		"Enter the new total number of snapshots (Max " + juce::String(PresetConstants::maxSnapshots) + "):",
+		juce::AlertWindow::NoIcon);
+
+	alert->addTextEditor("numField", juce::String(processor.presetManager->getNumVisibleSnapshots()), "Number");
+	alert->addButton("Update", 1, juce::KeyPress(juce::KeyPress::returnKey));
+	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+
+	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int result)
+		{
+			if (result == 1)
+			{
+				int newNum = alert->getTextEditorContents("numField").getIntValue();
+				processor.presetManager->setNumVisibleSnapshots(newNum);
+			}
+		}), true);
 }
 
 void PerformanceView::configImages()
@@ -799,32 +861,14 @@ void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 	auto logoArea = areaToUse.removeFromRight(100);
 	cbLogo.setBounds(logoArea.withSizeKeepingCentre(50, logoArea.getHeight()).reduced(5));
 
-	// Snapshots btns in center
 	juce::FlexBox snapBox;
 	snapBox.flexDirection = juce::FlexBox::Direction::row;
 	snapBox.justifyContent = juce::FlexBox::JustifyContent::center;
 	snapBox.alignItems = juce::FlexBox::AlignItems::center;
 
-	// NEW: Add the Mode Label first
-	snapBox.items.add(juce::FlexItem(snapshotModeLabel)
-		.withWidth(100)
-		.withHeight(24)
-		.withMargin(juce::FlexItem::Margin(0, 10, 0, 0)));
-
-	// fix this, need another way of indicating save mode rather than changing btn text
-	snapBox.items.add(juce::FlexItem(saveSnapshotButton)
-		.withWidth(60)
-		.withHeight(24)
-		.withMargin(juce::FlexItem::Margin(0, 10, 0, 0)));
-
-	// Add the 1-8 preset slot buttons
-	for (auto* btn : snapshotButtons)
-	{
-		snapBox.items.add(juce::FlexItem(*btn)
-			.withWidth(30)
-			.withHeight(24)
-			.withMargin(juce::FlexItem::Margin(0, 3, 0, 3)));
-	}
+	snapBox.items.add(juce::FlexItem(storesButton)
+		.withWidth(80)
+		.withHeight(24));
 
 	snapBox.performLayout(areaToUse);
 }

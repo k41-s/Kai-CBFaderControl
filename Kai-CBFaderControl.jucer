@@ -116,6 +116,7 @@
           <FILE id="eXWIsZ" name="ContextMenuId.h" compile="0" resource="0" file="Source/Utils/Enums/ContextMenuId.h"/>
           <FILE id="HygPwf" name="GroupRole.h" compile="0" resource="0" file="Source/Utils/Enums/GroupRole.h"/>
           <FILE id="lVfot1" name="SlotMode.h" compile="0" resource="0" file="Source/Utils/Enums/SlotMode.h"/>
+          <FILE id="R9MBVg" name="StoresMenuIds.h" compile="0" resource="0" file="Source/Utils/Enums/StoresMenuIds.h"/>
         </GROUP>
         <GROUP id="{DF1D131C-BA8E-2959-8025-E02AA565D4D2}" name="GlobalSlotRegistry">
           <FILE id="WTgHGN" name="GlobalSlotRegistry.cpp" compile="1" resource="0"

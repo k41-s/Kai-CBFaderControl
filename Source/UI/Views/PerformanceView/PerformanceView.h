@@ -37,7 +37,6 @@ public:
 	void setBaselineWidth(float& baselineWidth);
 
 	void regularSlotsOnResized(float baselineWidth);
-
 	void vcaSlotsOnResized(float baselineWidth);
 
 	int getIdealWidth();
@@ -56,10 +55,13 @@ private:
 	void configSetupButton();
 
 	// Presets & Snapshots UI
-	void configSnapshotComponents();
 	void configPresetsButton();
-	void toggleSaveSnapshotMode();
-	void handleSnapshotButtonClicked(int index);
+	void configStoresButton();
+	void showStoresMenu();
+	void handleStoresMenuResult(int result);
+
+	void promptForSnapshotName(int index);
+	void promptForAddMoreSnapshots();
 
 	// Listener management
 	void registerListeners();
@@ -162,14 +164,8 @@ private:
 	KaiCBFaderControlAudioProcessor& processor;
 	PerformanceViewLookFeel performanceLF;
 
-	static constexpr int numSnapshots = 8;
-	juce::OwnedArray<juce::TextButton> snapshotButtons;
-
-	juce::TextButton saveSnapshotButton;
-	juce::Label snapshotModeLabel;
-	bool isSaveSnapshotModeActive = false;
-
 	juce::TextButton presetsButton;
+	juce::TextButton storesButton;
 
 	juce::OwnedArray<PerformanceSlotItem> slots;
 	juce::OwnedArray<VcaSlotItem> vcaSlots;
