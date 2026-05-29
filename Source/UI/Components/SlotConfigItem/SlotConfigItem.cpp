@@ -146,6 +146,12 @@ void SlotConfigItem::mouseUp(const juce::MouseEvent& e)
 		onBackgroundMouseUp(e);
 }
 
+void SlotConfigItem::valueTreeRedirected(juce::ValueTree& tree)
+{
+	auto currentName = SlotStateHelpers::getSlotCustomName(processor.apvts.state, slotNumber);
+	setNewNameIfDifferent(currentName);
+}
+
 void SlotConfigItem::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
 {
 	if (property == juce::Identifier(SlotIDs::slotName(slotNumber)))

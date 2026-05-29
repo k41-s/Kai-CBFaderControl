@@ -13,6 +13,11 @@ BaseSlotItem::~BaseSlotItem()
 {
 }
 
+void BaseSlotItem::valueTreeRedirected(juce::ValueTree& treeWhoseReferenceHasChanged)
+{
+	refreshAllVisuals();
+}
+
 void BaseSlotItem::configBaseVolumeFader()
 {
     addAndMakeVisible(volumeFader);

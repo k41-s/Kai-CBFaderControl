@@ -149,8 +149,18 @@ void PerformanceView::handleStoresMenuResult(int result)
 		int index = result - BaseRecall;
 		if (auto* param = processor.apvts.getParameter(PresetTags::ActiveSnapshotParamId))
 		{
-			float normalizedValue = param->convertTo0to1((float)index);
-			param->setValueNotifyingHost(normalizedValue);
+			float currentParamValue = param->convertFrom0to1(param->getValue());
+			int currentIndex = juce::roundToInt(currentParamValue);
+
+			if (currentIndex == index)
+			{
+				processor.forceRecallSnapshot(index);
+			}
+			else
+			{
+				float normalizedValue = param->convertTo0to1((float)index);
+				param->setValueNotifyingHost(normalizedValue);
+			}
 		}
 	}
 }
@@ -861,6 +871,8 @@ void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 	auto logoArea = areaToUse.removeFromRight(100);
 	cbLogo.setBounds(logoArea.withSizeKeepingCentre(50, logoArea.getHeight()).reduced(5));
 
+	updatePinnedButtons();
+
 	juce::FlexBox snapBox;
 	snapBox.flexDirection = juce::FlexBox::Direction::row;
 	snapBox.justifyContent = juce::FlexBox::JustifyContent::center;
@@ -868,7 +880,16 @@ void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 
 	snapBox.items.add(juce::FlexItem(storesButton)
 		.withWidth(80)
-		.withHeight(24));
+		.withHeight(24)
+		.withMargin(juce::FlexItem::Margin(0, 10, 0, 0)));
+
+	for (auto* btn : pinnedSnapshotButtons)
+	{
+		snapBox.items.add(juce::FlexItem(*btn)
+			.withWidth(30)
+			.withHeight(24)
+			.withMargin(juce::FlexItem::Margin(0, 3, 0, 3)));
+	}
 
 	snapBox.performLayout(areaToUse);
 }
@@ -1081,4 +1102,39 @@ bool PerformanceView::isSlotFullAccess(int slotIdx)
 	bool isLocallyActive = SlotStateHelpers::isSlotActive(processor.apvts, slotIdx);
 	return processor.globalSlotRegistry
 		->getSlotMode(slotIdx, processor.getInstanceId(), isLocallyActive) == SlotMode::FullAccess;
+}
+
+void PerformanceView::updatePinnedButtons()
+{
+	pinnedSnapshotButtons.clear();
+
+	auto pinnedIndices = processor.presetManager->getPinnedSnapshots();
+
+	for (int idx : pinnedIndices)
+	{
+		juce::String buttonText = juce::String::charToString((juce::juce_wchar)('A' + (idx - 1)));
+		auto* btn = pinnedSnapshotButtons.add(new juce::TextButton(buttonText));
+
+		btn->setTooltip(processor.presetManager->getSnapshotName(idx));
+		addAndMakeVisible(btn);
+
+		btn->onClick = [this, idx]()
+			{
+				if (auto* param = processor.apvts.getParameter(PresetTags::ActiveSnapshotParamId))
+				{
+					float currentParamValue = param->convertFrom0to1(param->getValue());
+					int currentIndex = juce::roundToInt(currentParamValue);
+
+					if (currentIndex == idx)
+					{
+						processor.forceRecallSnapshot(idx);
+					}
+					else
+					{
+						float normalizedValue = param->convertTo0to1((float)idx);
+						param->setValueNotifyingHost(normalizedValue);
+					}
+				}
+			};
+	}
 }

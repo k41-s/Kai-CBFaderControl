@@ -61,6 +61,8 @@ private:
     void parseNameFromAddressPath(const juce::OSCMessage& message, int slotId, juce::String& rawName);
     void sanitizeString(juce::String& rawName, juce::String& sanitizedName);
 
+    void valueTreeRedirected(juce::ValueTree& tree) override;
+
     void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
 
     KaiCBFaderControlAudioProcessor& processor;

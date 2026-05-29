@@ -42,6 +42,8 @@ protected:
 
 	juce::String getVolumeParamID() const override { return SlotIDs::volume(index); }
 
+	void refreshAllVisuals() override;
+
 private:
 	void init(int slotIndex);
 	void addListeners();

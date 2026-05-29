@@ -465,6 +465,20 @@ void OscManager::sanitizeString(juce::String& rawName, juce::String& sanitizedNa
     }
 }
 
+void OscManager::valueTreeRedirected(juce::ValueTree& tree)
+{
+    connect();
+
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
+    {
+        broadcastNameChange(OscConstants::TargetTypes::fader(), 
+            SlotIdStringPrefixes::slotName,
+            juce::Identifier(SlotIDs::slotName(i)), 
+            tree
+        );
+    }
+}
+
 void OscManager::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
 {
     juce::String propStr = property.toString();

@@ -97,6 +97,13 @@ void VcaSlotItem::updateNameFromValueTree()
     // VcaSlotItem uses the base class updateBaseGroupState() logic instead.
 }
 
+void VcaSlotItem::refreshAllVisuals()
+{
+    updateBaseGroupState(index);
+    updateColours();
+    resized();
+}
+
 VcaSlotItem::~VcaSlotItem()
 {
 	processor.apvts.state.removeListener(this);

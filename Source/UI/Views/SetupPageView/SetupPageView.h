@@ -26,6 +26,8 @@ public:
 	void mouseDrag(const juce::MouseEvent& e) override;
 	void mouseUp(const juce::MouseEvent& e) override;
 
+	void valueTreeRedirected(juce::ValueTree& tree) override;
+
 	void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
 
 	void changeListenerCallback(juce::ChangeBroadcaster* source) override;

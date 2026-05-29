@@ -159,12 +159,16 @@ private:
 	PerformanceSlotItem* getSlotItem(int slotId) const { return slots[slotId - 1]; }
 	VcaSlotItem* getVcaItem(int vcaId) const { return vcaSlots[vcaId - 1]; }
 
+	void updatePinnedButtons();
+
 	juce::TextButton setupButton{ "Setup" };
 
 	KaiCBFaderControlAudioProcessor& processor;
 	PerformanceViewLookFeel performanceLF;
 
 	juce::TextButton presetsButton;
+
+	juce::OwnedArray<juce::TextButton> pinnedSnapshotButtons;
 	juce::TextButton storesButton;
 
 	juce::OwnedArray<PerformanceSlotItem> slots;

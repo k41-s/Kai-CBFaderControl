@@ -279,6 +279,19 @@ void SetupPageView::mouseUp(const juce::MouseEvent& e)
 	processLassoUp(e, nullptr); 
 }
 
+void SetupPageView::valueTreeRedirected(juce::ValueTree& tree)
+{
+	targetIpEditor.setText(SlotStateHelpers::getTargetIP(processor.apvts.state), juce::dontSendNotification);
+
+	incomingPortEditor.setText(juce::String(SlotStateHelpers::getIncomingPort(processor.apvts.state)), juce::dontSendNotification);
+
+	outgoingPortEditor.setText(juce::String(SlotStateHelpers::getOutgoingPort(processor.apvts.state)), juce::dontSendNotification);
+
+	statusLED.setConnected(SlotStateHelpers::isPluginConnected(processor.apvts.state));
+
+	refreshControlStates();
+}
+
 void SetupPageView::paint(juce::Graphics& g)
 {
 	g.setColour(MyColours::cbBlue);

@@ -12,6 +12,15 @@ PerformanceSlotItem::PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int
     init(slotIndex);
 }
 
+void PerformanceSlotItem::refreshAllVisuals()
+{
+    updateNameFromValueTree();
+    updateSlotColour();
+    updateStereoState();
+    updateGroupState();
+    updateSoloSafeVisuals();
+}
+
 void PerformanceSlotItem::init(int slotIndex)
 {
     addListeners();

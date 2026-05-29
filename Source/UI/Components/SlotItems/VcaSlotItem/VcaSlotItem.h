@@ -17,6 +17,9 @@ public:
 
 protected:
 	void updateNameFromValueTree() override;
+
+	void refreshAllVisuals() override;
+
 	void setupSlotBounds() override;
 
 private:

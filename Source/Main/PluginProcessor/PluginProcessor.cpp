@@ -428,6 +428,23 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new KaiCBFaderControlAudioProcessor();
 }
 
+void KaiCBFaderControlAudioProcessor::forceRecallSnapshot(int snapshotIdx)
+{
+    if (snapshotIdx > 0)
+    {
+        juce::MessageManager::callAsync([this, snapshotIdx]()
+            {
+                auto snapState = presetManager->getSnapshot(snapshotIdx);
+                if (snapState.isValid())
+                {
+                    isRestoringState = true;
+                    apvts.replaceState(snapState.createCopy());
+                    isRestoringState = false;
+                }
+            });
+    }
+}
+
 void KaiCBFaderControlAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
 {
     if (parameterID == PresetTags::ActiveSnapshotParamId)
@@ -447,7 +464,9 @@ void KaiCBFaderControlAudioProcessor::handleActiveSnapshotParameterChanged(float
                 auto snapState = presetManager->getSnapshot(snapshotIdx);
                 if (snapState.isValid())
                 {
-                    apvts.replaceState(snapState);
+					isRestoringState = true;
+                    apvts.replaceState(snapState.createCopy());
+					isRestoringState = false;
                 }
             });
     }

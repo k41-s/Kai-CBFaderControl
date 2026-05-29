@@ -19,6 +19,9 @@ protected:
     virtual void updateNameFromValueTree() = 0;
     virtual void setupSlotBounds() = 0;
 
+    void valueTreeRedirected(juce::ValueTree& treeWhoseReferenceHasChanged) override;
+    virtual void refreshAllVisuals() = 0;
+
     void configBaseVolumeFader();
     void configBaseValueLabel();
     void preSeedSlider(juce::RangedAudioParameter* param);
