@@ -409,9 +409,7 @@ void KaiCBFaderControlAudioProcessor::removeFromGroup(juce::ValueTree& state, in
 
 void KaiCBFaderControlAudioProcessor::removeFromStereoPair(juce::ValueTree& state, int slotIdx)
 {
-    SlotStateHelpers::setStereoLinked(state, slotIdx, false);
-    SlotStateHelpers::setStereoMain(state, slotIdx, false);
-    SlotStateHelpers::setLinkedSlotId(state, slotIdx, -1);
+	SlotStateHelpers::unlinkStereoSlot(state, slotIdx);
 }
 
 void KaiCBFaderControlAudioProcessor::claimActiveSlots() const
