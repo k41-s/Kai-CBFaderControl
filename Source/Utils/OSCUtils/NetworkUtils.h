@@ -10,9 +10,9 @@ namespace NetworkUtils
         for (const auto& addr : addresses)
         {
             auto ipString = addr.toString();
-            if (ipString.contains(".") && ipString != "127.0.0.1")
+            if (ipString.contains(".") && ipString != NetworkConstants::defaultTargetIp)
                 return ipString;
         }
-        return "127.0.0.1";
+        return NetworkConstants::defaultTargetIp;
     }
 }

@@ -33,13 +33,13 @@ void KaiCBFaderControlAudioProcessor::initialiseNetworkingDefaults()
 {
     auto& state = apvts.state;
     if (!state.hasProperty(SlotIDs::targetIP()))
-        SlotStateHelpers::setTargetIP(state, "127.0.0.1");
+        SlotStateHelpers::setTargetIP(state, NetworkConstants::defaultTargetIp);
 
     if (!state.hasProperty(SlotIDs::incomingPort()))
-        SlotStateHelpers::setIncomingPort(state, 8000);
+        SlotStateHelpers::setIncomingPort(state, NetworkConstants::defaultIncomingPort);
 
     if (!state.hasProperty(SlotIDs::outgoingPort()))
-        SlotStateHelpers::setOutgoingPort(state, 8001);
+        SlotStateHelpers::setOutgoingPort(state, NetworkConstants::defaultOutgoingPort);
 }
 
 void KaiCBFaderControlAudioProcessor::initOscManager()

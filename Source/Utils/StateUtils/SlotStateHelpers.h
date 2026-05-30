@@ -126,17 +126,17 @@ namespace SlotStateHelpers
 
     static inline juce::String getTargetIP(const juce::ValueTree& state)
     {
-        return getStringProp(state, SlotIDs::targetIP().toString(), "127.0.0.1");
+        return getStringProp(state, SlotIDs::targetIP().toString(), NetworkConstants::defaultTargetIp);
     }
 
     static inline int getIncomingPort(const juce::ValueTree& state)
     {
-        return getIntProp(state, SlotIDs::incomingPort().toString(), 8000);
+        return getIntProp(state, SlotIDs::incomingPort().toString(), NetworkConstants::defaultIncomingPort);
     }
 
     static inline int getOutgoingPort(const juce::ValueTree& state)
     {
-        return getIntProp(state, SlotIDs::outgoingPort().toString(), 8001);
+        return getIntProp(state, SlotIDs::outgoingPort().toString(), NetworkConstants::defaultOutgoingPort);
     }
 
     static inline int isPluginConnected(const juce::ValueTree& state)

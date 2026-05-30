@@ -141,3 +141,10 @@ namespace PluginConstants
 	static inline const int maxSlotNameLength = 5;
 	static inline const int maxGroupNameLength = maxSlotNameLength; // for now unless they need to be different
 }
+
+namespace NetworkConstants
+{
+    inline const juce::String defaultTargetIp = "127.0.0.1";
+    inline const int defaultIncomingPort = 8000;
+    inline const int defaultOutgoingPort = 8001;
+}
