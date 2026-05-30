@@ -13,7 +13,8 @@ class PerformanceView :
 	public juce::ValueTree::Listener,
 	public juce::AsyncUpdater,
 	public juce::LassoSource<int>,
-	public juce::ChangeListener
+	public juce::ChangeListener,
+	public juce::Timer
 {
 public:
 	PerformanceView(KaiCBFaderControlAudioProcessor& p);
@@ -32,7 +33,10 @@ public:
 	void mouseDrag(const juce::MouseEvent& e) override;
 	void mouseUp(const juce::MouseEvent& e) override;
 
+	void timerCallback() override;
+
 	void paint(juce::Graphics& g) override;
+	void paintOverChildren(juce::Graphics& g) override;
 	void resized() override;
 
 	void setBaselineWidth(float& baselineWidth);
@@ -175,6 +179,9 @@ private:
 	juce::OwnedArray<juce::TextButton> pinnedStoreButtons;
 	juce::TextButton storesButton;
 	juce::Label activeStoreLabel;
+
+	bool hasUnsavedChanges = false;
+	bool isSettling = false;
 
 	juce::OwnedArray<PerformanceSlotItem> slots;
 	juce::OwnedArray<VcaSlotItem> vcaSlots;

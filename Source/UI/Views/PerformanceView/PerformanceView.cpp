@@ -21,6 +21,10 @@ void PerformanceView::init()
 	configComponents();
 	registerListeners();
 	addAndMakeVisible(lasso);
+
+	isSettling = true;
+	startTimer(200);
+
 	triggerAsyncUpdate();
 }
 
@@ -181,6 +185,13 @@ void PerformanceView::handleStoresMenuResult(int result)
 
 		processor.presetManager->saveStore(index, processor.apvts.copyState());
 
+		hasUnsavedChanges = false;
+
+		// This is done a few times, maybe make 1 method for it
+		isSettling = true;
+		startTimer(200);
+		triggerAsyncUpdate();
+
 		updateActiveStoreLabel(index);
 	}
 	else if (result > BaseRecall)
@@ -325,6 +336,10 @@ void PerformanceView::parameterChanged(const juce::String& parameterID, float ne
 	{
 		handleActiveStoreParamChanged();
 	}
+	else if (!processor.isRestoringState && !isSettling && !hasUnsavedChanges)
+	{
+		hasUnsavedChanges = true;
+	}
 	triggerAsyncUpdate();
 }
 
@@ -341,16 +356,29 @@ void PerformanceView::handleActiveStoreParamChanged()
 
 void PerformanceView::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
 {
+	if (property.toString() != PresetTags::ActiveStoreParamId &&
+		!processor.isRestoringState && 
+		!isSettling && !hasUnsavedChanges)
+	{
+		hasUnsavedChanges = true;
+		triggerAsyncUpdate();
+	}
+
+	// These must be extracted
 	if (property.toString().startsWith("isStereo")
 		|| property.toString().startsWith("vcaId")
 		|| property.toString().startsWith("groupId")
-		) {
+	) {
 		triggerAsyncUpdate();
 	}
 }
 
 void PerformanceView::valueTreeRedirected(juce::ValueTree& treeWhichHasBeenChanged)
 {
+	hasUnsavedChanges = false;
+	isSettling = true;
+	startTimer(200);
+
 	handleActiveStoreParamChanged();
 	triggerAsyncUpdate();
 }
@@ -358,6 +386,7 @@ void PerformanceView::valueTreeRedirected(juce::ValueTree& treeWhichHasBeenChang
 void PerformanceView::handleAsyncUpdate()
 {
 	resized();
+	repaint();
 
 	if (onLayoutChangeRequest)
 		onLayoutChangeRequest();
@@ -420,6 +449,12 @@ void PerformanceView::mouseDrag(const juce::MouseEvent& e)
 void PerformanceView::mouseUp(const juce::MouseEvent& e)
 {
 	lasso.endLasso();
+}
+
+void PerformanceView::timerCallback()
+{
+	stopTimer();
+	isSettling = false;
 }
 
 void PerformanceView::handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot)
@@ -852,6 +887,30 @@ void PerformanceView::paint(juce::Graphics& g)
 	g.fillRect(footerArea);
 }
 
+void PerformanceView::paintOverChildren(juce::Graphics& g)
+{
+	// SlotStateHelpers needs these methods added, as mentioned in other comments
+	if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
+	{
+		int activeId = juce::roundToInt(param->convertFrom0to1(param->getValue()));
+
+		for (auto* btn : pinnedStoreButtons)
+		{
+			// If this pinned button is the active store...
+			if (static_cast<int>(btn->getProperties()["storeId"]) == activeId) 
+			{
+				auto b = btn->getBounds();
+
+				// Pick color based on unsaved state
+				g.setColour(hasUnsavedChanges ? juce::Colours::red : juce::Colours::limegreen);
+
+				// Draw a tiny dot in the top right corner of the button
+				g.fillEllipse((float)b.getRight() - 8.0f, (float)b.getY() + 2.0f, 6.0f, 6.0f);
+			}
+		}
+	}
+}
+
 void PerformanceView::resized()
 {
 	setupAndFillHeader();
@@ -1187,6 +1246,9 @@ void PerformanceView::updatePinnedButtons()
 	{
 		juce::String buttonText = juce::String::charToString((juce::juce_wchar)('A' + (idx - 1)));
 		auto* btn = pinnedStoreButtons.add(new juce::TextButton(buttonText));
+
+		// NEED TO MAKE THIS A VARIABLE
+		btn->getProperties().set("storeId", idx);
 
 		btn->setTooltip(processor.presetManager->getStoreName(idx));
 		addAndMakeVisible(btn);
