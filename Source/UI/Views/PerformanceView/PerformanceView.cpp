@@ -121,22 +121,9 @@ void PerformanceView::showStoresMenu()
 	juce::PopupMenu menu;
 
 	int numVisible = processor.presetManager->getNumVisibleStores();
-
 	for (int i = 1; i <= numVisible; ++i)
 	{
-		juce::PopupMenu storeSubMenu;
-		juce::String name = processor.presetManager->getStoreName(i);
-
-		// Add the 4 actions to this specific store's submenu
-		storeSubMenu.addItem(BaseRecall + i, "Recall");
-		storeSubMenu.addItem(BaseSave + i, "Save (Overwrite)");
-		storeSubMenu.addItem(BaseRename + i, "Rename...");
-
-		bool isPinned = processor.presetManager->isStorePinned(i);
-		storeSubMenu.addItem(BasePin + i, isPinned ? "Unpin from Footer" : "Pin to Footer", true, isPinned);
-
-		// Add this store to the main menu as a submenu
-		menu.addSubMenu(name, storeSubMenu);
+		addStoreSubMenu(i, menu);
 	}
 
 	menu.addSeparator();
@@ -144,6 +131,21 @@ void PerformanceView::showStoresMenu()
 
 	menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(storesButton).withParentComponent(this),
 		[this](int result) { handleStoresMenuResult(result); });
+}
+
+void PerformanceView::addStoreSubMenu(int i, juce::PopupMenu& menu)
+{
+	juce::PopupMenu storeSubMenu;
+	juce::String name = processor.presetManager->getStoreName(i);
+
+	storeSubMenu.addItem(BaseRecall + i, "Recall");
+	storeSubMenu.addItem(BaseSave + i, "Save (Overwrite)");
+	storeSubMenu.addItem(BaseRename + i, "Rename...");
+
+	bool isPinned = processor.presetManager->isStorePinned(i);
+	storeSubMenu.addItem(BasePin + i, isPinned ? "Unpin from Footer" : "Pin to Footer", true, isPinned);
+
+	menu.addSubMenu(name, storeSubMenu);
 }
 
 void PerformanceView::handleStoresMenuResult(int result)
@@ -169,31 +171,11 @@ void PerformanceView::handleStoresMenuResult(int result)
 	}
 	else if (result > BaseSave)
 	{
-		int index = result - BaseSave;
-
-		processor.isRestoringState = true;
-		if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
-		{
-			float normalizedValue = param->convertTo0to1((float)index);
-			param->setValueNotifyingHost(normalizedValue);
-		}
-		processor.isRestoringState = false;
-
-		processor.presetManager->saveStore(index, processor.apvts.copyState());
-
-		hasUnsavedChanges = false;
-		triggerSettling();
-		updateActiveStoreLabel(index);
+		handleStoreSaveMenuResult(result);
 	}
 	else if (result > BaseRecall)
 	{
-		int index = result - BaseRecall;
-		int currentIndex = SlotStateHelpers::getActiveStoreId(processor.apvts);
-
-		if (currentIndex == index)
-			processor.forceRecallStore(index);
-		else
-			SlotStateHelpers::setActiveStoreId(processor.apvts, index);
+		handleStoreRecallMenuResult(result);
 	}
 }
 
@@ -243,6 +225,36 @@ void PerformanceView::promptForAddMoreStores()
 				processor.presetManager->setNumVisibleStores(newNum);
 			}
 		}), true);
+}
+
+void PerformanceView::handleStoreSaveMenuResult(int result)
+{
+	int index = result - BaseSave;
+
+	processor.isRestoringState = true;
+	if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
+	{
+		float normalizedValue = param->convertTo0to1((float)index);
+		param->setValueNotifyingHost(normalizedValue);
+	}
+	processor.isRestoringState = false;
+
+	processor.presetManager->saveStore(index, processor.apvts.copyState());
+
+	hasUnsavedChanges = false;
+	triggerSettling();
+	updateActiveStoreLabel(index);
+}
+
+void PerformanceView::handleStoreRecallMenuResult(int result)
+{
+	int index = result - BaseRecall;
+	int currentIndex = SlotStateHelpers::getActiveStoreId(processor.apvts);
+
+	if (currentIndex == index)
+		processor.forceRecallStore(index);
+	else
+		SlotStateHelpers::setActiveStoreId(processor.apvts, index);
 }
 
 void PerformanceView::configImages()

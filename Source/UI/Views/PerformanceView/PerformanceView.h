@@ -66,10 +66,12 @@ private:
 	void updateActiveStoreLabel(int index);
 	void handleActiveStoreParamChanged();
 	void showStoresMenu();
+	void addStoreSubMenu(int i, juce::PopupMenu& menu);
 	void handleStoresMenuResult(int result);
-
 	void promptForStoreName(int index);
 	void promptForAddMoreStores();
+	void handleStoreSaveMenuResult(int result);
+	void handleStoreRecallMenuResult(int result);
 
 	// Listener management
 	void registerListeners();
