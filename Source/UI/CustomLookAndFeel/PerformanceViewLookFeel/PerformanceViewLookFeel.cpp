@@ -512,21 +512,55 @@ void PerformanceViewLookFeel::drawBtnOutline(juce::Graphics& g, const juce::Rect
 	g.drawRoundedRectangle(buttonArea, cornerSize, 1.0f);
 }
 
-void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton& button, 
-	bool isMouseOverButton, bool isButtonDown
-) {
+void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton& button,
+	bool isMouseOverButton, bool isButtonDown)
+{
 	g.setColour(button.getToggleState() ? juce::Colours::black : juce::Colours::white);
-
-	float fontSize = juce::jmin(UISizeConstants::btnTextMaxFont, button.getWidth() * 0.6f);
-	g.setFont(juce::Font(fontSize, juce::Font::bold));
 
 	auto textBounds = button.getLocalBounds().toFloat();
 	if (isButtonDown)
 		textBounds.translate(0.0f, 1.0f);
 
-	g.drawText(button.getButtonText(), textBounds, juce::Justification::centred, false);
+	juce::String text = button.getButtonText();
+
+	if (text.contains("\n"))
+	{
+		handleMultipleLineButtonText(button, g, text, textBounds);
+	}
+	else
+	{
+		handleSingleLineButtonText(button, g, text, textBounds);
+	}
 }
 
+void PerformanceViewLookFeel::handleMultipleLineButtonText(juce::TextButton& button, juce::Graphics& g, juce::String& text, juce::Rectangle<float>& textBounds)
+{
+	float maxFont = UISizeConstants::btnTextMaxFont * 0.85f;
+	float dynamicSize = button.getWidth() * 0.30f;
+	float fontSize = juce::jlimit(UISizeConstants::minFontSize, maxFont, dynamicSize);
+
+	g.setFont(juce::Font(fontSize, juce::Font::bold));
+
+	auto topText = text.upToFirstOccurrenceOf("\n", false, false);
+	auto bottomText = text.fromFirstOccurrenceOf("\n", false, false);
+
+	auto topHalf = textBounds.removeFromTop(textBounds.getHeight() * 0.5f);
+
+	g.drawText(topText, topHalf.translated(0, 2), juce::Justification::centred, true);
+	g.drawText(bottomText, textBounds.translated(0, -2), juce::Justification::centred, true);
+}
+
+void PerformanceViewLookFeel::handleSingleLineButtonText(juce::TextButton& button, juce::Graphics& g, juce::String& text, const juce::Rectangle<float>& textBounds)
+{
+	float maxFont = UISizeConstants::btnTextMaxFont;
+	float minFont = 10.0f;
+	float dynamicSize = button.getWidth() * 0.45f;
+	float fontSize = juce::jlimit(minFont, maxFont, dynamicSize);
+
+	g.setFont(juce::Font(fontSize, juce::Font::bold));
+
+	g.drawText(text, textBounds, juce::Justification::centred, true);
+}
 
 void PerformanceViewLookFeel::handleMouseOverButton(bool isMouseOverButton, bool isButtonDown, juce::Graphics& g, 
 	juce::Rectangle<float>& area, float cornerSize

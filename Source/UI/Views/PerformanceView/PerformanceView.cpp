@@ -124,7 +124,7 @@ void PerformanceView::showStoresMenu()
 	}
 
 	menu.addSeparator();
-	menu.addItem(AddMore, "Add More Slots...");
+	menu.addItem(AddMore, "Add More Stores...");
 
 	menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(storesButton).withParentComponent(this),
 		[this](int result) { handleStoresMenuResult(result); });
@@ -181,6 +181,10 @@ void PerformanceView::promptForStoreName(int index)
 	auto* alert = new juce::AlertWindow("Rename Store", "Enter a new name:", juce::AlertWindow::NoIcon);
 
 	alert->addTextEditor("nameField", processor.presetManager->getStoreName(index), "Name");
+
+	if (auto* editor = alert->getTextEditor("nameField"))
+		editor->setInputRestrictions(PresetConstants::maxStoreNameLength);
+
 	alert->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
 	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
 
@@ -1003,8 +1007,8 @@ void PerformanceView::addPinnedStoreButtons(juce::FlexBox& storeBox)
 	for (auto* btn : pinnedStoreButtons)
 	{
 		storeBox.items.add(juce::FlexItem(*btn)
-			.withWidth(30)
-			.withHeight(24)
+			.withWidth(50)
+			.withHeight(34)
 			.withMargin(juce::FlexItem::Margin(0, 3, 0, 3)));
 	}
 }
@@ -1227,12 +1231,11 @@ void PerformanceView::updatePinnedButtons()
 
 	for (int idx : pinnedIndices)
 	{
-		juce::String buttonText = juce::String::charToString((juce::juce_wchar)('A' + (idx - 1)));
+		juce::String storeName = processor.presetManager->getStoreName(idx);
+		juce::String buttonText = juce::String(idx) + "\n" + storeName;
+
 		auto* btn = pinnedStoreButtons.add(new juce::TextButton(buttonText));
-
 		btn->getProperties().set(PresetTags::StoreIdProp, idx);
-
-		btn->setTooltip(processor.presetManager->getStoreName(idx));
 		addAndMakeVisible(btn);
 
 		btn->onClick = [this, idx]()

@@ -31,7 +31,16 @@ juce::ValueTree PresetManager::getStore(int index) const
 void PresetManager::setStoreName(int index, const juce::String& newName)
 {
     auto node = getOrCreateStoreNode(index);
-    node.setProperty(PresetTags::StoreNameProp, newName, nullptr);
+    juce::String finalName = newName.substring(0, PresetConstants::maxStoreNameLength).trim();
+
+    if (finalName.isEmpty() || finalName == getDefaultStoreName(index))
+    {
+        node.removeProperty(PresetTags::StoreNameProp, nullptr);
+    }
+    else
+    {
+        node.setProperty(PresetTags::StoreNameProp, finalName, nullptr);
+    }
 }
 
 juce::String PresetManager::getStoreName(int index) const
@@ -40,7 +49,11 @@ juce::String PresetManager::getStoreName(int index) const
     auto node = storesTree.getChildWithName(nodeName);
 
     if (node.isValid() && node.hasProperty(PresetTags::StoreNameProp))
-        return node.getProperty(PresetTags::StoreNameProp);
+    {
+        juce::String savedName = node.getProperty(PresetTags::StoreNameProp).toString().trim();
+        if (savedName.isNotEmpty())
+            return savedName;
+    }
 
     return getDefaultStoreName(index);
 }
@@ -107,7 +120,15 @@ juce::String PresetManager::getStoreNodeName(int index) const
 
 juce::String PresetManager::getDefaultStoreName(int index) const
 {
-    return PresetTags::DefaultStoreNamePrefix + juce::String(index);
+    juce::String numStr = juce::String(index);
+    juce::String prefix = PresetTags::DefaultStoreNamePrefix;
+
+    if ((prefix + numStr).length() > PresetConstants::maxStoreNameLength)
+    {
+        prefix = prefix.trim();
+    }
+
+    return (prefix + numStr).substring(0, PresetConstants::maxStoreNameLength);
 }
 
 juce::ValueTree PresetManager::getOrCreateStoreNode(int index)
@@ -118,7 +139,6 @@ juce::ValueTree PresetManager::getOrCreateStoreNode(int index)
     if (!node.isValid())
     {
         node = juce::ValueTree(nodeName);
-        node.setProperty(PresetTags::StoreNameProp, getDefaultStoreName(index), nullptr);
         node.setProperty(PresetTags::StorePinnedProp, false, nullptr);
         storesTree.addChild(node, -1, nullptr);
     }
