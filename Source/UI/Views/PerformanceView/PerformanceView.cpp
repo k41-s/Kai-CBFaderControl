@@ -188,20 +188,25 @@ void PerformanceView::promptForStoreName(int index)
 		{
 			if (result == 1)
 			{
-				juce::String newName = alert->getTextEditorContents("nameField");
-				if (newName.isNotEmpty())
-				{
-					processor.presetManager->setStoreName(index, newName);
-					triggerAsyncUpdate();
-
-					if (SlotStateHelpers::getActiveStoreId(processor.apvts) == index)
-					{
-						updateActiveStoreLabel(index);
-					}
-				}
-				processor.presetManager->saveStore(index, processor.apvts.copyState());
+				handleStoreRename(alert, index);
 			}
 		}), true);
+}
+
+void PerformanceView::handleStoreRename(juce::AlertWindow* alert, int index)
+{
+	juce::String newName = alert->getTextEditorContents("nameField");
+	if (newName.isNotEmpty())
+	{
+		processor.presetManager->setStoreName(index, newName);
+		triggerAsyncUpdate();
+
+		if (SlotStateHelpers::getActiveStoreId(processor.apvts) == index)
+		{
+			updateActiveStoreLabel(index);
+		}
+	}
+	processor.presetManager->saveStore(index, processor.apvts.copyState());
 }
 
 void PerformanceView::promptForAddMoreStores()
@@ -621,7 +626,8 @@ void PerformanceView::setupColourMenu(int grpId, juce::PopupMenu& colourMenu) co
 
 void PerformanceView::showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr)
 {
-	if (menu.getNumItems() > 0) {
+	if (menu.getNumItems() > 0) 
+	{
 		menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this), [this, selectedArr](int result)
 			{
 				handlePopupMenuResult(result, selectedArr);
@@ -750,8 +756,8 @@ void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr
 void PerformanceView::doStereoLink(int slotA, int slotB)
 {
 	if (SlotStateHelpers::isStereoLinked(processor.apvts.state, slotA) ||
-		SlotStateHelpers::isStereoLinked(processor.apvts.state, slotB)
-		) {
+		SlotStateHelpers::isStereoLinked(processor.apvts.state, slotB))
+	{
 		selectedItems.deselectAll();
 		return;
 	}
@@ -977,11 +983,23 @@ void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 
 	updatePinnedButtons();
 
+	setupPinnedStoresFlexBox(areaToUse);
+}
+
+void PerformanceView::setupPinnedStoresFlexBox(const juce::Rectangle<int>& areaToUse)
+{
 	juce::FlexBox storeBox;
 	storeBox.flexDirection = juce::FlexBox::Direction::row;
 	storeBox.justifyContent = juce::FlexBox::JustifyContent::center;
 	storeBox.alignItems = juce::FlexBox::AlignItems::center;
 
+	addPinnedStoreButtons(storeBox);
+
+	storeBox.performLayout(areaToUse);
+}
+
+void PerformanceView::addPinnedStoreButtons(juce::FlexBox& storeBox)
+{
 	for (auto* btn : pinnedStoreButtons)
 	{
 		storeBox.items.add(juce::FlexItem(*btn)
@@ -989,8 +1007,6 @@ void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 			.withHeight(24)
 			.withMargin(juce::FlexItem::Margin(0, 3, 0, 3)));
 	}
-
-	storeBox.performLayout(areaToUse);
 }
 
 juce::FlexBox PerformanceView::configFlexBox()

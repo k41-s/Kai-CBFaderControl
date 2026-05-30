@@ -69,6 +69,7 @@ private:
 	void addStoreSubMenu(int i, juce::PopupMenu& menu);
 	void handleStoresMenuResult(int result);
 	void promptForStoreName(int index);
+	void handleStoreRename(juce::AlertWindow* alert, int index);
 	void promptForAddMoreStores();
 	void handleStoreSaveMenuResult(int result);
 	void handleStoreRecallMenuResult(int result);
@@ -142,6 +143,8 @@ private:
 	void setupAndFillHeader();
 	void setupAndFillArea();
 	void setupAndFillFooter(juce::Rectangle<int>& area);
+	void setupPinnedStoresFlexBox(const juce::Rectangle<int>& areaToUse);
+	void addPinnedStoreButtons(juce::FlexBox& storeBox);
 	juce::FlexBox configFlexBox();
 	void checkAndAddActiveSlots(juce::FlexBox& flexBox);
 	void plotRegularSlots(juce::FlexBox& flexBox);
