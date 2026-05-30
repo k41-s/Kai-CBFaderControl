@@ -24,7 +24,7 @@ protected:
 
     void configBaseVolumeFader();
     void configBaseValueLabel();
-    void preSeedSlider(juce::RangedAudioParameter* param);
+    void preSeedSlider(const juce::String& paramId);
 
     void configBaseMuteAttachment(const juce::String& paramID);
     void configBaseVolumeAttachment(const juce::String& paramID);

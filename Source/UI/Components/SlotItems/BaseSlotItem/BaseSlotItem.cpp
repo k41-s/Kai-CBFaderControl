@@ -46,10 +46,9 @@ void BaseSlotItem::configBaseValueLabel()
         };
 }
 
-void BaseSlotItem::preSeedSlider(juce::RangedAudioParameter* param)
+void BaseSlotItem::preSeedSlider(const juce::String& paramId)
 {
-    volumeFader.setRange(param->getNormalisableRange().start, param->getNormalisableRange().end, param->getNormalisableRange().interval);
-    volumeFader.setValue(param->convertFrom0to1(param->getValue()), juce::dontSendNotification);
+    SlotStateHelpers::initSliderFromParam(processor.apvts, paramId, volumeFader);
 }
 
 void BaseSlotItem::configBaseMuteAttachment(const juce::String& paramID)

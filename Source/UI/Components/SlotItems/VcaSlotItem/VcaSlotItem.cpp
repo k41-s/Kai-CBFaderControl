@@ -79,10 +79,8 @@ void VcaSlotItem::configAttachments()
 
 void VcaSlotItem::configVolumeAttachment()
 {
-    if (auto* param = processor.apvts.getParameter(SlotIDs::vcaVolume(index)))
-        preSeedSlider(param);
-
-	configBaseVolumeAttachment(SlotIDs::vcaVolume(index));
+    preSeedSlider(SlotIDs::vcaVolume(index));
+    configBaseVolumeAttachment(SlotIDs::vcaVolume(index));
 }
 
 void VcaSlotItem::configExpandAttachment()

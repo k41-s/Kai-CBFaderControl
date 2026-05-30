@@ -299,6 +299,16 @@ namespace SlotStateHelpers
         setParamNormalized(apvts, SlotIDs::soloSafe(slotIdx), shouldBeSoloSafe ? 1.0f : 0.0f);
     }
 
+    static inline void initSliderFromParam(const juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, juce::Slider& slider)
+    {
+        if (auto* param = apvts.getParameter(paramId))
+        {
+            auto range = param->getNormalisableRange();
+            slider.setRange(range.start, range.end, range.interval);
+            slider.setValue(param->convertFrom0to1(param->getValue()), juce::dontSendNotification);
+        }
+    }
+
     // =========================================================================
     // EXTRAS
     // =========================================================================

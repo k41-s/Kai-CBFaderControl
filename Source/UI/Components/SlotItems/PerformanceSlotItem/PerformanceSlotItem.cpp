@@ -125,10 +125,8 @@ void PerformanceSlotItem::configAttachments(int slotIndex)
 
 void PerformanceSlotItem::configVolumeAttachment(int slotIndex)
 {
-    if (auto* param = processor.apvts.getParameter(SlotIDs::volume(slotIndex)))
-        preSeedSlider(param);
-
-	configBaseVolumeAttachment(SlotIDs::volume(slotIndex));
+    preSeedSlider(SlotIDs::volume(slotIndex));
+    configBaseVolumeAttachment(SlotIDs::volume(slotIndex));
 }
 
 void PerformanceSlotItem::configPanAttachment(int slotIndex)

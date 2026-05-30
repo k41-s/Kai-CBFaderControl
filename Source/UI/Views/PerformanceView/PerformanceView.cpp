@@ -96,11 +96,8 @@ void PerformanceView::configActiveStoreLabel()
 	activeStoreLabel.setFont(juce::Font(15.0f, juce::Font::bold));
 	activeStoreLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 
-	if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
-	{
-		int index = SlotStateHelpers::getActiveStoreId(processor.apvts);
-		updateActiveStoreLabel(index);
-	}
+	int index = SlotStateHelpers::getActiveStoreId(processor.apvts);
+	updateActiveStoreLabel(index);
 }
 
 void PerformanceView::updateActiveStoreLabel(int index)
@@ -232,11 +229,7 @@ void PerformanceView::handleStoreSaveMenuResult(int result)
 	int index = result - BaseSave;
 
 	processor.isRestoringState = true;
-	if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
-	{
-		float normalizedValue = param->convertTo0to1((float)index);
-		param->setValueNotifyingHost(normalizedValue);
-	}
+	SlotStateHelpers::setActiveStoreId(processor.apvts, index);
 	processor.isRestoringState = false;
 
 	processor.presetManager->saveStore(index, processor.apvts.copyState());
