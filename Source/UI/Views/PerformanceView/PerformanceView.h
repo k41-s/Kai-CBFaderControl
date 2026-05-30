@@ -126,7 +126,7 @@ private:
 	void setSubSlotProperties(juce::ValueTree& state, int subIdx, int mainIdx);
 
 	void doStereoUnlink(int slotIdx);
-	void unlinkSlot(juce::ValueTree& state, int idx);
+	void triggerSettling();
 
 	// Grouping functions
 	void setSlotStandardGroup(int slotIdx, int groupId, GroupRole role);

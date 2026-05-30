@@ -21,11 +21,7 @@ void PerformanceView::init()
 	configComponents();
 	registerListeners();
 	addAndMakeVisible(lasso);
-
-	isSettling = true;
-	startTimer(200);
-
-	triggerAsyncUpdate();
+	triggerSettling();
 }
 
 void PerformanceView::configComponents()
@@ -102,7 +98,7 @@ void PerformanceView::configActiveStoreLabel()
 
 	if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
 	{
-		int index = juce::roundToInt(param->convertFrom0to1(param->getValue()));
+		int index = SlotStateHelpers::getActiveStoreId(processor.apvts);
 		updateActiveStoreLabel(index);
 	}
 }
@@ -186,32 +182,18 @@ void PerformanceView::handleStoresMenuResult(int result)
 		processor.presetManager->saveStore(index, processor.apvts.copyState());
 
 		hasUnsavedChanges = false;
-
-		// This is done a few times, maybe make 1 method for it
-		isSettling = true;
-		startTimer(200);
-		triggerAsyncUpdate();
-
+		triggerSettling();
 		updateActiveStoreLabel(index);
 	}
 	else if (result > BaseRecall)
 	{
 		int index = result - BaseRecall;
-		if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
-		{
-			float currentParamValue = param->convertFrom0to1(param->getValue());
-			int currentIndex = juce::roundToInt(currentParamValue);
+		int currentIndex = SlotStateHelpers::getActiveStoreId(processor.apvts);
 
-			if (currentIndex == index)
-			{
-				processor.forceRecallStore(index);
-			}
-			else
-			{
-				float normalizedValue = param->convertTo0to1((float)index);
-				param->setValueNotifyingHost(normalizedValue);
-			}
-		}
+		if (currentIndex == index)
+			processor.forceRecallStore(index);
+		else
+			SlotStateHelpers::setActiveStoreId(processor.apvts, index);
 	}
 }
 
@@ -233,12 +215,9 @@ void PerformanceView::promptForStoreName(int index)
 					processor.presetManager->setStoreName(index, newName);
 					triggerAsyncUpdate();
 
-					if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
+					if (SlotStateHelpers::getActiveStoreId(processor.apvts) == index)
 					{
-						if (juce::roundToInt(param->convertFrom0to1(param->getValue())) == index)
-						{
-							updateActiveStoreLabel(index);
-						}
+						updateActiveStoreLabel(index);
 					}
 				}
 				processor.presetManager->saveStore(index, processor.apvts.copyState());
@@ -345,13 +324,11 @@ void PerformanceView::parameterChanged(const juce::String& parameterID, float ne
 
 void PerformanceView::handleActiveStoreParamChanged()
 {
-	juce::MessageManager::callAsync([this]() {
-		if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
-		{
-			int index = juce::roundToInt(param->convertFrom0to1(param->getValue()));
-			updateActiveStoreLabel(index);
-		}
-		});
+	juce::MessageManager::callAsync([this]() 
+	{
+		int index = SlotStateHelpers::getActiveStoreId(processor.apvts);
+		updateActiveStoreLabel(index);
+	});
 }
 
 void PerformanceView::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
@@ -364,11 +341,8 @@ void PerformanceView::valueTreePropertyChanged(juce::ValueTree& tree, const juce
 		triggerAsyncUpdate();
 	}
 
-	// These must be extracted
-	if (property.toString().startsWith("isStereo")
-		|| property.toString().startsWith("vcaId")
-		|| property.toString().startsWith("groupId")
-	) {
+	if (SlotStateHelpers::isStereoOrGroupProperty(property.toString()))
+	{
 		triggerAsyncUpdate();
 	}
 }
@@ -376,11 +350,8 @@ void PerformanceView::valueTreePropertyChanged(juce::ValueTree& tree, const juce
 void PerformanceView::valueTreeRedirected(juce::ValueTree& treeWhichHasBeenChanged)
 {
 	hasUnsavedChanges = false;
-	isSettling = true;
-	startTimer(200);
-
+	triggerSettling();
 	handleActiveStoreParamChanged();
-	triggerAsyncUpdate();
 }
 
 void PerformanceView::handleAsyncUpdate()
@@ -812,17 +783,17 @@ void PerformanceView::doStereoUnlink(int slotIdx)
 	auto& state = processor.apvts.state;
 	int linkedIdx = SlotStateHelpers::getLinkedSlotId(state, slotIdx);
 
-	unlinkSlot(state, slotIdx);
-	if (linkedIdx != -1) unlinkSlot(state, linkedIdx);
+	SlotStateHelpers::unlinkStereoSlot(state, slotIdx);
+	if (linkedIdx != -1) SlotStateHelpers::unlinkStereoSlot(state, linkedIdx);
 
 	selectedItems.deselectAll();
 }
 
-void PerformanceView::unlinkSlot(juce::ValueTree& state, int idx)
+void PerformanceView::triggerSettling()
 {
-	SlotStateHelpers::removeProp(state, SlotIDs::isStereoLinked(idx));
-	SlotStateHelpers::removeProp(state, SlotIDs::isStereoMain(idx));
-	SlotStateHelpers::removeProp(state, SlotIDs::linkedSlotId(idx));
+	isSettling = true;
+	startTimer(200);
+	triggerAsyncUpdate();
 }
 
 void PerformanceView::promoteToGroupLeader(int slotIdx)
@@ -889,24 +860,15 @@ void PerformanceView::paint(juce::Graphics& g)
 
 void PerformanceView::paintOverChildren(juce::Graphics& g)
 {
-	// SlotStateHelpers needs these methods added, as mentioned in other comments
-	if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
+	int activeId = SlotStateHelpers::getActiveStoreId(processor.apvts);
+
+	for (auto* btn : pinnedStoreButtons)
 	{
-		int activeId = juce::roundToInt(param->convertFrom0to1(param->getValue()));
-
-		for (auto* btn : pinnedStoreButtons)
+		if (static_cast<int>(btn->getProperties()[PresetTags::StoreIdProp]) == activeId)
 		{
-			// If this pinned button is the active store...
-			if (static_cast<int>(btn->getProperties()["storeId"]) == activeId) 
-			{
-				auto b = btn->getBounds();
-
-				// Pick color based on unsaved state
-				g.setColour(hasUnsavedChanges ? juce::Colours::red : juce::Colours::limegreen);
-
-				// Draw a tiny dot in the top right corner of the button
-				g.fillEllipse((float)b.getRight() - 8.0f, (float)b.getY() + 2.0f, 6.0f, 6.0f);
-			}
+			auto b = btn->getBounds();
+			g.setColour(hasUnsavedChanges ? juce::Colours::red : juce::Colours::limegreen);
+			g.fillEllipse((float)b.getRight() - 8.0f, (float)b.getY() + 2.0f, 6.0f, 6.0f);
 		}
 	}
 }
@@ -1247,29 +1209,18 @@ void PerformanceView::updatePinnedButtons()
 		juce::String buttonText = juce::String::charToString((juce::juce_wchar)('A' + (idx - 1)));
 		auto* btn = pinnedStoreButtons.add(new juce::TextButton(buttonText));
 
-		// NEED TO MAKE THIS A VARIABLE
-		btn->getProperties().set("storeId", idx);
+		btn->getProperties().set(PresetTags::StoreIdProp, idx);
 
 		btn->setTooltip(processor.presetManager->getStoreName(idx));
 		addAndMakeVisible(btn);
 
 		btn->onClick = [this, idx]()
 			{
-				if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
-				{
-					float currentParamValue = param->convertFrom0to1(param->getValue());
-					int currentIndex = juce::roundToInt(currentParamValue);
-
-					if (currentIndex == idx)
-					{
-						processor.forceRecallStore(idx);
-					}
-					else
-					{
-						float normalizedValue = param->convertTo0to1((float)idx);
-						param->setValueNotifyingHost(normalizedValue);
-					}
-				}
+				int currentIndex = SlotStateHelpers::getActiveStoreId(processor.apvts);
+				if (currentIndex == idx)
+					processor.forceRecallStore(idx);
+				else
+					SlotStateHelpers::setActiveStoreId(processor.apvts, idx);
 			};
 	}
 }

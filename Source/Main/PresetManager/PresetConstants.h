@@ -16,6 +16,7 @@ namespace PresetTags
 
     inline const juce::Identifier StoreNameProp{ "name" };
     inline const juce::Identifier StorePinnedProp{ "isPinned" };
+    inline const juce::Identifier StoreIdProp{ "storeId" };
     inline const juce::String DefaultStoreNamePrefix{ "Store " };
 
     inline const juce::Identifier VisibleStoresProp{ "visibleStores" };

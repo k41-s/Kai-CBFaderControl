@@ -65,6 +65,10 @@ private:
 
     void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
 
+    void syncFloatCaches(const juce::String& key, float value);
+    void syncIntCaches(const juce::String& key, int value);
+    void syncStringCaches(const juce::String& key, const juce::String& value);
+
     KaiCBFaderControlAudioProcessor& processor;
     juce::OSCReceiver receiver;
     juce::OSCSender sender;

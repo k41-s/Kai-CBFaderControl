@@ -230,10 +230,8 @@ void OscManager::sendOscVolume(int i, juce::OSCBundle& frameBundle)
 
     if (shouldBroadcastFloat(volId, currentVol, OscConstants::ParamTypes::volume()))
     {
-        lastSentOscFloats[volId] = currentVol;
-        lastReceivedOscFloats[volId] = currentVol;
+        syncFloatCaches(volId, currentVol);
         juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), i, OscConstants::ParamTypes::volume());
-        
         frameBundle.addElement(juce::OSCMessage(address, currentVol));
     }
 }
@@ -245,9 +243,7 @@ void OscManager::sendOscMute(int i, juce::OSCBundle& frameBundle)
 
     if (shouldBroadcastInt(muteId, currentMute))
     {
-        lastSentOscInts[muteId] = currentMute;
-        lastReceivedOscInts[muteId] = currentMute;
-
+        syncIntCaches(muteId, currentMute);
         juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), i, OscConstants::ParamTypes::mute());
         frameBundle.addElement(juce::OSCMessage(address, currentMute));
     }
@@ -257,15 +253,13 @@ void OscManager::broadcastNameChange(const juce::String& targetType, const juce:
 {
     int id = SlotStateHelpers::getIndexFromParamId(property.toString(), SlotIdStringPrefixes::slotName);
     juce::String newName = tree.getProperty(property).toString();
-
-    juce::String dictKey = SlotIdStringPrefixes::slotName + juce::String(id);
+    juce::String dictKey = SlotIDs::slotName(id);
 
     if (OscHelpers::isDuplicateValue(lastReceivedOscStrings, dictKey, newName) ||
         OscHelpers::isDuplicateValue(lastSentOscStrings, dictKey, newName))
         return;
 
-    lastSentOscStrings[dictKey] = newName;
-    lastReceivedOscStrings[dictKey] = newName;
+    syncStringCaches(dictKey, newName);
 
     juce::String address = OscHelpers::buildAddress(OscConstants::TargetTypes::fader(), id, OscConstants::ParamTypes::name());
     sendOSCMessage(juce::OSCMessage(address, newName));
@@ -322,8 +316,7 @@ void OscManager::handleIncomingVolumeMessage(const juce::OSCMessage& message, in
     float incomingVolumeRaw = message[0].getFloat32();
     juce::String paramId = SlotIDs::volume(slotId);
 
-    lastSentOscFloats[paramId] = incomingVolumeRaw;
-    lastReceivedOscFloats[paramId] = incomingVolumeRaw;
+    syncFloatCaches(paramId, incomingVolumeRaw);
 
     float currentVolumeRaw = SlotStateHelpers::getRawParamValue(processor.apvts, paramId);
     if (OscHelpers::volumeRawChanged(currentVolumeRaw, incomingVolumeRaw))
@@ -338,8 +331,7 @@ void OscManager::handleIncomingMuteMessage(const juce::OSCMessage& message, int 
     int isMutedInt = isMuted ? 1 : 0;
     juce::String paramId = SlotIDs::mute(slotId);
 
-    lastSentOscInts[paramId] = isMutedInt;
-    lastReceivedOscInts[paramId] = isMutedInt;
+    syncIntCaches(paramId, isMutedInt);
 
     bool currentlyMuted = SlotStateHelpers::getRawParamValue(processor.apvts, paramId) > 0.5f;
     if (currentlyMuted != isMuted)
@@ -379,16 +371,10 @@ void OscManager::removeExistingSlotLinks(int slotId)
 {
     int linkedIdx = SlotStateHelpers::getLinkedSlotId(processor.apvts.state, slotId);
 
-    // make global helper for this and next section, it is used the same way somewhere else in the code
-    SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoLinked(slotId));
-    SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoMain(slotId));
-    SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::linkedSlotId(slotId));
-
+    SlotStateHelpers::unlinkStereoSlot(processor.apvts.state, slotId);
     if (linkedIdx != -1)
     {
-        SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoLinked(linkedIdx));
-        SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::isStereoMain(linkedIdx));
-        SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::linkedSlotId(linkedIdx));
+        SlotStateHelpers::unlinkStereoSlot(processor.apvts.state, linkedIdx);
     }
 }
 
@@ -409,12 +395,9 @@ void OscManager::handleIncomingNameMessage(const juce::OSCMessage& message, int 
     juce::String sanitizedName;
     sanitizeString(rawName, sanitizedName);
 
-	// Maybe make helper for this key generation
-    juce::String dictKey = SlotIdStringPrefixes::slotName + juce::String(slotId);
+    juce::String dictKey = SlotIDs::slotName(slotId);
 
-    // Make helper for syncing these caches
-    lastSentOscStrings[dictKey] = sanitizedName;
-    lastReceivedOscStrings[dictKey] = sanitizedName;
+    syncStringCaches(dictKey, sanitizedName);
 
     juce::String currentName = SlotStateHelpers::getSlotCustomName(processor.apvts.state, slotId);
     if (currentName != sanitizedName)
@@ -494,4 +477,22 @@ void OscManager::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Ide
         if (propStr.startsWith(SlotIdStringPrefixes::slotName))
             broadcastNameChange(OscConstants::TargetTypes::fader(), SlotIdStringPrefixes::slotName, property, tree);
     }
+}
+
+void OscManager::syncFloatCaches(const juce::String& key, float value)
+{
+    lastSentOscFloats[key] = value;
+    lastReceivedOscFloats[key] = value;
+}
+
+void OscManager::syncIntCaches(const juce::String& key, int value) 
+{
+    lastSentOscInts[key] = value;
+    lastReceivedOscInts[key] = value;
+}
+
+void OscManager::syncStringCaches(const juce::String& key, const juce::String& value) 
+{
+    lastSentOscStrings[key] = value;
+    lastReceivedOscStrings[key] = value;
 }

@@ -3,6 +3,7 @@
 #include "../../Main/SlotIDs.h"
 #include "../../UI/Components/UIConstants.h"
 #include "../Enums/GroupRole.h"
+#include "../../Main/PresetManager/PresetConstants.h"
 
 namespace SlotStateHelpers
 {
@@ -239,6 +240,20 @@ namespace SlotStateHelpers
         return 0.0f;
     }
 
+    // Can't we use the helper getRawParamValue() for this and similar for the next method?
+    static inline int getActiveStoreId(const juce::AudioProcessorValueTreeState& apvts)
+    {
+        if (auto* param = apvts.getParameter(PresetTags::ActiveStoreParamId))
+            return juce::roundToInt(param->convertFrom0to1(param->getValue()));
+        return PresetConstants::noStore;
+    }
+
+    static inline void setActiveStoreId(juce::AudioProcessorValueTreeState& apvts, int index)
+    {
+        if (auto* param = apvts.getParameter(PresetTags::ActiveStoreParamId))
+            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(index)));
+    }
+
     static inline bool isVcaEnabled(const juce::AudioProcessorValueTreeState& apvts, int grpId)
     {
         return getRawParamValue(apvts, SlotIDs::vcaEnabled(grpId)) > 0.5f;
@@ -295,5 +310,19 @@ namespace SlotStateHelpers
     static inline int getIndexFromParamId(const juce::String& paramId, const juce::String& prefix)
     {
         return paramId.substring(prefix.length()).getIntValue();
+    }
+
+    static inline void unlinkStereoSlot(juce::ValueTree& state, int slotIdx, juce::UndoManager* undoManager = nullptr)
+    {
+        removeProp(state, SlotIDs::isStereoLinked(slotIdx), undoManager);
+        removeProp(state, SlotIDs::isStereoMain(slotIdx), undoManager);
+        removeProp(state, SlotIDs::linkedSlotId(slotIdx), undoManager);
+    }
+
+    static inline bool isStereoOrGroupProperty(const juce::String& propName)
+    {
+        return propName.startsWith("isStereo") ||
+            propName.startsWith("vcaId") ||
+            propName.startsWith("groupId");
     }
 }
