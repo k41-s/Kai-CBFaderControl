@@ -8,29 +8,29 @@ public:
     PresetManager();
     ~PresetManager() = default;
 
-    void saveSnapshot(int index, const juce::ValueTree& currentState);
-    juce::ValueTree getSnapshot(int index) const;
+    void saveStore(int index, const juce::ValueTree& currentState);
+    juce::ValueTree getStore(int index) const;
 
-    void setSnapshotName(int index, const juce::String& newName);
-    juce::String getSnapshotName(int index) const;
+    void setStoreName(int index, const juce::String& newName);
+    juce::String getStoreName(int index) const;
 
-    void setSnapshotPinned(int index, bool shouldPin);
-    bool isSnapshotPinned(int index) const;
+    void setStorePinned(int index, bool shouldPin);
+    bool isStorePinned(int index) const;
 
-    juce::Array<int> getPinnedSnapshots() const;
+    juce::Array<int> getPinnedStores() const;
 
-    int getNumVisibleSnapshots() const;
-    void setNumVisibleSnapshots(int num);
+    int getNumVisibleStores() const;
+    void setNumVisibleStores(int num);
 
     std::unique_ptr<juce::XmlElement> createXml() const;
     void loadFromXml(juce::XmlElement* xml);
 
 private:
-    juce::String getSnapshotNodeName(int index) const;
-    juce::String getDefaultSnapshotName(int index) const;
-    juce::ValueTree getOrCreateSnapshotNode(int index);
+    juce::String getStoreNodeName(int index) const;
+    juce::String getDefaultStoreName(int index) const;
+    juce::ValueTree getOrCreateStoreNode(int index);
 
-    juce::ValueTree snapshotsTree{ PresetTags::SnapshotsTreeType };
+    juce::ValueTree storesTree{ PresetTags::StoresTreeType };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetManager)
 };

@@ -92,23 +92,23 @@ void PerformanceView::showStoresMenu()
 {
 	juce::PopupMenu menu;
 
-	int numVisible = processor.presetManager->getNumVisibleSnapshots();
+	int numVisible = processor.presetManager->getNumVisibleStores();
 
 	for (int i = 1; i <= numVisible; ++i)
 	{
-		juce::PopupMenu snapshotSubMenu;
-		juce::String name = processor.presetManager->getSnapshotName(i);
+		juce::PopupMenu storeSubMenu;
+		juce::String name = processor.presetManager->getStoreName(i);
 
-		// Add the 4 actions to this specific snapshot's submenu
-		snapshotSubMenu.addItem(BaseRecall + i, "Recall");
-		snapshotSubMenu.addItem(BaseSave + i, "Save (Overwrite)");
-		snapshotSubMenu.addItem(BaseRename + i, "Rename...");
+		// Add the 4 actions to this specific store's submenu
+		storeSubMenu.addItem(BaseRecall + i, "Recall");
+		storeSubMenu.addItem(BaseSave + i, "Save (Overwrite)");
+		storeSubMenu.addItem(BaseRename + i, "Rename...");
 
-		bool isPinned = processor.presetManager->isSnapshotPinned(i);
-		snapshotSubMenu.addItem(BasePin + i, "Pin to Footer", true, isPinned);
+		bool isPinned = processor.presetManager->isStorePinned(i);
+		storeSubMenu.addItem(BasePin + i, "Pin to Footer", true, isPinned);
 
-		// Add this snapshot to the main menu as a submenu
-		menu.addSubMenu(name, snapshotSubMenu);
+		// Add this store to the main menu as a submenu
+		menu.addSubMenu(name, storeSubMenu);
 	}
 
 	menu.addSeparator();
@@ -124,37 +124,37 @@ void PerformanceView::handleStoresMenuResult(int result)
 
 	if (result == AddMore)
 	{
-		promptForAddMoreSnapshots();
+		promptForAddMoreStores();
 		return;
 	}
 	if (result > BaseRename)
 	{
 		int index = result - BaseRename;
-		promptForSnapshotName(index);
+		promptForStoreName(index);
 	}
 	else if (result > BasePin)
 	{
 		int index = result - BasePin;
-		bool isPinned = processor.presetManager->isSnapshotPinned(index);
-		processor.presetManager->setSnapshotPinned(index, !isPinned);
+		bool isPinned = processor.presetManager->isStorePinned(index);
+		processor.presetManager->setStorePinned(index, !isPinned);
 		triggerAsyncUpdate();
 	}
 	else if (result > BaseSave)
 	{
 		int index = result - BaseSave;
-		processor.presetManager->saveSnapshot(index, processor.apvts.copyState());
+		processor.presetManager->saveStore(index, processor.apvts.copyState());
 	}
 	else if (result > BaseRecall)
 	{
 		int index = result - BaseRecall;
-		if (auto* param = processor.apvts.getParameter(PresetTags::ActiveSnapshotParamId))
+		if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
 		{
 			float currentParamValue = param->convertFrom0to1(param->getValue());
 			int currentIndex = juce::roundToInt(currentParamValue);
 
 			if (currentIndex == index)
 			{
-				processor.forceRecallSnapshot(index);
+				processor.forceRecallStore(index);
 			}
 			else
 			{
@@ -165,11 +165,11 @@ void PerformanceView::handleStoresMenuResult(int result)
 	}
 }
 
-void PerformanceView::promptForSnapshotName(int index)
+void PerformanceView::promptForStoreName(int index)
 {
-	auto* alert = new juce::AlertWindow("Rename Snapshot", "Enter a new name:", juce::AlertWindow::NoIcon);
+	auto* alert = new juce::AlertWindow("Rename Store", "Enter a new name:", juce::AlertWindow::NoIcon);
 
-	alert->addTextEditor("nameField", processor.presetManager->getSnapshotName(index), "Name");
+	alert->addTextEditor("nameField", processor.presetManager->getStoreName(index), "Name");
 	alert->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
 	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
 
@@ -180,21 +180,21 @@ void PerformanceView::promptForSnapshotName(int index)
 				juce::String newName = alert->getTextEditorContents("nameField");
 				if (newName.isNotEmpty())
 				{
-					processor.presetManager->setSnapshotName(index, newName);
+					processor.presetManager->setStoreName(index, newName);
 					triggerAsyncUpdate();
 				}
-				processor.presetManager->saveSnapshot(index, processor.apvts.copyState());
+				processor.presetManager->saveStore(index, processor.apvts.copyState());
 			}
 		}), true);
 }
 
-void PerformanceView::promptForAddMoreSnapshots()
+void PerformanceView::promptForAddMoreStores()
 {
-	auto* alert = new juce::AlertWindow("Add Snapshots",
-		"Enter the new total number of snapshots (Max " + juce::String(PresetConstants::maxSnapshots) + "):",
+	auto* alert = new juce::AlertWindow("Add Stores",
+		"Enter the new total number of stores (Max " + juce::String(PresetConstants::maxStores) + "):",
 		juce::AlertWindow::NoIcon);
 
-	alert->addTextEditor("numField", juce::String(processor.presetManager->getNumVisibleSnapshots()), "Number");
+	alert->addTextEditor("numField", juce::String(processor.presetManager->getNumVisibleStores()), "Number");
 	alert->addButton("Update", 1, juce::KeyPress(juce::KeyPress::returnKey));
 	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
 
@@ -203,7 +203,7 @@ void PerformanceView::promptForAddMoreSnapshots()
 			if (result == 1)
 			{
 				int newNum = alert->getTextEditorContents("numField").getIntValue();
-				processor.presetManager->setNumVisibleSnapshots(newNum);
+				processor.presetManager->setNumVisibleStores(newNum);
 			}
 		}), true);
 }
@@ -231,7 +231,7 @@ void PerformanceView::addRegularSlotListeners()
 
 void PerformanceView::addVcaListeners()
 {
-	for (int i = 1; i <= PluginConstants::numVcas; ++i) 
+	for (int i = 1; i <= PluginConstants::numVcas; ++i)
 	{
 		processor.apvts.addParameterListener(SlotIDs::isVcaExpanded(i), this);
 		processor.apvts.addParameterListener(SlotIDs::vcaEnabled(i), this);
@@ -277,10 +277,10 @@ void PerformanceView::parameterChanged(const juce::String& parameterID, float ne
 
 void PerformanceView::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
 {
-	if (property.toString().startsWith("isStereo") 
-		|| property.toString().startsWith("vcaId") 
+	if (property.toString().startsWith("isStereo")
+		|| property.toString().startsWith("vcaId")
 		|| property.toString().startsWith("groupId")
-	) {
+		) {
 		triggerAsyncUpdate();
 	}
 }
@@ -297,7 +297,7 @@ void PerformanceView::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
 	if (source == &selectedItems)
 	{
-		for (auto* slot : slots) 
+		for (auto* slot : slots)
 		{
 			slot->setSelected(selectedItems.isSelected(slot->getIndex()));
 		}
@@ -354,7 +354,7 @@ void PerformanceView::mouseUp(const juce::MouseEvent& e)
 
 void PerformanceView::handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot)
 {
-	if (e.mods.isPopupMenu()) 
+	if (e.mods.isPopupMenu())
 	{
 		if (!selectedItems.isSelected(slot->getIndex()))
 		{
@@ -372,7 +372,7 @@ void PerformanceView::handleSlotMouseDown(const juce::MouseEvent& e, Performance
 		else
 			selectedItems.addToSelection(slot->getIndex());
 	}
-	else 
+	else
 	{
 		selectedItems.deselectAll();
 		selectedItems.addToSelection(slot->getIndex());
@@ -418,9 +418,9 @@ void PerformanceView::sortSelectedSlots(const juce::Array<int>& selectedArr, juc
 {
 	for (int idx : selectedArr)
 	{
-		if (isSlotFullAccess(idx)) 
+		if (isSlotFullAccess(idx))
 			activeSlots.add(idx);
-		else 
+		else
 			readOnlySlots.add(idx);
 	}
 }
@@ -459,7 +459,7 @@ void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, ju
 	{
 		if (!SlotStateHelpers::isStereoLinked(processor.apvts.state, selectedArr[0]) &&
 			!SlotStateHelpers::isStereoLinked(processor.apvts.state, selectedArr[1])
-		) {
+			) {
 			menu.addItem(1, "Stereo Link Pairs");
 		}
 	}
@@ -487,7 +487,7 @@ void PerformanceView::setupGroupMenu(const juce::Array<int>& selectedArr, juce::
 
 	int slotIdx = selectedArr[0];
 	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
-	
+
 	if (SlotStateHelpers::isValidGroup(grpId))
 		groupMenu.addItem(RemoveGroup, "Remove from Group");
 }
@@ -541,10 +541,10 @@ void PerformanceView::setupColourMenu(int grpId, juce::PopupMenu& colourMenu) co
 void PerformanceView::showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr)
 {
 	if (menu.getNumItems() > 0) {
-		menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this), [this, selectedArr](int result) 
-		{
-			handlePopupMenuResult(result, selectedArr);
-		});
+		menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this), [this, selectedArr](int result)
+			{
+				handlePopupMenuResult(result, selectedArr);
+			});
 	}
 }
 
@@ -552,7 +552,7 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 {
 	if (result == 0 || selectedArr.isEmpty()) return;
 
-	if (result == ClaimSlot) 
+	if (result == ClaimSlot)
 	{
 		handleClaimSlot(selectedArr);
 		return;
@@ -563,49 +563,49 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 
 	if (activeSlots.isEmpty()) return;
 
-	if (result > AssignGroupBase && result <= AssignGroupBase + GroupColours::numColours) 
+	if (result > AssignGroupBase && result <= AssignGroupBase + GroupColours::numColours)
 	{
 		handleGroupAssignment(result, activeSlots);
 		return;
 	}
 
-	if (result >= AssignColourBase && result < AssignColourBase + GroupColours::numColours) 
+	if (result >= AssignColourBase && result < AssignColourBase + GroupColours::numColours)
 	{
 		handleColourAssignment(activeSlots, result);
 		return;
 	}
 
 	switch (result) {
-		case StereoLink:
-			if (activeSlots.size() == 2) doStereoLink(activeSlots[0], activeSlots[1]);
-			break;
+	case StereoLink:
+		if (activeSlots.size() == 2) doStereoLink(activeSlots[0], activeSlots[1]);
+		break;
 
-		case StereoUnlink:
-			if (activeSlots.size() == 1) doStereoUnlink(activeSlots[0]);
-			break;
+	case StereoUnlink:
+		if (activeSlots.size() == 1) doStereoUnlink(activeSlots[0]);
+		break;
 
-		case RemoveGroup:
-			for (int idx : activeSlots) setSlotStandardGroup(idx, 0, GroupRole::Member);
-			break;
+	case RemoveGroup:
+		for (int idx : activeSlots) setSlotStandardGroup(idx, 0, GroupRole::Member);
+		break;
 
-		case PromoteLeader:
-			if (activeSlots.size() == 1) promoteToGroupLeader(activeSlots[0]);
-			break;
+	case PromoteLeader:
+		if (activeSlots.size() == 1) promoteToGroupLeader(activeSlots[0]);
+		break;
 
-		case DemoteMember:
-			if (activeSlots.size() == 1) demoteToStandardMember(activeSlots[0]);
-			break;
+	case DemoteMember:
+		if (activeSlots.size() == 1) demoteToStandardMember(activeSlots[0]);
+		break;
 
-		case ToggleVCA:
-			if (activeSlots.size() == 1) toggleVcaMaster(activeSlots[0]);
-			break;
+	case ToggleVCA:
+		if (activeSlots.size() == 1) toggleVcaMaster(activeSlots[0]);
+		break;
 
-		case ToggleSoloSafe:
-			toggleSoloSafe(activeSlots);
-			break;
+	case ToggleSoloSafe:
+		toggleSoloSafe(activeSlots);
+		break;
 
-		default:
-			break;
+	default:
+		break;
 	}
 }
 
@@ -668,9 +668,9 @@ void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr
 
 void PerformanceView::doStereoLink(int slotA, int slotB)
 {
-	if (SlotStateHelpers::isStereoLinked(processor.apvts.state, slotA) || 
+	if (SlotStateHelpers::isStereoLinked(processor.apvts.state, slotA) ||
 		SlotStateHelpers::isStereoLinked(processor.apvts.state, slotB)
-	) {
+		) {
 		selectedItems.deselectAll();
 		return;
 	}
@@ -873,25 +873,25 @@ void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 
 	updatePinnedButtons();
 
-	juce::FlexBox snapBox;
-	snapBox.flexDirection = juce::FlexBox::Direction::row;
-	snapBox.justifyContent = juce::FlexBox::JustifyContent::center;
-	snapBox.alignItems = juce::FlexBox::AlignItems::center;
+	juce::FlexBox storeBox;
+	storeBox.flexDirection = juce::FlexBox::Direction::row;
+	storeBox.justifyContent = juce::FlexBox::JustifyContent::center;
+	storeBox.alignItems = juce::FlexBox::AlignItems::center;
 
-	snapBox.items.add(juce::FlexItem(storesButton)
+	storeBox.items.add(juce::FlexItem(storesButton)
 		.withWidth(80)
 		.withHeight(24)
 		.withMargin(juce::FlexItem::Margin(0, 10, 0, 0)));
 
-	for (auto* btn : pinnedSnapshotButtons)
+	for (auto* btn : pinnedStoreButtons)
 	{
-		snapBox.items.add(juce::FlexItem(*btn)
+		storeBox.items.add(juce::FlexItem(*btn)
 			.withWidth(30)
 			.withHeight(24)
 			.withMargin(juce::FlexItem::Margin(0, 3, 0, 3)));
 	}
 
-	snapBox.performLayout(areaToUse);
+	storeBox.performLayout(areaToUse);
 }
 
 juce::FlexBox PerformanceView::configFlexBox()
@@ -1014,7 +1014,7 @@ void PerformanceView::calculateVcaTargetWidth(int& targetWidth, int& activeCount
 	{
 		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g);
 
-		if (vcaEnabled) 
+		if (vcaEnabled)
 		{
 			targetWidth += SlotSizeValues::vcaSlotTargetWidth;
 			activeCount++;
@@ -1041,7 +1041,7 @@ void PerformanceView::calcRegularSlotMinWidth(int& minWidth, int& activeCount)
 	for (int i = 1; i <= PluginConstants::numSlots; ++i) {
 		auto info = getSlotDisplayInfo(i);
 
-		if (info.shouldProcess && info.isVisible) 
+		if (info.shouldProcess && info.isVisible)
 		{
 			minWidth += info.isStereoMain ? SlotSizeValues::stereoSlotMinWidth : SlotSizeValues::monoSlotMinWidth;
 			activeCount++;
@@ -1106,28 +1106,28 @@ bool PerformanceView::isSlotFullAccess(int slotIdx)
 
 void PerformanceView::updatePinnedButtons()
 {
-	pinnedSnapshotButtons.clear();
+	pinnedStoreButtons.clear();
 
-	auto pinnedIndices = processor.presetManager->getPinnedSnapshots();
+	auto pinnedIndices = processor.presetManager->getPinnedStores();
 
 	for (int idx : pinnedIndices)
 	{
 		juce::String buttonText = juce::String::charToString((juce::juce_wchar)('A' + (idx - 1)));
-		auto* btn = pinnedSnapshotButtons.add(new juce::TextButton(buttonText));
+		auto* btn = pinnedStoreButtons.add(new juce::TextButton(buttonText));
 
-		btn->setTooltip(processor.presetManager->getSnapshotName(idx));
+		btn->setTooltip(processor.presetManager->getStoreName(idx));
 		addAndMakeVisible(btn);
 
 		btn->onClick = [this, idx]()
 			{
-				if (auto* param = processor.apvts.getParameter(PresetTags::ActiveSnapshotParamId))
+				if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
 				{
 					float currentParamValue = param->convertFrom0to1(param->getValue());
 					int currentIndex = juce::roundToInt(currentParamValue);
 
 					if (currentIndex == idx)
 					{
-						processor.forceRecallSnapshot(idx);
+						processor.forceRecallStore(idx);
 					}
 					else
 					{

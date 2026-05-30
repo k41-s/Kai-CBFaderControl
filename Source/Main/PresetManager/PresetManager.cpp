@@ -4,9 +4,9 @@ PresetManager::PresetManager()
 {
 }
 
-void PresetManager::saveSnapshot(int index, const juce::ValueTree& currentState)
+void PresetManager::saveStore(int index, const juce::ValueTree& currentState)
 {
-    auto node = getOrCreateSnapshotNode(index);
+    auto node = getOrCreateStoreNode(index);
     auto clonedState = currentState.createCopy();
 
     if (node.getNumChildren() > 0)
@@ -17,110 +17,110 @@ void PresetManager::saveSnapshot(int index, const juce::ValueTree& currentState)
     node.addChild(clonedState, 0, nullptr);
 }
 
-juce::ValueTree PresetManager::getSnapshot(int index) const
+juce::ValueTree PresetManager::getStore(int index) const
 {
-    juce::String nodeName = getSnapshotNodeName(index);
-    auto snapshotNode = snapshotsTree.getChildWithName(nodeName);
+    juce::String nodeName = getStoreNodeName(index);
+    auto storeNode = storesTree.getChildWithName(nodeName);
 
-    if (snapshotNode.isValid() && snapshotNode.getNumChildren() > 0)
-        return snapshotNode.getChild(0);
+    if (storeNode.isValid() && storeNode.getNumChildren() > 0)
+        return storeNode.getChild(0);
 
     return juce::ValueTree();
 }
 
-void PresetManager::setSnapshotName(int index, const juce::String& newName)
+void PresetManager::setStoreName(int index, const juce::String& newName)
 {
-    auto node = getOrCreateSnapshotNode(index);
-    node.setProperty(PresetTags::SnapshotNameProp, newName, nullptr);
+    auto node = getOrCreateStoreNode(index);
+    node.setProperty(PresetTags::StoreNameProp, newName, nullptr);
 }
 
-juce::String PresetManager::getSnapshotName(int index) const
+juce::String PresetManager::getStoreName(int index) const
 {
-    juce::String nodeName = getSnapshotNodeName(index);
-    auto node = snapshotsTree.getChildWithName(nodeName);
+    juce::String nodeName = getStoreNodeName(index);
+    auto node = storesTree.getChildWithName(nodeName);
 
-    if (node.isValid() && node.hasProperty(PresetTags::SnapshotNameProp))
-        return node.getProperty(PresetTags::SnapshotNameProp);
+    if (node.isValid() && node.hasProperty(PresetTags::StoreNameProp))
+        return node.getProperty(PresetTags::StoreNameProp);
 
-    return getDefaultSnapshotName(index);
+    return getDefaultStoreName(index);
 }
 
-void PresetManager::setSnapshotPinned(int index, bool shouldPin)
+void PresetManager::setStorePinned(int index, bool shouldPin)
 {
-    auto node = getOrCreateSnapshotNode(index);
-    node.setProperty(PresetTags::SnapshotPinnedProp, shouldPin, nullptr);
+    auto node = getOrCreateStoreNode(index);
+    node.setProperty(PresetTags::StorePinnedProp, shouldPin, nullptr);
 }
 
-bool PresetManager::isSnapshotPinned(int index) const
+bool PresetManager::isStorePinned(int index) const
 {
-    juce::String nodeName = getSnapshotNodeName(index);
-    auto node = snapshotsTree.getChildWithName(nodeName);
+    juce::String nodeName = getStoreNodeName(index);
+    auto node = storesTree.getChildWithName(nodeName);
 
-    if (node.isValid() && node.hasProperty(PresetTags::SnapshotPinnedProp))
-        return node.getProperty(PresetTags::SnapshotPinnedProp);
+    if (node.isValid() && node.hasProperty(PresetTags::StorePinnedProp))
+        return node.getProperty(PresetTags::StorePinnedProp);
 
     return false;
 }
 
-juce::Array<int> PresetManager::getPinnedSnapshots() const
+juce::Array<int> PresetManager::getPinnedStores() const
 {
     juce::Array<int> pinned;
-    for (int i = 1; i <= PresetConstants::maxSnapshots; ++i)
+    for (int i = 1; i <= PresetConstants::maxStores; ++i)
     {
-        if (isSnapshotPinned(i))
+        if (isStorePinned(i))
             pinned.add(i);
     }
     return pinned;
 }
 
-int PresetManager::getNumVisibleSnapshots() const
+int PresetManager::getNumVisibleStores() const
 {
-    if (snapshotsTree.hasProperty(PresetTags::VisibleSnapshotsProp))
-        return snapshotsTree.getProperty(PresetTags::VisibleSnapshotsProp);
+    if (storesTree.hasProperty(PresetTags::VisibleStoresProp))
+        return storesTree.getProperty(PresetTags::VisibleStoresProp);
 
-    return PresetConstants::defaultSnapshots;
+    return PresetConstants::defaultStores;
 }
 
-void PresetManager::setNumVisibleSnapshots(int num)
+void PresetManager::setNumVisibleStores(int num)
 {
-    int safeNum = juce::jlimit(1, PresetConstants::maxSnapshots, num);
-    snapshotsTree.setProperty(PresetTags::VisibleSnapshotsProp, safeNum, nullptr);
+    int safeNum = juce::jlimit(1, PresetConstants::maxStores, num);
+    storesTree.setProperty(PresetTags::VisibleStoresProp, safeNum, nullptr);
 }
 
 std::unique_ptr<juce::XmlElement> PresetManager::createXml() const
 {
-    return std::unique_ptr<juce::XmlElement>(snapshotsTree.createXml());
+    return std::unique_ptr<juce::XmlElement>(storesTree.createXml());
 }
 
 void PresetManager::loadFromXml(juce::XmlElement* xml)
 {
-    if (xml != nullptr && xml->hasTagName(PresetTags::SnapshotsTreeType.toString()))
+    if (xml != nullptr && xml->hasTagName(PresetTags::StoresTreeType.toString()))
     {
-        snapshotsTree = juce::ValueTree::fromXml(*xml);
+        storesTree = juce::ValueTree::fromXml(*xml);
     }
 }
 
-juce::String PresetManager::getSnapshotNodeName(int index) const
+juce::String PresetManager::getStoreNodeName(int index) const
 {
-    return PresetTags::SnapshotPrefix + juce::String(index);
+    return PresetTags::StorePrefix + juce::String(index);
 }
 
-juce::String PresetManager::getDefaultSnapshotName(int index) const
+juce::String PresetManager::getDefaultStoreName(int index) const
 {
-    return PresetTags::DefaultSnapshotNamePrefix + juce::String(index);
+    return PresetTags::DefaultStoreNamePrefix + juce::String(index);
 }
 
-juce::ValueTree PresetManager::getOrCreateSnapshotNode(int index)
+juce::ValueTree PresetManager::getOrCreateStoreNode(int index)
 {
-    juce::String nodeName = getSnapshotNodeName(index);
-    auto node = snapshotsTree.getChildWithName(nodeName);
+    juce::String nodeName = getStoreNodeName(index);
+    auto node = storesTree.getChildWithName(nodeName);
 
     if (!node.isValid())
     {
         node = juce::ValueTree(nodeName);
-        node.setProperty(PresetTags::SnapshotNameProp, getDefaultSnapshotName(index), nullptr);
-        node.setProperty(PresetTags::SnapshotPinnedProp, false, nullptr);
-        snapshotsTree.addChild(node, -1, nullptr);
+        node.setProperty(PresetTags::StoreNameProp, getDefaultStoreName(index), nullptr);
+        node.setProperty(PresetTags::StorePinnedProp, false, nullptr);
+        storesTree.addChild(node, -1, nullptr);
     }
     return node;
 }

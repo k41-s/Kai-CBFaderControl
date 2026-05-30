@@ -7,7 +7,7 @@
 #include "../../../Utils/BinaryImageComponent/BinaryImageComponent.h"
 #include "../../../Utils/Enums/GroupRole.h"
 
-class PerformanceView : 
+class PerformanceView :
 	public juce::Component,
 	public juce::AudioProcessorValueTreeState::Listener,
 	public juce::ValueTree::Listener,
@@ -54,14 +54,14 @@ private:
 	void setSlotMouseEvents(PerformanceSlotItem* slot);
 	void configSetupButton();
 
-	// Presets & Snapshots UI
+	// Presets & Stores UI
 	void configPresetsButton();
 	void configStoresButton();
 	void showStoresMenu();
 	void handleStoresMenuResult(int result);
 
-	void promptForSnapshotName(int index);
-	void promptForAddMoreSnapshots();
+	void promptForStoreName(int index);
+	void promptForAddMoreStores();
 
 	// Listener management
 	void registerListeners();
@@ -168,7 +168,7 @@ private:
 
 	juce::TextButton presetsButton;
 
-	juce::OwnedArray<juce::TextButton> pinnedSnapshotButtons;
+	juce::OwnedArray<juce::TextButton> pinnedStoreButtons;
 	juce::TextButton storesButton;
 
 	juce::OwnedArray<PerformanceSlotItem> slots;

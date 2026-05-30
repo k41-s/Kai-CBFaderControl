@@ -3,31 +3,27 @@
 
 namespace PresetTags
 {
-    inline const juce::Identifier SnapshotsTreeType{ "Snapshots" };
+    inline const juce::Identifier StoresTreeType{ "Stores" };
 
     inline const juce::String RootXmlTag{ "KaiCBFaderControlData" };
-    inline const juce::String SnapshotPrefix{ "Snapshot_" };
+    inline const juce::String StorePrefix{ "Store_" };
 
     inline const juce::String StoresButtonText{ "Stores" };
     inline const juce::String PresetsButtonText{ "Presets" };
 
-    // probably will remove these
-    inline const juce::String ModeLabelRecall{ "MODE: RECALL" };
-    inline const juce::String ModeLabelSave{ "MODE: SAVE" };
+    inline const juce::String ActiveStoreParamId{ "activeStore" };
+    inline const juce::String ActiveStoreParamName{ "Active Store" };
 
-    inline const juce::String ActiveSnapshotParamId{ "activeSnapshot" };
-    inline const juce::String ActiveSnapshotParamName{ "Active Snapshot" };
+    inline const juce::Identifier StoreNameProp{ "name" };
+    inline const juce::Identifier StorePinnedProp{ "isPinned" };
+    inline const juce::String DefaultStoreNamePrefix{ "Store " };
 
-    inline const juce::Identifier SnapshotNameProp{ "name" };
-    inline const juce::Identifier SnapshotPinnedProp{ "isPinned" };
-    inline const juce::String DefaultSnapshotNamePrefix{ "Snapshot " };
-
-    inline const juce::Identifier VisibleSnapshotsProp{ "visibleSnapshots" };
+    inline const juce::Identifier VisibleStoresProp{ "visibleStores" };
 }
 
 namespace PresetConstants
 {
-	inline const int noSnapshot = 0;
-	inline const int defaultSnapshots = 10;
-	inline const int maxSnapshots = 127;
+    inline const int noStore = 0;
+    inline const int defaultStores = 10;
+    inline const int maxStores = 127;
 }
