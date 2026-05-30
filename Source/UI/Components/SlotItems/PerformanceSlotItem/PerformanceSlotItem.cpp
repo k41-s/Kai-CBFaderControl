@@ -268,18 +268,12 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
     {
         updateSlotColour();
     }
-    else if (propName.startsWith(SlotIdStringPrefixes::isStereoLinked) ||
-        propName.startsWith(SlotIdStringPrefixes::isStereoMain) ||
-        propName.startsWith(SlotIdStringPrefixes::linkedSlotId) ||
-        propName.startsWith(SlotIdStringPrefixes::xpStereo))
+    else if (SlotStateHelpers::isStereoProperty(propName))
     {
         updateStereoState();
     }
-    else if (propName.startsWith(SlotIdStringPrefixes::groupId) ||
-        propName.startsWith(SlotIdStringPrefixes::groupRole) ||
-        propName.startsWith(SlotIdStringPrefixes::groupColour) ||
-        propName.startsWith(SlotIdStringPrefixes::vcaName)
-    ) {
+    else if (SlotStateHelpers::isGroupProperty(propName))
+    {
         updateGroupState();
     }
 }

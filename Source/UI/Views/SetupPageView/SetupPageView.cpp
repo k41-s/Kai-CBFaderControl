@@ -3,6 +3,7 @@
 #include "../../CustomLookAndFeel/MyColours.h"
 #include "../../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../../Components/UIConstants.h"
+#include "../../../Utils/OSCUtils/NetworkUtils.h"
 
 SetupPageView::SetupPageView(KaiCBFaderControlAudioProcessor& p) : processor(p)
 {
@@ -61,24 +62,9 @@ void SetupPageView::configComponents()
 	configImages();
 }
 
-static juce::String getLocalIpAddress()
-{
-	auto addresses = juce::IPAddress::getAllAddresses();
-
-	for (const auto& addr : addresses)
-	{
-		auto ipString = addr.toString();
-
-		if (ipString.contains(".") && ipString != "127.0.0.1")
-			return ipString;
-	}
-
-	return "127.0.0.1";
-}
-
 void SetupPageView::configLocalIpLabel()
 {
-	localIpLabel.setText("Local IP: " + getLocalIpAddress(), juce::dontSendNotification);
+	localIpLabel.setText("Local IP: " + NetworkUtils::getLocalIpAddress(), juce::dontSendNotification);
 	addAndMakeVisible(localIpLabel);
 }
 
@@ -227,13 +213,14 @@ void SetupPageView::saveNetworkSettings()
 
 void SetupPageView::bindNetworkEditorCallbacks()
 {
-	targetIpEditor.onReturnKey = [this] { saveNetworkSettings(); };
-	incomingPortEditor.onReturnKey = [this] { saveNetworkSettings(); };
-	outgoingPortEditor.onReturnKey = [this] { saveNetworkSettings(); };
+	auto bindEditor = [this](juce::TextEditor& editor) {
+		editor.onReturnKey = [this] { saveNetworkSettings(); };
+		editor.onFocusLost = [this] { saveNetworkSettings(); };
+		};
 
-	targetIpEditor.onFocusLost = [this] { saveNetworkSettings(); };
-	incomingPortEditor.onFocusLost = [this] { saveNetworkSettings(); };
-	outgoingPortEditor.onFocusLost = [this] { saveNetworkSettings(); };
+	bindEditor(targetIpEditor);
+	bindEditor(incomingPortEditor);
+	bindEditor(outgoingPortEditor);
 }
 
 SetupPageView::~SetupPageView()
@@ -443,11 +430,11 @@ void SetupPageView::valueTreePropertyChanged(juce::ValueTree& tree, const juce::
 {
 	if (property == SlotIDs::targetIP())
 		targetIpEditor.setText(tree[property], juce::dontSendNotification);
-	if (property == SlotIDs::incomingPort())
+	else if (property == SlotIDs::incomingPort())
 		incomingPortEditor.setText(tree[property], juce::dontSendNotification);
-	if (property == SlotIDs::outgoingPort())
+	else if (property == SlotIDs::outgoingPort())
 		outgoingPortEditor.setText(tree[property], juce::dontSendNotification);
-	if (property == SlotIDs::isConnected())
+	else if (property == SlotIDs::isConnected())
 		statusLED.setConnected(SlotStateHelpers::isPluginConnected(tree));
 }
 
@@ -467,14 +454,14 @@ void SetupPageView::changeListenerCallback(juce::ChangeBroadcaster* source)
 
 void SetupPageView::refreshControlStates()
 {
-	bool allAreActive = true;
-	bool atLeastOneActive = false;
-
 	if (slotItems.isEmpty())
 	{
 		handleEmptySlots();
 		return;
 	}
+
+	bool allAreActive = true;
+	bool atLeastOneActive = false;
 
 	checkSlotActivationStates(allAreActive, atLeastOneActive);
 	updateToggleAllButton(allAreActive);

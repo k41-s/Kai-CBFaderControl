@@ -15,22 +15,25 @@ namespace SlotIdStringPrefixes
     static const juce::String sipMuted = "sipMuted_";
 
 	// Stereo linking parameters
-    static const juce::String isStereoLinked = "isStereoLinked_";
-    static const juce::String isStereoMain = "isStereoMain_";
+    static const juce::String isStereo = "isStereo";
+    static const juce::String isStereoLinked = isStereo + "Linked_";
+    static const juce::String isStereoMain = isStereo + "Main_";
     static const juce::String linkedSlotId = "linkedSlotId_";
     static const juce::String xpStereo = "xpStereo_";
 
 	// Grouping parameters
-    static const juce::String groupId = "groupId_";
-    static const juce::String groupRole = "groupRole_";
-    static const juce::String groupColour = "groupColour_";
+    static const juce::String group = "group";
+    static const juce::String groupId = group + "Id_";
+    static const juce::String groupRole = group + "Role_";
+    static const juce::String groupColour = group + "Colour_";
 
 	// VCA parameters
-    static const juce::String vcaEnabled = "vcaEnabled_";
-    static const juce::String vcaVolume = "vcaVolume_";
-    static const juce::String vcaMute = "vcaMute_";
-    static const juce::String vcaName = "vcaName_";
-    static const juce::String isVcaExpanded = "isVcaExpanded_";
+    static const juce::String vca = "vca";
+    static const juce::String vcaEnabled = vca + "Enabled_";
+    static const juce::String vcaVolume = vca + "Volume_";
+    static const juce::String vcaMute = vca + "Mute_";
+    static const juce::String vcaName = vca + "Name_";
+    static const juce::String isVcaExpanded = vca + "Expanded_";
 }
 
 struct SlotIDs

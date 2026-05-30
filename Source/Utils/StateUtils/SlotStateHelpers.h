@@ -319,10 +319,21 @@ namespace SlotStateHelpers
         removeProp(state, SlotIDs::linkedSlotId(slotIdx), undoManager);
     }
 
+    static inline bool isStereoProperty(const juce::String& propName)
+    {
+        return propName.startsWith(SlotIdStringPrefixes::isStereo) ||
+            propName.startsWith(SlotIdStringPrefixes::linkedSlotId) ||
+            propName.startsWith(SlotIdStringPrefixes::xpStereo);
+    }
+
+    static inline bool isGroupProperty(const juce::String& propName)
+    {
+        return propName.startsWith(SlotIdStringPrefixes::group) ||
+            propName.startsWith(SlotIdStringPrefixes::vcaName);
+    }
+
     static inline bool isStereoOrGroupProperty(const juce::String& propName)
     {
-        return propName.startsWith("isStereo") ||
-            propName.startsWith("vcaId") ||
-            propName.startsWith("groupId");
+        return isStereoProperty(propName) || isGroupProperty(propName);
     }
 }
