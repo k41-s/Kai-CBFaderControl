@@ -54,9 +54,13 @@ private:
 	void setSlotMouseEvents(PerformanceSlotItem* slot);
 	void configSetupButton();
 
+	void handleActiveStoreParamChanged();
+
 	// Presets & Stores UI
 	void configPresetsButton();
 	void configStoresButton();
+	void configActiveStoreLabel();
+	void updateActiveStoreLabel(int index);
 	void showStoresMenu();
 	void handleStoresMenuResult(int result);
 
@@ -170,6 +174,7 @@ private:
 
 	juce::OwnedArray<juce::TextButton> pinnedStoreButtons;
 	juce::TextButton storesButton;
+	juce::Label activeStoreLabel;
 
 	juce::OwnedArray<PerformanceSlotItem> slots;
 	juce::OwnedArray<VcaSlotItem> vcaSlots;

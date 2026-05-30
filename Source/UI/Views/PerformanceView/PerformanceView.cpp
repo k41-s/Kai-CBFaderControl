@@ -31,6 +31,7 @@ void PerformanceView::configComponents()
 	configSetupButton();
 	configPresetsButton();
 	configStoresButton();
+	configActiveStoreLabel();
 	configImages();
 }
 
@@ -86,6 +87,33 @@ void PerformanceView::configStoresButton()
 	storesButton.setButtonText(PresetTags::StoresButtonText);
 	addAndMakeVisible(storesButton);
 	storesButton.onClick = [this]() { showStoresMenu(); };
+}
+
+void PerformanceView::configActiveStoreLabel()
+{
+	addAndMakeVisible(activeStoreLabel);
+	activeStoreLabel.setJustificationType(juce::Justification::centredLeft);
+	activeStoreLabel.setFont(juce::Font(15.0f, juce::Font::bold));
+	activeStoreLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+
+	if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
+	{
+		int index = juce::roundToInt(param->convertFrom0to1(param->getValue()));
+		updateActiveStoreLabel(index);
+	}
+}
+
+void PerformanceView::updateActiveStoreLabel(int index)
+{
+	if (index == PresetConstants::noStore)
+	{
+		activeStoreLabel.setText("Unsaved", juce::dontSendNotification);
+	}
+	else
+	{
+		juce::String name = processor.presetManager->getStoreName(index);
+		activeStoreLabel.setText(name, juce::dontSendNotification);
+	}
 }
 
 void PerformanceView::showStoresMenu()
@@ -182,6 +210,14 @@ void PerformanceView::promptForStoreName(int index)
 				{
 					processor.presetManager->setStoreName(index, newName);
 					triggerAsyncUpdate();
+
+					if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
+					{
+						if (juce::roundToInt(param->convertFrom0to1(param->getValue())) == index)
+						{
+							updateActiveStoreLabel(index);
+						}
+					}
 				}
 				processor.presetManager->saveStore(index, processor.apvts.copyState());
 			}
@@ -219,6 +255,7 @@ void PerformanceView::registerListeners()
 	addRegularSlotListeners();
 	addVcaListeners();
 	processor.apvts.state.addListener(this);
+	processor.apvts.addParameterListener(PresetTags::ActiveStoreParamId, this);
 }
 
 void PerformanceView::addRegularSlotListeners()
@@ -251,6 +288,7 @@ void PerformanceView::deregisterListeners()
 	removeVcaListeners();
 	processor.apvts.state.removeListener(this);
 	processor.globalSlotRegistry->removeChangeListener(this);
+	processor.apvts.removeParameterListener(PresetTags::ActiveStoreParamId, this);
 }
 
 void PerformanceView::removeRegularSlotListeners()
@@ -272,7 +310,22 @@ void PerformanceView::removeVcaListeners()
 
 void PerformanceView::parameterChanged(const juce::String& parameterID, float newValue)
 {
+	if (parameterID == PresetTags::ActiveStoreParamId)
+	{
+		handleActiveStoreParamChanged();
+	}
 	triggerAsyncUpdate();
+}
+
+void PerformanceView::handleActiveStoreParamChanged()
+{
+	juce::MessageManager::callAsync([this]() {
+		if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
+		{
+			int index = juce::roundToInt(param->convertFrom0to1(param->getValue()));
+			updateActiveStoreLabel(index);
+		}
+		});
 }
 
 void PerformanceView::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
@@ -841,8 +894,16 @@ void PerformanceView::setupAndFillHeader()
 	headerArea = area.removeFromTop(topButtonStripHeight + slotNumberBlueHeight);
 
 	auto buttonStrip = headerArea.withHeight(topButtonStripHeight);
-	auto buttonArea = buttonStrip.removeFromRight(80).reduced(4, 4);
-	presetsButton.setBounds(buttonArea);
+
+	auto presetsArea = buttonStrip.removeFromRight(80).reduced(4, 4);
+	presetsButton.setBounds(presetsArea);
+
+	auto leftArea = buttonStrip.removeFromLeft(200);
+	auto storesArea = leftArea.removeFromLeft(80).reduced(4, 4);
+	storesButton.setBounds(storesArea);
+
+	auto labelArea = leftArea.reduced(4, 4);
+	activeStoreLabel.setBounds(labelArea);
 
 	xPatchImg.setBounds(headerArea.withHeight(topButtonStripHeight)
 		.withSizeKeepingCentre(75, topButtonStripHeight)
@@ -877,11 +938,6 @@ void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 	storeBox.flexDirection = juce::FlexBox::Direction::row;
 	storeBox.justifyContent = juce::FlexBox::JustifyContent::center;
 	storeBox.alignItems = juce::FlexBox::AlignItems::center;
-
-	storeBox.items.add(juce::FlexItem(storesButton)
-		.withWidth(80)
-		.withHeight(24)
-		.withMargin(juce::FlexItem::Margin(0, 10, 0, 0)));
 
 	for (auto* btn : pinnedStoreButtons)
 	{
