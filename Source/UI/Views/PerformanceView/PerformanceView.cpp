@@ -170,7 +170,18 @@ void PerformanceView::handleStoresMenuResult(int result)
 	else if (result > BaseSave)
 	{
 		int index = result - BaseSave;
+
+		processor.isRestoringState = true;
+		if (auto* param = processor.apvts.getParameter(PresetTags::ActiveStoreParamId))
+		{
+			float normalizedValue = param->convertTo0to1((float)index);
+			param->setValueNotifyingHost(normalizedValue);
+		}
+		processor.isRestoringState = false;
+
 		processor.presetManager->saveStore(index, processor.apvts.copyState());
+
+		updateActiveStoreLabel(index);
 	}
 	else if (result > BaseRecall)
 	{
@@ -336,6 +347,12 @@ void PerformanceView::valueTreePropertyChanged(juce::ValueTree& tree, const juce
 		) {
 		triggerAsyncUpdate();
 	}
+}
+
+void PerformanceView::valueTreeRedirected(juce::ValueTree& treeWhichHasBeenChanged)
+{
+	handleActiveStoreParamChanged();
+	triggerAsyncUpdate();
 }
 
 void PerformanceView::handleAsyncUpdate()

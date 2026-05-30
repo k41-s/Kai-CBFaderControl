@@ -21,6 +21,7 @@ public:
 
 	void parameterChanged(const juce::String& parameterID, float newValue) override;
 	void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
+	void valueTreeRedirected(juce::ValueTree& treeWhichHasBeenChanged) override;
 	void handleAsyncUpdate() override;
 
 	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
@@ -54,13 +55,12 @@ private:
 	void setSlotMouseEvents(PerformanceSlotItem* slot);
 	void configSetupButton();
 
-	void handleActiveStoreParamChanged();
-
 	// Presets & Stores UI
 	void configPresetsButton();
 	void configStoresButton();
 	void configActiveStoreLabel();
 	void updateActiveStoreLabel(int index);
+	void handleActiveStoreParamChanged();
 	void showStoresMenu();
 	void handleStoresMenuResult(int result);
 
