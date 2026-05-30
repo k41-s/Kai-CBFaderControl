@@ -105,7 +105,7 @@ void PerformanceView::showStoresMenu()
 		storeSubMenu.addItem(BaseRename + i, "Rename...");
 
 		bool isPinned = processor.presetManager->isStorePinned(i);
-		storeSubMenu.addItem(BasePin + i, "Pin to Footer", true, isPinned);
+		storeSubMenu.addItem(BasePin + i, isPinned ? "Unpin from Footer" : "Pin to Footer", true, isPinned);
 
 		// Add this store to the main menu as a submenu
 		menu.addSubMenu(name, storeSubMenu);
