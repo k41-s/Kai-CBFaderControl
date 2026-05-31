@@ -170,3 +170,79 @@ juce::ValueTree PresetManager::getOrCreateStoreNode(int index)
     }
     return node;
 }
+
+juce::ValueTree PresetManager::getOrCreateStoreSetsNode()
+{
+    auto setsNode = storesTree.getChildWithName(PresetTags::StoreSetsProp);
+    if (!setsNode.isValid())
+    {
+        setsNode = juce::ValueTree(PresetTags::StoreSetsProp);
+        storesTree.addChild(setsNode, -1, nullptr);
+    }
+    return setsNode;
+}
+
+void PresetManager::saveStoreSet(const juce::String& setName, const juce::Array<int>& pinnedStores)
+{
+    auto setsNode = getOrCreateStoreSetsNode();
+
+    juce::ValueTree setNode = setsNode.getChildWithProperty(PresetTags::SetNameProp, setName);
+    if (!setNode.isValid())
+    {
+        setNode = juce::ValueTree(PresetTags::SetProp);
+        setNode.setProperty(PresetTags::SetNameProp, setName, nullptr);
+        setsNode.addChild(setNode, -1, nullptr);
+    }
+
+    juce::StringArray strArray;
+    for (int id : pinnedStores)
+        strArray.add(juce::String(id));
+
+    setNode.setProperty(PresetTags::SetStoreIdsProp, strArray.joinIntoString(","), nullptr);
+}
+
+void PresetManager::removeStoreSet(const juce::String& setName)
+{
+    auto setsNode = storesTree.getChildWithName(PresetTags::StoreSetsProp);
+    if (setsNode.isValid())
+    {
+        auto setNode = setsNode.getChildWithProperty(PresetTags::SetNameProp, setName);
+        if (setNode.isValid())
+            setsNode.removeChild(setNode, nullptr);
+    }
+}
+
+juce::StringArray PresetManager::getStoreSetNames() const
+{
+    juce::StringArray names;
+    auto setsNode = storesTree.getChildWithName(PresetTags::StoreSetsProp);
+    if (setsNode.isValid())
+    {
+        for (auto child : setsNode)
+        {
+            if (child.hasProperty(PresetTags::SetNameProp))
+                names.add(child.getProperty(PresetTags::SetNameProp).toString());
+        }
+    }
+    return names;
+}
+
+juce::Array<int> PresetManager::getStoresInSet(const juce::String& setName) const
+{
+    juce::Array<int> stores;
+    auto setsNode = storesTree.getChildWithName(PresetTags::StoreSetsProp);
+    if (setsNode.isValid())
+    {
+        auto setNode = setsNode.getChildWithProperty(PresetTags::SetNameProp, setName);
+        if (setNode.isValid() && setNode.hasProperty(PresetTags::SetStoreIdsProp))
+        {
+            juce::String idsString = setNode.getProperty(PresetTags::SetStoreIdsProp).toString();
+            juce::StringArray idStrs = juce::StringArray::fromTokens(idsString, ",", "");
+            for (const auto& idStr : idStrs)
+            {
+                stores.add(idStr.getIntValue());
+            }
+        }
+    }
+    return stores;
+}

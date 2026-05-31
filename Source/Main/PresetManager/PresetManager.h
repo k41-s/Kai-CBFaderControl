@@ -26,10 +26,16 @@ public:
     std::unique_ptr<juce::XmlElement> createXml() const;
     void loadFromXml(juce::XmlElement* xml);
 
+    void saveStoreSet(const juce::String& setName, const juce::Array<int>& pinnedStores);
+    void removeStoreSet(const juce::String& setName);
+    juce::StringArray getStoreSetNames() const;
+    juce::Array<int> getStoresInSet(const juce::String& setName) const;
+
 private:
     juce::String getStoreNodeName(int index) const;
     juce::String getDefaultStoreName(int index) const;
     juce::ValueTree getOrCreateStoreNode(int index);
+    juce::ValueTree getOrCreateStoreSetsNode();
 
     juce::ValueTree storesTree{ PresetTags::StoresTreeType };
 

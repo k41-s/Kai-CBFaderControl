@@ -20,6 +20,11 @@ namespace PresetTags
     inline const juce::String DefaultStoreNamePrefix{ "ST " };
 
     inline const juce::Identifier VisibleStoresProp{ "visibleStores" };
+
+    inline const juce::Identifier StoreSetsProp{ "StoreSets" };
+    inline const juce::Identifier SetProp{ "Set" };
+    inline const juce::Identifier SetNameProp{ "setName" };
+    inline const juce::Identifier SetStoreIdsProp{ "storeIds" };
 }
 
 namespace PresetConstants

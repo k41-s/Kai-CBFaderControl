@@ -122,17 +122,39 @@ void PerformanceView::showStoresMenu()
 	menu.addItem(RemoveStores, "Reset Num Stores", numVisible > PresetConstants::defaultStores);
 	menu.addSeparator();
 
+	menu.addItem(SavePinnedAsSet, "Save Current Pinned as Set...");
+
+	juce::StringArray setNames = processor.presetManager->getStoreSetNames();
+	if (!setNames.isEmpty())
+	{
+		addSetsSubMenu(setNames, menu);
+	}
+	menu.addSeparator();
+
 	for (int i = 1; i <= numVisible; ++i)
 	{
 		addStoreSubMenu(i, menu);
 	}
-
 
 	menu.showMenuAsync(juce::PopupMenu::Options()
 		.withTargetComponent(storesButton)
 		.withParentComponent(this)
 		.withMaximumNumColumns(1),
 		[this](int result) { handleStoresMenuResult(result); });
+}
+
+void PerformanceView::addSetsSubMenu(juce::StringArray& setNames, juce::PopupMenu& menu)
+{
+	juce::PopupMenu setsMenu;
+	for (int i = 0; i < setNames.size(); ++i)
+	{
+		juce::PopupMenu singleSetMenu;
+		singleSetMenu.addItem(RecallSetBase + i, "Recall (Pin these stores)");
+		singleSetMenu.addItem(BaseHideSet + i, "Hide Set");
+		singleSetMenu.addItem(RemoveSetBase + i, "Remove Set");
+		setsMenu.addSubMenu(setNames[i], singleSetMenu);
+	}
+	menu.addSubMenu("Store Sets", setsMenu);
 }
 
 void PerformanceView::addStoreSubMenu(int i, juce::PopupMenu& menu)
@@ -156,7 +178,23 @@ void PerformanceView::handleStoresMenuResult(int result)
 {
 	if (result == 0) return;
 
-	if (result == RemoveStores)
+	if (result >= BaseHideSet) 
+	{
+		handleHideSetMenuResult(result - BaseHideSet);
+	}
+	else if (result >= RemoveSetBase)
+	{
+		handleRemoveSetMenuResult(result);
+	}
+	else if (result >= RecallSetBase)
+	{
+		handleRecallSetMenuResult(result);
+	}
+	else if (result == SavePinnedAsSet)
+	{
+		promptForStoreSetName();
+	}
+	else if (result == RemoveStores)
 	{
 		handleRemoveStoresMenuResult();
 	}
@@ -191,6 +229,86 @@ void PerformanceView::handleStoresMenuResult(int result)
 	else if (result > BaseRecall)
 	{
 		handleStoreRecallMenuResult(result);
+	}
+}
+
+void PerformanceView::promptForStoreSetName()
+{
+	auto* alert = new juce::AlertWindow("Save Store Set", "Enter a name for this set:", juce::AlertWindow::NoIcon);
+	alert->addTextEditor("setNameField", "", "Set Name");
+	alert->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
+	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+
+	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int choice) {
+		if (choice == 1)
+		{
+			juce::String newName = alert->getTextEditorContents("setNameField");
+			if (newName.isNotEmpty())
+			{
+				auto pinned = processor.presetManager->getPinnedStores();
+				processor.presetManager->saveStoreSet(newName, pinned);
+			}
+		}
+		}), true);
+}
+
+void PerformanceView::handleRecallSetMenuResult(int result)
+{
+	int index = result - RecallSetBase;
+	juce::StringArray setNames = processor.presetManager->getStoreSetNames();
+
+	if (juce::isPositiveAndBelow(index, setNames.size()))
+	{
+		wipeCurrentPins();
+		pinStoresFromSet(setNames, index);
+		triggerAsyncUpdate();
+	}
+}
+
+void PerformanceView::wipeCurrentPins()
+{
+	for (int i = 1; i <= PresetConstants::maxStores; ++i)
+	{
+		if (processor.presetManager->isStorePinned(i))
+			processor.presetManager->setStorePinned(i, false);
+	}
+}
+
+void PerformanceView::pinStoresFromSet(juce::StringArray& setNames, int index)
+{
+	juce::Array<int> storesToPin = processor.presetManager->getStoresInSet(setNames[index]);
+	for (int storeId : storesToPin)
+	{
+		processor.presetManager->setStorePinned(storeId, true);
+	}
+}
+
+void PerformanceView::handleRemoveSetMenuResult(int result)
+{
+	int index = result - RemoveSetBase;
+	juce::StringArray setNames = processor.presetManager->getStoreSetNames();
+
+	if (juce::isPositiveAndBelow(index, setNames.size()))
+	{
+		processor.presetManager->removeStoreSet(setNames[index]);
+	}
+}
+
+void PerformanceView::handleHideSetMenuResult(int setIndex)
+{
+	auto setNames = processor.presetManager->getStoreSetNames();
+	if (setIndex >= 0 && setIndex < setNames.size())
+	{
+		juce::String setName = setNames[setIndex];
+		auto storesToHide = processor.presetManager->getStoresInSet(setName);
+
+		for (int storeId : storesToHide)
+		{
+			processor.presetManager->setStorePinned(storeId, false);
+		}
+
+		updatePinnedButtons();
+		triggerAsyncUpdate();
 	}
 }
 

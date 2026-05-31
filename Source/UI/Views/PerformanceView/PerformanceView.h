@@ -65,9 +65,20 @@ private:
 	void configActiveStoreLabel();
 	void updateActiveStoreLabel(int index);
 	void handleActiveStoreParamChanged();
+
+	// Store menu functions
 	void showStoresMenu();
+	void addSetsSubMenu(juce::StringArray& setNames, juce::PopupMenu& menu);
 	void addStoreSubMenu(int i, juce::PopupMenu& menu);
+
 	void handleStoresMenuResult(int result);
+
+	void promptForStoreSetName();
+	void handleRecallSetMenuResult(int result);
+	void wipeCurrentPins();
+	void pinStoresFromSet(juce::StringArray& setNames, int index);
+	void handleRemoveSetMenuResult(int result);
+	void handleHideSetMenuResult(int setIndex);
 	void handleRemoveStoresMenuResult();
 	void promptForStoreName(int index);
 	void handleStoreRename(juce::AlertWindow* alert, int index);
@@ -173,6 +184,7 @@ private:
 	PerformanceSlotItem* getSlotItem(int slotId) const { return slots[slotId - 1]; }
 	VcaSlotItem* getVcaItem(int vcaId) const { return vcaSlots[vcaId - 1]; }
 
+	// Stores helpers
 	void updatePinnedButtons();
 
 	juce::TextButton setupButton{ "Setup" };

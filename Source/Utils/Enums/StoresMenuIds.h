@@ -7,5 +7,9 @@ enum StoresMenuIds {
 	BaseRename = 4000,
 	AddMore = 5000,
 	BaseClear = 6000,
-	RemoveStores = 7000
+	RemoveStores = 7000,
+	SavePinnedAsSet = 8000,
+	RecallSetBase = 9000,
+	RemoveSetBase = 10000,
+	BaseHideSet = 11000
 };
