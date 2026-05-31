@@ -5,6 +5,7 @@
 #include "../../../../Utils/LayoutUtils/LayoutUtils.h"
 #include "../../../../Utils/UIUtils/UIUtils.h"
 #include "../../../../Utils/StateUtils/SlotStateHelpers.h"
+#include "../../../../Utils/Enums/ContextMenuId.h"
 
 VcaSlotItem::VcaSlotItem(KaiCBFaderControlAudioProcessor& p, int vcaIndex)
 	: BaseSlotItem(p, vcaIndex)
@@ -117,6 +118,10 @@ void VcaSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHas
         updateColours();
         resized();
     }
+    else if (SlotStateHelpers::isGroupProperty(propName))
+    {
+        expandButton.setVisible(hasAssignedMembers());
+    }
 }
 
 void VcaSlotItem::paint(juce::Graphics& g)
@@ -191,6 +196,78 @@ void VcaSlotItem::setupMuteButton(juce::Rectangle<int>& topArea)
 void VcaSlotItem::setupExpandButton(juce::Rectangle<int>& topArea)
 {
     topArea.removeFromTop(UISizeConstants::slotPadding);
+    expandButton.setVisible(hasAssignedMembers());
+
     auto expandArea = topArea.removeFromTop(UISizeConstants::slotBtnHeight).reduced(2);
     LayoutUtils::setCenteredMaxWidthBounds(expandButton, expandArea, SlotSizeValues::targetBtnWidth);
+}
+
+bool VcaSlotItem::hasAssignedMembers() const
+{
+    auto& state = processor.apvts.state;
+
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
+    {
+        if (SlotStateHelpers::getGroupId(state, i) == index)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void VcaSlotItem::mouseDown(const juce::MouseEvent& e)
+{
+    if (e.mods.isPopupMenu())
+    {
+        showContextMenu();
+    }
+    else
+    {
+        BaseSlotItem::mouseDown(e);
+    }
+}
+
+void VcaSlotItem::showContextMenu()
+{
+    juce::PopupMenu menu;
+
+    menu.addItem(ContextMenuID::ToggleVCA, "Disable VCA Master");
+
+    menu.addSeparator();
+
+    juce::PopupMenu colourMenu;
+    int currentColourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, index);
+
+    for (int i = 0; i < GroupColours::numColours; ++i)
+    {
+        colourMenu.addItem(ContextMenuID::AssignColourBase + i,
+            GroupColours::names[i],
+            true,
+            currentColourIdx == i);
+    }
+    menu.addSubMenu("Group Colour", colourMenu);
+
+    menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(getParentComponent()),
+        [this](int result)
+        {
+            handleMenuResult(result);
+        });
+}
+
+void VcaSlotItem::handleMenuResult(int result)
+{
+    if (result == 0) return;
+
+    if (result == ContextMenuID::ToggleVCA)
+    {
+        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::isVcaExpanded(index), 1.0f);
+        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaEnabled(index), 0.0f);
+    }
+    else if (result >= ContextMenuID::AssignColourBase &&
+        result < ContextMenuID::AssignColourBase + GroupColours::numColours)
+    {
+        int colourIdx = result - ContextMenuID::AssignColourBase;
+        SlotStateHelpers::setGroupColour(processor.apvts.state, index, colourIdx);
+    }
 }

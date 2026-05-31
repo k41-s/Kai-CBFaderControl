@@ -152,6 +152,8 @@ private:
 	void demoteExistingGroupLeaders(int grpId);
 	void demoteToStandardMember(int slotIdx);
 	void toggleVcaMaster(int slotIdx);
+	void reactivateGroupMembers(int grpId);
+
 	void toggleSoloSafe(const juce::Array<int>& activeSlots);
 
 	// Layout and drawing functions

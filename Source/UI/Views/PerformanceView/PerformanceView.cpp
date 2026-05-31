@@ -523,9 +523,27 @@ void PerformanceView::parameterChanged(const juce::String& parameterID, float ne
 	{
 		handleActiveStoreParamChanged();
 	}
-	else if (!processor.isRestoringState && !isSettling && !hasUnsavedChanges)
+	else
 	{
-		hasUnsavedChanges = true;
+		for (int i = 1; i <= PluginConstants::numVcas; ++i)
+		{
+			if (parameterID == SlotIDs::isVcaExpanded(i))
+			{
+				if (newValue > 0.5f)
+				{
+					juce::MessageManager::callAsync([this, i]() 
+						{
+							reactivateGroupMembers(i);
+						});
+				}
+				break;
+			}
+		}
+
+		if (!processor.isRestoringState && !isSettling && !hasUnsavedChanges)
+		{
+			hasUnsavedChanges = true;
+		}
 	}
 	triggerAsyncUpdate();
 }
@@ -1050,11 +1068,37 @@ void PerformanceView::toggleVcaMaster(int slotIdx)
 	SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaEnabled(grpId), currentlyEnabled ? 0.0f : 1.0f);
 }
 
+void PerformanceView::reactivateGroupMembers(int grpId)
+{
+	bool anyChanged = false;
+
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
+	{
+		if (SlotStateHelpers::getGroupId(processor.apvts.state, i) == grpId)
+		{
+			bool isLocallyActive = SlotStateHelpers::isSlotActive(processor.apvts, i);
+
+			if (!isLocallyActive)
+			{
+				processor.globalSlotRegistry->claimSlot(i, processor.getInstanceId());
+				SlotStateHelpers::setSlotActive(processor.apvts, i, true);
+
+				anyChanged = true;
+			}
+		}
+	}
+
+	if (anyChanged)
+	{
+		triggerAsyncUpdate();
+	}
+}
+
 void PerformanceView::toggleSoloSafe(const juce::Array<int>& activeSlots)
 {
 	for (int idx : activeSlots)
 	{
-		bool isCurrentlySafe = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::soloSafe(idx)) > 0.5f;
+		bool isCurrentlySafe = SlotStateHelpers::isSlotSoloSafe(processor.apvts, idx);
 
 		SlotStateHelpers::setSlotSoloSafe(processor.apvts, idx, !isCurrentlySafe);
 	}

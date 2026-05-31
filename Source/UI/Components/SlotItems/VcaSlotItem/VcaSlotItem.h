@@ -45,6 +45,13 @@ private:
 	void setupMuteButton(juce::Rectangle<int>& topArea);
 	void setupExpandButton(juce::Rectangle<int>& topArea);
 
+	bool hasAssignedMembers() const;
+
+	void mouseDown(const juce::MouseEvent& e) override;
+
+	void showContextMenu();
+	void handleMenuResult(int result);
+
 	juce::String getVolumeParamID() const override { return SlotIDs::vcaVolume(index); }
 
 	juce::TextButton expandButton{ UIButtonLabels::expand };
