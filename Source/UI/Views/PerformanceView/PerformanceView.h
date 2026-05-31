@@ -46,6 +46,7 @@ public:
 
 	int getIdealWidth();
 	int getMinWidth();
+	int getCurrentPreservedWidth();
 
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
@@ -191,6 +192,13 @@ private:
 
 	// Stores helpers
 	void updatePinnedButtons();
+
+	juce::String getLayoutSignature();
+
+	float currentBaselineWidth = SlotSizeValues::monoSlotTargetWidth;
+
+	juce::String lastLayoutSignature;
+	int lastWindowWidth = 0;
 
 	juce::TextButton setupButton{ "Setup" };
 

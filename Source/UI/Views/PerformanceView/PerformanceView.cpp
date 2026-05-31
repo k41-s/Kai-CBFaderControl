@@ -582,10 +582,12 @@ void PerformanceView::valueTreeRedirected(juce::ValueTree& treeWhichHasBeenChang
 
 void PerformanceView::handleAsyncUpdate()
 {
+	juce::String oldSig = lastLayoutSignature;
+
 	resized();
 	repaint();
 
-	if (onLayoutChangeRequest)
+	if (oldSig != lastLayoutSignature && onLayoutChangeRequest)
 		onLayoutChangeRequest();
 }
 
@@ -1131,13 +1133,23 @@ void PerformanceView::resized()
 	setupAndFillHeader();
 	setupAndFillArea();
 
-	float baselineWidth = SlotSizeValues::monoSlotMinWidth;
-	setBaselineWidth(baselineWidth);
+	juce::String currentSignature = getLayoutSignature();
+	bool structureChanged = (currentSignature != lastLayoutSignature);
+	bool widthChanged = (getWidth() != lastWindowWidth);
 
-	performanceLF.updateGlobalTypography(baselineWidth);
+	if ((widthChanged && !structureChanged) || currentBaselineWidth < 10.0f)
+	{
+		float baselineWidth = currentBaselineWidth;
+		setBaselineWidth(baselineWidth);
+	}
 
-	regularSlotsOnResized(baselineWidth);
-	vcaSlotsOnResized(baselineWidth);
+	performanceLF.updateGlobalTypography(currentBaselineWidth);
+
+	regularSlotsOnResized(currentBaselineWidth);
+	vcaSlotsOnResized(currentBaselineWidth);
+
+	lastWindowWidth = getWidth();
+	lastLayoutSignature = currentSignature;
 }
 
 void PerformanceView::setBaselineWidth(float& baselineWidth)
@@ -1145,12 +1157,74 @@ void PerformanceView::setBaselineWidth(float& baselineWidth)
 	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
 		auto info = getSlotDisplayInfo(i);
-		if (info.shouldProcess && info.isVisible && !info.isStereoMain)
+		if (info.shouldProcess && info.isVisible)
 		{
-			baselineWidth = getSlotItem(i)->getWidth();
-			break;
+			if (!info.isStereoMain)
+			{
+				baselineWidth = getSlotItem(i)->getWidth();
+				currentBaselineWidth = baselineWidth;
+				return;
+			}
+			else
+			{
+				float multiplier = SlotSizeValues::stereoSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth;
+				baselineWidth = getSlotItem(i)->getWidth() / multiplier;
+				currentBaselineWidth = baselineWidth;
+				return;
+			}
 		}
 	}
+
+	for (int g = 1; g <= PluginConstants::numVcas; ++g)
+	{
+		if (SlotStateHelpers::isVcaEnabled(processor.apvts, g))
+		{
+			float multiplier = SlotSizeValues::vcaSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth;
+			baselineWidth = getVcaItem(g)->getWidth() / multiplier;
+			currentBaselineWidth = baselineWidth;
+			return;
+		}
+	}
+
+	baselineWidth = currentBaselineWidth;
+}
+
+// see if we can extract some logic between these 2 methods
+
+int PerformanceView::getCurrentPreservedWidth()
+{
+	float preservedWidth = 0.0f;
+	int activeCount = 0;
+
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
+	{
+		auto info = getSlotDisplayInfo(i);
+
+		if (info.shouldProcess && info.isVisible)
+		{
+			float multiplier = info.isStereoMain
+				? (SlotSizeValues::stereoSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth)
+				: 1.0f;
+
+			preservedWidth += currentBaselineWidth * multiplier;
+			activeCount++;
+		}
+	}
+
+	for (int g = 1; g <= PluginConstants::numVcas; ++g)
+	{
+		if (SlotStateHelpers::isVcaEnabled(processor.apvts, g))
+		{
+			float multiplier = SlotSizeValues::vcaSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth;
+			preservedWidth += currentBaselineWidth * multiplier;
+			activeCount++;
+		}
+	}
+
+	if (activeCount == 0)
+		return WindowSizeValues::absolutePerfMinWidth;
+
+	return juce::jlimit(getMinWidth(), WindowSizeValues::maxWidth, (int)std::round(preservedWidth));
 }
 
 void PerformanceView::regularSlotsOnResized(float baselineWidth)
@@ -1334,6 +1408,31 @@ void PerformanceView::addSlotIfActive(bool isActive, juce::FlexBox& flexBox, Per
 			.withMaxWidth(maxWidth)
 			.withFlex(flexGrow));
 	}
+}
+
+juce::String PerformanceView::getLayoutSignature()
+{
+	juce::String sig;
+
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
+	{
+		auto info = getSlotDisplayInfo(i);
+		if (info.shouldProcess && info.isVisible)
+		{
+			sig += info.isStereoMain ? "S" : "M";
+			sig += juce::String(i) + "_";
+		}
+	}
+
+	for (int g = 1; g <= PluginConstants::numVcas; ++g)
+	{
+		if (SlotStateHelpers::isVcaEnabled(processor.apvts, g))
+		{
+			sig += "V" + juce::String(g) + "_";
+		}
+	}
+
+	return sig;
 }
 
 int PerformanceView::getIdealWidth()

@@ -40,7 +40,7 @@ void KaiCBFaderControlAudioProcessorEditor::configSetupPageLambdas()
     setupPage.onNavigateToPerformance = [this]()
         {
             showSetupPage = false;
-            updateWindowSize(performanceView.getIdealWidth(), getHeight());
+            updateWindowSize(performanceView.getCurrentPreservedWidth(), getHeight());
             resized();
         };
 }
@@ -58,7 +58,7 @@ void KaiCBFaderControlAudioProcessorEditor::configPerformanceViewLambdas()
         {
             if (!showSetupPage)
             {
-                updateWindowSize(performanceView.getIdealWidth(), getHeight());
+                updateWindowSize(performanceView.getCurrentPreservedWidth(), getHeight());
             }
         };
 }
@@ -83,8 +83,10 @@ void KaiCBFaderControlAudioProcessorEditor::configResizing()
 
 void KaiCBFaderControlAudioProcessorEditor::setAppropriateSize()
 {
-    int initialWidth = showSetupPage ? WindowSizeValues::defaultWidth : performanceView.getIdealWidth();
-	int initialHeight = WindowSizeValues::defaultHeight;
+    int initialWidth = showSetupPage 
+        ? WindowSizeValues::defaultWidth 
+        : performanceView.getCurrentPreservedWidth();
+    int initialHeight = WindowSizeValues::defaultHeight;
     updateWindowSize(initialWidth, initialHeight);
 }
 
