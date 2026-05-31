@@ -92,7 +92,7 @@ void PerformanceView::configStoresButton()
 void PerformanceView::configActiveStoreLabel()
 {
 	addAndMakeVisible(activeStoreLabel);
-	activeStoreLabel.setJustificationType(juce::Justification::centredLeft);
+	activeStoreLabel.setJustificationType(juce::Justification::centred);
 	activeStoreLabel.setFont(juce::Font(15.0f, juce::Font::bold));
 	activeStoreLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 
@@ -1009,9 +1009,12 @@ void PerformanceView::setupAndFillHeader()
 	auto presetsArea = buttonStrip.removeFromRight(80).reduced(4, 4);
 	presetsButton.setBounds(presetsArea);
 
-	auto leftArea = buttonStrip.removeFromLeft(200);
-	auto storesArea = leftArea.removeFromLeft(80).reduced(4, 4);
-	storesButton.setBounds(storesArea);
+	auto leftArea = buttonStrip.removeFromLeft(250);
+
+	auto setupArea = leftArea.removeFromLeft(80).reduced(4, 4);
+	setupButton.setBounds(setupArea);
+
+	leftArea.removeFromLeft(20);
 
 	auto labelArea = leftArea.reduced(4, 4);
 	activeStoreLabel.setBounds(labelArea);
@@ -1038,7 +1041,7 @@ void PerformanceView::setupAndFillFooter(juce::Rectangle<int>& area)
 	footerArea = area.removeFromBottom(40);
 	auto areaToUse = footerArea;
 
-	setupButton.setBounds(areaToUse.removeFromLeft(80).reduced(5));
+	storesButton.setBounds(areaToUse.removeFromLeft(80).reduced(5));
 
 	auto logoArea = areaToUse.removeFromRight(100);
 	cbLogo.setBounds(logoArea.withSizeKeepingCentre(50, logoArea.getHeight()).reduced(5));
