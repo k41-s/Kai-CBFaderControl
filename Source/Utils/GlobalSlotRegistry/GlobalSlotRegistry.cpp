@@ -52,3 +52,12 @@ SlotMode GlobalSlotRegistry::getSlotMode(int slotIndex, const juce::Uuid& instan
 
     return SlotMode::ReadOnly;
 }
+
+bool GlobalSlotRegistry::isSlotUnowned(int slotIndex) const
+{
+    if (!isValidSlot(slotIndex))
+        return false;
+
+    juce::ScopedLock sl(lock);
+    return slotOwners[getArrayIndex(slotIndex)] == juce::Uuid::null();
+}

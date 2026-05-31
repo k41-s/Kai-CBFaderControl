@@ -13,6 +13,8 @@ public:
     void releaseSlot(int slotIndex, const juce::Uuid& instanceId);
     SlotMode getSlotMode(int slotIndex, const juce::Uuid& instanceId, bool isLocallyActive);
 
+    bool isSlotUnowned(int slotIndex) const;
+
 private:
     int getArrayIndex(int slotId) const { return slotId - 1; }
     bool isValidSlot(int slotId) const 
