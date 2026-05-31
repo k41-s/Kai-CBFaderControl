@@ -69,6 +69,10 @@
           </GROUP>
         </GROUP>
         <GROUP id="{85C987F1-CF1A-9A13-E890-A4A368996334}" name="Components">
+          <GROUP id="{5387675B-64B9-AEC4-978D-8570C29A841D}" name="PinnedStoreButton">
+            <FILE id="owO8bD" name="PinnedStoreButton.h" compile="0" resource="0"
+                  file="Source/UI/Components/PinnedStoreButton/PinnedStoreButton.h"/>
+          </GROUP>
           <GROUP id="{DD3184E6-5619-9A67-FB9C-96B330527D59}" name="PrecisionSlider">
             <FILE id="FGTCBb" name="PrecisionSlider.cpp" compile="1" resource="0"
                   file="Source/UI/Components/PrecisionSlider/PrecisionSlider.cpp"/>

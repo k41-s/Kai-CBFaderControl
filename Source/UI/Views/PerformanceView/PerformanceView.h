@@ -71,6 +71,9 @@ private:
 	void addSetsSubMenu(juce::StringArray& setNames, juce::PopupMenu& menu);
 	void addStoreSubMenu(int i, juce::PopupMenu& menu);
 
+	void populateStoreMenuOptions(int i, juce::PopupMenu& storeMenu);
+	void showPinnedStoreMenu(int i, juce::Button* btn);
+
 	void handleStoresMenuResult(int result);
 
 	void promptForStoreSetName();

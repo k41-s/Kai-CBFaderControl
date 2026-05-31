@@ -6,6 +6,7 @@
 #include "../../../Utils/Enums/ContextMenuId.h"
 #include "../../../Utils/Enums/StoresMenuIds.h"
 #include "../../../Utils/StateUtils/SlotStateHelpers.h"
+#include "../../Components/PinnedStoreButton/PinnedStoreButton.h"
 
 PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 	:processor(p)
@@ -160,18 +161,35 @@ void PerformanceView::addSetsSubMenu(juce::StringArray& setNames, juce::PopupMen
 void PerformanceView::addStoreSubMenu(int i, juce::PopupMenu& menu)
 {
 	juce::PopupMenu storeSubMenu;
-	juce::String name = processor.presetManager->getStoreName(i);
+	populateStoreMenuOptions(i, storeSubMenu);
 
-	storeSubMenu.addItem(BaseRecall + i, "Recall");
-	storeSubMenu.addItem(BaseSave + i, "Save (Overwrite)");
-	storeSubMenu.addItem(BaseRename + i, "Rename...");
-	storeSubMenu.addSeparator();
-	storeSubMenu.addItem(BaseClear + i, "Clear State");
+	juce::String name = processor.presetManager->getStoreName(i);
+	menu.addSubMenu(name, storeSubMenu);
+}
+
+void PerformanceView::populateStoreMenuOptions(int i, juce::PopupMenu& storeMenu)
+{
+	storeMenu.addItem(BaseRecall + i, "Recall");
+	storeMenu.addItem(BaseSave + i, "Save (Overwrite)");
+	storeMenu.addItem(BaseRename + i, "Rename...");
+	storeMenu.addSeparator();
+	storeMenu.addItem(BaseClear + i, "Clear State");
 
 	bool isPinned = processor.presetManager->isStorePinned(i);
-	storeSubMenu.addItem(BasePin + i, isPinned ? "Unpin from Footer" : "Pin to Footer", true, isPinned);
+	storeMenu.addItem(BasePin + i, isPinned ? "Unpin from Footer" : "Pin to Footer", true, isPinned);
+}
 
-	menu.addSubMenu(name, storeSubMenu);
+void PerformanceView::showPinnedStoreMenu(int i, juce::Button* btn)
+{
+	juce::PopupMenu menu;
+
+	populateStoreMenuOptions(i, menu);
+
+	menu.showMenuAsync(juce::PopupMenu::Options()
+		.withTargetComponent(btn)
+		.withParentComponent(this)
+		.withMaximumNumColumns(1),
+		[this](int result) { handleStoresMenuResult(result); });
 }
 
 void PerformanceView::handleStoresMenuResult(int result)
@@ -1413,7 +1431,9 @@ void PerformanceView::updatePinnedButtons()
 		juce::String storeName = processor.presetManager->getStoreName(idx);
 		juce::String buttonText = juce::String(idx) + "\n" + storeName;
 
-		auto* btn = pinnedStoreButtons.add(new juce::TextButton(buttonText));
+		PinnedStoreButton* btn = new PinnedStoreButton(buttonText);
+		pinnedStoreButtons.add(btn);
+
 		btn->getProperties().set(PresetTags::StoreIdProp, idx);
 		addAndMakeVisible(btn);
 
@@ -1424,6 +1444,11 @@ void PerformanceView::updatePinnedButtons()
 					processor.forceRecallStore(idx);
 				else
 					SlotStateHelpers::setActiveStoreId(processor.apvts, idx);
+			};
+
+		btn->onRightClick = [this, idx](juce::Button* b)
+			{
+				showPinnedStoreMenu(idx, b);
 			};
 	}
 }
