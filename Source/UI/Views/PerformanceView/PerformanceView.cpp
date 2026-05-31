@@ -124,7 +124,8 @@ void PerformanceView::showStoresMenu()
 	}
 
 	menu.addSeparator();
-	menu.addItem(AddMore, "Add More Stores...");
+	menu.addItem(AddMore, "Add More Stores", numVisible < PresetConstants::maxStores);
+	menu.addItem(RemoveStores, "Reset to Default Stores", numVisible > PresetConstants::defaultStores);
 
 	menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(storesButton).withParentComponent(this),
 		[this](int result) { handleStoresMenuResult(result); });
@@ -138,6 +139,8 @@ void PerformanceView::addStoreSubMenu(int i, juce::PopupMenu& menu)
 	storeSubMenu.addItem(BaseRecall + i, "Recall");
 	storeSubMenu.addItem(BaseSave + i, "Save (Overwrite)");
 	storeSubMenu.addItem(BaseRename + i, "Rename...");
+	storeSubMenu.addSeparator();
+	storeSubMenu.addItem(BaseClear + i, "Clear State");
 
 	bool isPinned = processor.presetManager->isStorePinned(i);
 	storeSubMenu.addItem(BasePin + i, isPinned ? "Unpin from Footer" : "Pin to Footer", true, isPinned);
@@ -149,12 +152,23 @@ void PerformanceView::handleStoresMenuResult(int result)
 {
 	if (result == 0) return;
 
-	if (result == AddMore)
+	if (result == RemoveStores)
+	{
+		handleRemoveStoresMenuResult();
+	}
+	else if (result > BaseClear)
+	{
+		int storeIdx = result - StoresMenuIds::BaseClear;
+		processor.presetManager->clearStore(storeIdx);
+
+		updatePinnedButtons();
+	}
+	else if (result == AddMore)
 	{
 		promptForAddMoreStores();
 		return;
 	}
-	if (result > BaseRename)
+	else if (result > BaseRename)
 	{
 		int index = result - BaseRename;
 		promptForStoreName(index);
@@ -174,6 +188,35 @@ void PerformanceView::handleStoresMenuResult(int result)
 	{
 		handleStoreRecallMenuResult(result);
 	}
+}
+
+void PerformanceView::handleRemoveStoresMenuResult()
+{
+	auto* alert = new juce::AlertWindow("Reset Stores",
+		"This will delete all stores beyond the default 10 and permanently clear their saved data. Are you sure?",
+		juce::AlertWindow::WarningIcon);
+
+	alert->addButton("Reset", 1, juce::KeyPress(juce::KeyPress::returnKey));
+	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+
+	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int choice)
+		{
+			if (choice == 1)
+			{
+				int currentVisible = processor.presetManager->getNumVisibleStores();
+				int defaultStores = PresetConstants::defaultStores;
+
+				for (int i = currentVisible; i > defaultStores; --i)
+				{
+					processor.presetManager->clearStore(i);
+				}
+
+				processor.presetManager->setNumVisibleStores(defaultStores);
+
+				updatePinnedButtons();
+				resized();
+			}
+		}), true);
 }
 
 void PerformanceView::promptForStoreName(int index)

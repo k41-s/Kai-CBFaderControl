@@ -28,6 +28,21 @@ juce::ValueTree PresetManager::getStore(int index) const
     return juce::ValueTree();
 }
 
+void PresetManager::clearStore(int index)
+{
+    juce::String nodeName = getStoreNodeName(index);
+    auto node = storesTree.getChildWithName(nodeName);
+
+    if (node.isValid())
+    {
+        node.removeAllChildren(nullptr);
+
+        node.removeProperty(PresetTags::StoreNameProp, nullptr);
+
+        node.setProperty(PresetTags::StorePinnedProp, false, nullptr);
+    }
+}
+
 void PresetManager::setStoreName(int index, const juce::String& newName)
 {
     auto node = getOrCreateStoreNode(index);
@@ -60,6 +75,14 @@ juce::String PresetManager::getStoreName(int index) const
 
 void PresetManager::setStorePinned(int index, bool shouldPin)
 {
+    if (shouldPin && !isStorePinned(index))
+    {
+        if (getPinnedStores().size() >= PresetConstants::maxPinnedStores)
+        {
+            return;
+        }
+    }
+
     auto node = getOrCreateStoreNode(index);
     node.setProperty(PresetTags::StorePinnedProp, shouldPin, nullptr);
 }
@@ -139,7 +162,10 @@ juce::ValueTree PresetManager::getOrCreateStoreNode(int index)
     if (!node.isValid())
     {
         node = juce::ValueTree(nodeName);
-        node.setProperty(PresetTags::StorePinnedProp, false, nullptr);
+
+        bool isPinnedByDefault = (index >= 1 && index <= PresetConstants::defaultStores);
+        node.setProperty(PresetTags::StorePinnedProp, isPinnedByDefault, nullptr);
+
         storesTree.addChild(node, -1, nullptr);
     }
     return node;

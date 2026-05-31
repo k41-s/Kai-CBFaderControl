@@ -21,6 +21,10 @@ public:
     void drawButtonText(juce::Graphics& g, juce::TextButton& button,
         bool isMouseOverButton, bool isButtonDown) override;
 
+    void handleMultipleLineButtonText(juce::TextButton& button, juce::Graphics& g, juce::String& text, juce::Rectangle<float>& textBounds);
+
+    void handleSingleLineButtonText(juce::TextButton& button, juce::Graphics& g, juce::String& text, const juce::Rectangle<float>& textBounds);
+
     void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override;
     void drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int>& area,
         const bool isSeparator, const bool isActive, const bool isHighlighted, const bool isTicked,

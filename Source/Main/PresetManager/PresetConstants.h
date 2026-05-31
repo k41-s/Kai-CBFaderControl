@@ -28,5 +28,6 @@ namespace PresetConstants
     inline const int defaultStores = 10;
     inline const int maxStores = 127;
 
-    inline const int maxStoreNameLength = 5;
+    inline const int maxStoreNameLength = 6;
+    inline const int maxPinnedStores = 16;
 }

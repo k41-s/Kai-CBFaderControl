@@ -68,6 +68,7 @@ private:
 	void showStoresMenu();
 	void addStoreSubMenu(int i, juce::PopupMenu& menu);
 	void handleStoresMenuResult(int result);
+	void handleRemoveStoresMenuResult();
 	void promptForStoreName(int index);
 	void handleStoreRename(juce::AlertWindow* alert, int index);
 	void promptForAddMoreStores();

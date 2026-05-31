@@ -10,6 +10,7 @@ public:
 
     void saveStore(int index, const juce::ValueTree& currentState);
     juce::ValueTree getStore(int index) const;
+    void clearStore(int index);
 
     void setStoreName(int index, const juce::String& newName);
     juce::String getStoreName(int index) const;
