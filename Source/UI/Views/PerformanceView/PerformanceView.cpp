@@ -1159,19 +1159,9 @@ void PerformanceView::setBaselineWidth(float& baselineWidth)
 		auto info = getSlotDisplayInfo(i);
 		if (info.shouldProcess && info.isVisible)
 		{
-			if (!info.isStereoMain)
-			{
-				baselineWidth = getSlotItem(i)->getWidth();
-				currentBaselineWidth = baselineWidth;
-				return;
-			}
-			else
-			{
-				float multiplier = SlotSizeValues::stereoSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth;
-				baselineWidth = getSlotItem(i)->getWidth() / multiplier;
-				currentBaselineWidth = baselineWidth;
-				return;
-			}
+			baselineWidth = getSlotItem(i)->getWidth() / getSlotWidthMultiplier(info.isStereoMain);
+			currentBaselineWidth = baselineWidth;
+			return;
 		}
 	}
 
@@ -1179,8 +1169,7 @@ void PerformanceView::setBaselineWidth(float& baselineWidth)
 	{
 		if (SlotStateHelpers::isVcaEnabled(processor.apvts, g))
 		{
-			float multiplier = SlotSizeValues::vcaSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth;
-			baselineWidth = getVcaItem(g)->getWidth() / multiplier;
+			baselineWidth = getVcaItem(g)->getWidth() / getVcaWidthMultiplier();
 			currentBaselineWidth = baselineWidth;
 			return;
 		}
@@ -1188,8 +1177,6 @@ void PerformanceView::setBaselineWidth(float& baselineWidth)
 
 	baselineWidth = currentBaselineWidth;
 }
-
-// see if we can extract some logic between these 2 methods
 
 int PerformanceView::getCurrentPreservedWidth()
 {
@@ -1199,14 +1186,9 @@ int PerformanceView::getCurrentPreservedWidth()
 	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
 		auto info = getSlotDisplayInfo(i);
-
 		if (info.shouldProcess && info.isVisible)
 		{
-			float multiplier = info.isStereoMain
-				? (SlotSizeValues::stereoSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth)
-				: 1.0f;
-
-			preservedWidth += currentBaselineWidth * multiplier;
+			preservedWidth += currentBaselineWidth * getSlotWidthMultiplier(info.isStereoMain);
 			activeCount++;
 		}
 	}
@@ -1215,8 +1197,7 @@ int PerformanceView::getCurrentPreservedWidth()
 	{
 		if (SlotStateHelpers::isVcaEnabled(processor.apvts, g))
 		{
-			float multiplier = SlotSizeValues::vcaSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth;
-			preservedWidth += currentBaselineWidth * multiplier;
+			preservedWidth += currentBaselineWidth * getVcaWidthMultiplier();
 			activeCount++;
 		}
 	}
@@ -1225,6 +1206,18 @@ int PerformanceView::getCurrentPreservedWidth()
 		return WindowSizeValues::absolutePerfMinWidth;
 
 	return juce::jlimit(getMinWidth(), WindowSizeValues::maxWidth, (int)std::round(preservedWidth));
+}
+
+float PerformanceView::getSlotWidthMultiplier(bool isStereoMain) const
+{
+	return isStereoMain
+		? (SlotSizeValues::stereoSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth)
+		: 1.0f;
+}
+
+float PerformanceView::getVcaWidthMultiplier() const
+{
+	return SlotSizeValues::vcaSlotTargetWidth / SlotSizeValues::monoSlotTargetWidth;
 }
 
 void PerformanceView::regularSlotsOnResized(float baselineWidth)

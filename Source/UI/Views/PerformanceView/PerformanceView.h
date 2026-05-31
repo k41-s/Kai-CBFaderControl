@@ -48,6 +48,9 @@ public:
 	int getMinWidth();
 	int getCurrentPreservedWidth();
 
+	float getSlotWidthMultiplier(bool isStereoMain) const;
+	float getVcaWidthMultiplier() const;
+
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
 private:
