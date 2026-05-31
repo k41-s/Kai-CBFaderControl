@@ -25,7 +25,7 @@ namespace PresetTags
 namespace PresetConstants
 {
     inline const int noStore = 0;
-    inline const int defaultStores = 10;
+    inline const int defaultStores = 8;
     inline const int maxStores = 127;
 
     inline const int maxStoreNameLength = 6;

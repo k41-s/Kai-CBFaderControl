@@ -116,18 +116,22 @@ void PerformanceView::updateActiveStoreLabel(int index)
 void PerformanceView::showStoresMenu()
 {
 	juce::PopupMenu menu;
-
 	int numVisible = processor.presetManager->getNumVisibleStores();
+
+	menu.addItem(AddMore, "Add Stores", numVisible < PresetConstants::maxStores);
+	menu.addItem(RemoveStores, "Reset Num Stores", numVisible > PresetConstants::defaultStores);
+	menu.addSeparator();
+
 	for (int i = 1; i <= numVisible; ++i)
 	{
 		addStoreSubMenu(i, menu);
 	}
 
-	menu.addSeparator();
-	menu.addItem(AddMore, "Add More Stores", numVisible < PresetConstants::maxStores);
-	menu.addItem(RemoveStores, "Reset to Default Stores", numVisible > PresetConstants::defaultStores);
 
-	menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(storesButton).withParentComponent(this),
+	menu.showMenuAsync(juce::PopupMenu::Options()
+		.withTargetComponent(storesButton)
+		.withParentComponent(this)
+		.withMaximumNumColumns(1),
 		[this](int result) { handleStoresMenuResult(result); });
 }
 
@@ -193,8 +197,16 @@ void PerformanceView::handleStoresMenuResult(int result)
 void PerformanceView::handleRemoveStoresMenuResult()
 {
 	auto* alert = new juce::AlertWindow("Reset Stores",
-		"This will delete all stores beyond the default 10 and permanently clear their saved data. Are you sure?",
+		"How many stores would you like to keep? (Stores beyond this number will be permanently cleared).",
 		juce::AlertWindow::WarningIcon);
+
+	
+	alert->addTextEditor(resetStoresDialogTxtEditor, juce::String(PresetConstants::defaultStores), "Number of stores:");
+
+	if (auto* editor = alert->getTextEditor(resetStoresDialogTxtEditor))
+	{
+		editor->setInputRestrictions(3, "0123456789");
+	}
 
 	alert->addButton("Reset", 1, juce::KeyPress(juce::KeyPress::returnKey));
 	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
@@ -204,14 +216,17 @@ void PerformanceView::handleRemoveStoresMenuResult()
 			if (choice == 1)
 			{
 				int currentVisible = processor.presetManager->getNumVisibleStores();
-				int defaultStores = PresetConstants::defaultStores;
 
-				for (int i = currentVisible; i > defaultStores; --i)
+				int targetStores = alert->getTextEditorContents(resetStoresDialogTxtEditor).getIntValue();
+
+				targetStores = juce::jlimit(1, currentVisible, targetStores);
+
+				for (int i = currentVisible; i > targetStores; --i)
 				{
 					processor.presetManager->clearStore(i);
 				}
 
-				processor.presetManager->setNumVisibleStores(defaultStores);
+				processor.presetManager->setNumVisibleStores(targetStores);
 
 				updatePinnedButtons();
 				resized();
