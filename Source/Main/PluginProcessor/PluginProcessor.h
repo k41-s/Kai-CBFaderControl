@@ -62,6 +62,11 @@ public:
     void forceRecallStore(int storeIdx);
 
     //=============================================================================
+    
+    void savePresetToFile(const juce::File& file);
+    std::unique_ptr<juce::XmlElement> loadPresetFile(const juce::File& file);
+
+    //=============================================================================
 
     void parameterChanged(const juce::String& parameterID, float newValue) override;
 

@@ -6,6 +6,8 @@
 #include "../../../Main/PluginProcessor/PluginProcessor.h"
 #include "../../../Utils/BinaryImageComponent/BinaryImageComponent.h"
 #include "../../../Utils/Enums/GroupRole.h"
+#include "../../../Utils/StateUtils/PresetHelpers.h"
+#include "../../Components/PresetLoadDialog/PresetLoadDialog.h"
 
 class PerformanceView :
 	public juce::Component,
@@ -51,6 +53,8 @@ public:
 	float getSlotWidthMultiplier(bool isStereoMain) const;
 	float getVcaWidthMultiplier() const;
 
+	bool getHasUnsavedChanges() const { return hasUnsavedChanges; }
+
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
 private:
@@ -63,8 +67,15 @@ private:
 	void setSlotMouseEvents(PerformanceSlotItem* slot);
 	void configSetupButton();
 
-	// Presets & Stores UI
+	// Presets Helpers
 	void configPresetsButton();
+	void showPresetsMenu();
+	void handleLoadPresetRequest();
+	void handleSavePresetRequest();
+	void launchLoadPresetChooser();
+	void showPresetLoadDialog(std::unique_ptr<juce::XmlElement> xmlRoot);
+
+	// Stores UI
 	void configStoresButton();
 	void configActiveStoreLabel();
 	void updateActiveStoreLabel(int index);
@@ -209,6 +220,10 @@ private:
 	PerformanceViewLookFeel performanceLF;
 
 	juce::TextButton presetsButton;
+
+	std::unique_ptr<juce::FileChooser> fileChooser;
+	juce::Component::SafePointer<juce::DialogWindow> presetDialogWindow;
+	std::unique_ptr<juce::XmlElement> presetToLoadXml;
 
 	juce::OwnedArray<juce::TextButton> pinnedStoreButtons;
 	juce::TextButton storesButton;

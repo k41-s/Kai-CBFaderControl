@@ -77,10 +77,120 @@ void PerformanceView::configPresetsButton()
 	presetsButton.setButtonText(PresetTags::PresetsButtonText);
 	addAndMakeVisible(presetsButton);
 
-	presetsButton.onClick = [this]()
+	presetsButton.onClick = [this]() { showPresetsMenu(); };
+}
+
+void PerformanceView::showPresetsMenu()
+{
+	juce::PopupMenu menu;
+	menu.addItem(1, "Load Preset...");
+	menu.addItem(2, "Save Preset As...");
+
+	menu.showMenuAsync(juce::PopupMenu::Options()
+		.withTargetComponent(presetsButton)
+		.withParentComponent(this),
+		[this](int result)
 		{
-			// TODO: Phase 1, Part 3 - Open Preset Dialog Window
-		};
+			if (result == 1) handleLoadPresetRequest();
+			else if (result == 2) handleSavePresetRequest();
+		});
+}
+
+void PerformanceView::handleSavePresetRequest()
+{
+	fileChooser = std::make_unique<juce::FileChooser>("Save Preset",
+		juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+		"*.xml");
+
+	auto chooserFlags = juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles;
+	fileChooser->launchAsync(chooserFlags, [this](const juce::FileChooser& fc)
+		{
+			auto file = fc.getResult();
+			if (file != juce::File{})
+			{
+				processor.savePresetToFile(file);
+				hasUnsavedChanges = false;
+				triggerAsyncUpdate();
+			}
+		});
+}
+
+void PerformanceView::handleLoadPresetRequest()
+{
+	if (hasUnsavedChanges)
+	{
+		juce::AlertWindow::showAsync(juce::MessageBoxOptions()
+			.withIconType(juce::MessageBoxIconType::WarningIcon)
+			.withTitle("Unsaved Changes")
+			.withMessage("You have unsaved changes in your active mix. Loading a preset will discard them. Continue?")
+			.withButton("Yes, discard").withButton("No, cancel"),
+			[this](int choice)
+			{
+				if (choice == 1) launchLoadPresetChooser();
+			});
+	}
+	else
+	{
+		launchLoadPresetChooser();
+	}
+}
+
+void PerformanceView::launchLoadPresetChooser()
+{
+	fileChooser = std::make_unique<juce::FileChooser>("Load Preset",
+		juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+		"*.xml");
+
+	auto chooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+	fileChooser->launchAsync(chooserFlags, [this](const juce::FileChooser& fc)
+		{
+			auto file = fc.getResult();
+			if (file != juce::File{})
+			{
+				auto xmlRoot = processor.loadPresetFile(file);
+				if (xmlRoot != nullptr)
+				{
+					showPresetLoadDialog(std::move(xmlRoot));
+				}
+			}
+		});
+}
+
+void PerformanceView::showPresetLoadDialog(std::unique_ptr<juce::XmlElement> xmlRoot)
+{
+	presetToLoadXml = std::move(xmlRoot);
+
+	auto* dialog = new PresetLoadDialog(
+		[this](bool layout, bool data, bool stores) {
+			if (presetToLoadXml != nullptr)
+			{
+				PresetHelpers::selectivelyApplyState(processor.apvts, *processor.presetManager, *presetToLoadXml, layout, data, stores);
+
+				hasUnsavedChanges = false;
+				triggerSettling();
+
+				updatePinnedButtons();
+				presetToLoadXml.reset();
+			}
+			if (presetDialogWindow != nullptr) presetDialogWindow->exitModalState(1);
+		},
+		[this]() {
+			presetToLoadXml.reset();
+			if (presetDialogWindow != nullptr) presetDialogWindow->exitModalState(0);
+		}
+	);
+
+	dialog->setSize(400, 250);
+
+	juce::DialogWindow::LaunchOptions options;
+	options.content.setOwned(dialog);
+	options.dialogTitle = "Selective Preset Recall";
+	options.dialogBackgroundColour = MyColours::background;
+	options.escapeKeyTriggersCloseButton = true;
+	options.useNativeTitleBar = false;
+	options.resizable = false;
+
+	presetDialogWindow = options.launchAsync();
 }
 
 void PerformanceView::configStoresButton()

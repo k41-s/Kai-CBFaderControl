@@ -443,6 +443,19 @@ void KaiCBFaderControlAudioProcessor::forceRecallStore(int storeIdx)
     }
 }
 
+void KaiCBFaderControlAudioProcessor::savePresetToFile(const juce::File& file)
+{
+    juce::XmlElement parentXml(PresetTags::RootXmlTag);
+    saveApvtsState(parentXml);
+    saveStoreState(parentXml);
+    parentXml.writeTo(file);
+}
+
+std::unique_ptr<juce::XmlElement> KaiCBFaderControlAudioProcessor::loadPresetFile(const juce::File& file)
+{
+    return juce::XmlDocument::parse(file);
+}
+
 void KaiCBFaderControlAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
 {
     if (parameterID == PresetTags::ActiveStoreParamId)

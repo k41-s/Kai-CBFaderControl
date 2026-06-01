@@ -1,11 +1,3 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include <JuceHeader.h>
@@ -14,8 +6,7 @@
 #include "../../UI/Views/PerformanceView/PerformanceView.h"
 
 //==============================================================================
-/**
-*/
+
 class KaiCBFaderControlAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
@@ -30,6 +21,8 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+
+    void userTriedToCloseWindow() override;
 private:
     void determineInitialState();
     void setAppropriateSize();
