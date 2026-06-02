@@ -350,6 +350,17 @@ void KaiCBFaderControlAudioProcessor::setStateInformation(const void* data, int 
 
             restoreApvts(parentXml);
             restoreStores(parentXml);
+
+            int activeStoreId = SlotStateHelpers::getActiveStoreId(apvts);
+            if (activeStoreId > 0)
+            {
+                auto storeState = presetManager->getStore(activeStoreId);
+
+                if (storeState.isValid())
+                {
+                    apvts.replaceState(storeState.createCopy());
+                }
+            }
         }
         else if (parentXml->hasTagName(apvts.state.getType()))
         {
