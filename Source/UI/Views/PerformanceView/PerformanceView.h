@@ -242,7 +242,6 @@ private:
 	BinaryImageComponent xPatchImg{ BinaryData::XPatch_png, BinaryData::XPatch_pngSize };
 
 	static constexpr int topButtonStripHeight = 35;
-	juce::String resetStoresDialogTxtEditor = "numStores";
 
 	juce::Rectangle<int> headerArea;
 	juce::Rectangle<int> footerArea;

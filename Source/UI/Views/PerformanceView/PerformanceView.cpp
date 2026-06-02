@@ -123,7 +123,8 @@ void PerformanceView::handleLoadPresetRequest()
 			.withIconType(juce::MessageBoxIconType::WarningIcon)
 			.withTitle("Unsaved Changes")
 			.withMessage("You have unsaved changes in your active mix. Loading a preset will discard them. Continue?")
-			.withButton("Yes, discard").withButton("No, cancel"),
+			.withButton("Yes, discard")
+			.withButton("No, cancel"),
 			[this](int choice)
 			{
 				if (choice == 1) launchLoadPresetChooser();
@@ -363,14 +364,14 @@ void PerformanceView::handleStoresMenuResult(int result)
 void PerformanceView::promptForStoreSetName()
 {
 	auto* alert = new juce::AlertWindow("Save Store Set", "Enter a name for this set:", juce::AlertWindow::NoIcon);
-	alert->addTextEditor("setNameField", "", "Set Name");
+	alert->addTextEditor(AlertFieldIDs::setName, "", "Set Name");
 	alert->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
 	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
 
 	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int choice) {
 		if (choice == 1)
 		{
-			juce::String newName = alert->getTextEditorContents("setNameField");
+			juce::String newName = alert->getTextEditorContents(AlertFieldIDs::setName);
 			if (newName.isNotEmpty())
 			{
 				auto pinned = processor.presetManager->getPinnedStores();
@@ -447,11 +448,11 @@ void PerformanceView::handleRemoveStoresMenuResult()
 		juce::AlertWindow::WarningIcon);
 
 	
-	alert->addTextEditor(resetStoresDialogTxtEditor, juce::String(PresetConstants::defaultStores), "Number of stores:");
+	alert->addTextEditor(AlertFieldIDs::numStores, juce::String(PresetConstants::defaultStores), "Number of stores:");
 
-	if (auto* editor = alert->getTextEditor(resetStoresDialogTxtEditor))
+	if (auto* editor = alert->getTextEditor(AlertFieldIDs::numStores))
 	{
-		editor->setInputRestrictions(3, "0123456789");
+		editor->setInputRestrictions(3, UIStringConstants::numericChars);
 	}
 
 	alert->addButton("Reset", 1, juce::KeyPress(juce::KeyPress::returnKey));
@@ -463,7 +464,7 @@ void PerformanceView::handleRemoveStoresMenuResult()
 			{
 				int currentVisible = processor.presetManager->getNumVisibleStores();
 
-				int targetStores = alert->getTextEditorContents(resetStoresDialogTxtEditor).getIntValue();
+				int targetStores = alert->getTextEditorContents(AlertFieldIDs::numStores).getIntValue();
 
 				targetStores = juce::jlimit(1, currentVisible, targetStores);
 
@@ -484,9 +485,9 @@ void PerformanceView::promptForStoreName(int index)
 {
 	auto* alert = new juce::AlertWindow("Rename Store", "Enter a new name:", juce::AlertWindow::NoIcon);
 
-	alert->addTextEditor("nameField", processor.presetManager->getStoreName(index), "Name");
+	alert->addTextEditor(AlertFieldIDs::storeName, processor.presetManager->getStoreName(index), "Name");
 
-	if (auto* editor = alert->getTextEditor("nameField"))
+	if (auto* editor = alert->getTextEditor(AlertFieldIDs::storeName))
 		editor->setInputRestrictions(PresetConstants::maxStoreNameLength);
 
 	alert->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
@@ -523,7 +524,7 @@ void PerformanceView::promptForAddMoreStores()
 		"Enter the new total number of stores (Max " + juce::String(PresetConstants::maxStores) + "):",
 		juce::AlertWindow::NoIcon);
 
-	alert->addTextEditor("numField", juce::String(processor.presetManager->getNumVisibleStores()), "Number");
+	alert->addTextEditor(AlertFieldIDs::numStores, juce::String(processor.presetManager->getNumVisibleStores()), "Number");
 	alert->addButton("Update", 1, juce::KeyPress(juce::KeyPress::returnKey));
 	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
 
@@ -531,7 +532,7 @@ void PerformanceView::promptForAddMoreStores()
 		{
 			if (result == 1)
 			{
-				int newNum = alert->getTextEditorContents("numField").getIntValue();
+				int newNum = alert->getTextEditorContents(AlertFieldIDs::numStores).getIntValue();
 				processor.presetManager->setNumVisibleStores(newNum);
 			}
 		}), true);

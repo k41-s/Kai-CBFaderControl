@@ -11,6 +11,7 @@ namespace PresetTags
     inline const juce::String StoresButtonText{ "Stores" };
     inline const juce::String PresetsButtonText{ "Presets" };
 
+    inline const juce::String ActiveSnapshotParamId{ "activeSnapshot" };
     inline const juce::String ActiveStoreParamId{ "activeStore" };
     inline const juce::String ActiveStoreParamName{ "Active Store" };
 
@@ -35,4 +36,13 @@ namespace PresetConstants
 
     inline const int maxStoreNameLength = 6;
     inline const int maxPinnedStores = 16;
+
+    inline const juce::String storeIdDelimiter{ "," };
+}
+
+namespace ApvtsXmlTags
+{
+    inline const juce::String Param{ "PARAM" };
+    inline const juce::Identifier Id{ "id" };
+    inline const juce::Identifier Value{ "value" };
 }

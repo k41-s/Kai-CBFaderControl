@@ -198,7 +198,7 @@ void PresetManager::saveStoreSet(const juce::String& setName, const juce::Array<
     for (int id : pinnedStores)
         strArray.add(juce::String(id));
 
-    setNode.setProperty(PresetTags::SetStoreIdsProp, strArray.joinIntoString(","), nullptr);
+    setNode.setProperty(PresetTags::SetStoreIdsProp, strArray.joinIntoString(PresetConstants::storeIdDelimiter), nullptr);
 }
 
 void PresetManager::removeStoreSet(const juce::String& setName)
@@ -237,7 +237,7 @@ juce::Array<int> PresetManager::getStoresInSet(const juce::String& setName) cons
         if (setNode.isValid() && setNode.hasProperty(PresetTags::SetStoreIdsProp))
         {
             juce::String idsString = setNode.getProperty(PresetTags::SetStoreIdsProp).toString();
-            juce::StringArray idStrs = juce::StringArray::fromTokens(idsString, ",", "");
+            juce::StringArray idStrs = juce::StringArray::fromTokens(idsString, PresetConstants::storeIdDelimiter, "");
             for (const auto& idStr : idStrs)
             {
                 stores.add(idStr.getIntValue());

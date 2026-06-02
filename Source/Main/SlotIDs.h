@@ -34,6 +34,9 @@ namespace SlotIdStringPrefixes
     static const juce::String vcaMute = vca + "Mute_";
     static const juce::String vcaName = vca + "Name_";
     static const juce::String isVcaExpanded = vca + "Expanded_";
+
+    // Presets
+    static const juce::String slotOrder = "slotOrder_";
 }
 
 struct SlotIDs

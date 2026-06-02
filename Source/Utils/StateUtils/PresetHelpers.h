@@ -29,10 +29,10 @@ namespace PresetHelpers
 
                 bool isLayoutProp = propStr.startsWith(SlotIdStringPrefixes::slotName) ||
                     propStr.startsWith(SlotIdStringPrefixes::slotColour) ||
-                    propStr.startsWith("slotOrder") || // const variables for all these and everything possible
-                    propStr.startsWith("group") ||
-                    propStr.startsWith("isStereo") ||
-                    propStr.startsWith("linkedSlot");
+                    propStr.startsWith(SlotIdStringPrefixes::slotOrder) ||
+                    propStr.startsWith(SlotIdStringPrefixes::group) ||
+                    propStr.startsWith(SlotIdStringPrefixes::isStereo) ||
+                    propStr.startsWith(SlotIdStringPrefixes::linkedSlotId);
 
                 if (loadLayout && isLayoutProp)
                 {
@@ -46,9 +46,9 @@ namespace PresetHelpers
             for (int i = 0; i < incomingState.getNumChildren(); ++i)
             {
                 juce::ValueTree incomingChild = incomingState.getChild(i);
-                if (incomingChild.hasType("PARAM"))
+                if (incomingChild.hasType(ApvtsXmlTags::Param))
                 {
-                    juce::String paramId = incomingChild.getProperty("id").toString();
+                    juce::String paramId = incomingChild.getProperty(ApvtsXmlTags::Id).toString();
 
                     // 1. Define what counts as a DATA parameter (Audio logic)
                     bool isDataParam = paramId.startsWith(SlotIdStringPrefixes::volume) ||
@@ -60,37 +60,37 @@ namespace PresetHelpers
 
                     // 2. Define what counts as a LAYOUT parameter (UI / Surface logic)
                     // (Adjust "isActive" if your SlotIDs.h uses a different string prefix for active faders)
-                    bool isLayoutParam = paramId.startsWith("isActive") ||
-                        paramId.startsWith("vcaExpanded");
+                    bool isLayoutParam = paramId.startsWith(SlotIdStringPrefixes::isActive) ||
+                        paramId.startsWith(SlotIdStringPrefixes::isVcaExpanded);
 
                     // 3. Define what counts as a STORE parameter
-                    bool isStoreParam = paramId.startsWith("activeSnapshot") ||
-                        paramId.startsWith("activeStore");
+                    bool isStoreParam = paramId.startsWith(PresetTags::ActiveSnapshotParamId) ||
+                        paramId.startsWith(PresetTags::ActiveStoreParamId);
 
                     // Apply Data parameters
                     if (loadData && isDataParam)
                     {
-                        auto currentChild = currentState.getChildWithProperty("id", paramId);
+                        auto currentChild = currentState.getChildWithProperty(ApvtsXmlTags::Id, paramId);
                         if (currentChild.isValid())
-                            currentChild.setProperty("value", incomingChild.getProperty("value"), nullptr);
+                            currentChild.setProperty(ApvtsXmlTags::Value, incomingChild.getProperty(ApvtsXmlTags::Value), nullptr);
                     }
 
                     // Apply Layout parameters stored as APVTS floats/bools
                     if (loadLayout && isLayoutParam)
                     {
-                        auto currentChild = currentState.getChildWithProperty("id", paramId);
+                        auto currentChild = currentState.getChildWithProperty(ApvtsXmlTags::Id, paramId);
                         if (currentChild.isValid())
-                            currentChild.setProperty("value", incomingChild.getProperty("value"), nullptr);
+                            currentChild.setProperty(ApvtsXmlTags::Value, incomingChild.getProperty(ApvtsXmlTags::Value), nullptr);
                     }
 
                     // Apply active snapshot/store pointers
                     if (loadStores && isStoreParam)
                     {
-                        auto currentChild = currentState.getChildWithProperty("id", paramId);
+                        auto currentChild = currentState.getChildWithProperty(ApvtsXmlTags::Id, paramId);
                         if (currentChild.isValid())
-                            currentChild.setProperty("value", incomingChild.getProperty("value"), nullptr);
+                            currentChild.setProperty(ApvtsXmlTags::Value, incomingChild.getProperty(ApvtsXmlTags::Value), nullptr);
                     }
-                }
+                } // extract method for this current child code repeated here
             }
 
             // Merge everything back into the live APVTS

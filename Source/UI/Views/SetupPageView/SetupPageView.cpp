@@ -83,8 +83,8 @@ void SetupPageView::configLabelEditorPair(
 
 void SetupPageView::restrictPortEditors()
 {
-	incomingPortEditor.setInputRestrictions(5, "0123456789");
-	outgoingPortEditor.setInputRestrictions(5, "0123456789");
+	incomingPortEditor.setInputRestrictions(5, UIStringConstants::numericChars);
+	outgoingPortEditor.setInputRestrictions(5, UIStringConstants::numericChars);
 }
 
 void SetupPageView::configStatusComponents()

@@ -102,6 +102,8 @@ namespace UIStringConstants
     static inline const juce::String unitDb = "dB";
     static inline const juce::String maxWidthValueStr = "-88.8 ";
     static inline const juce::String infSymbol = juce::String::charToString(0x221E);
+
+    static inline const juce::String numericChars = "0123456789";
 }
 
 namespace SlotSizeValues
@@ -147,4 +149,12 @@ namespace NetworkConstants
     inline const juce::String defaultTargetIp = "127.0.0.1";
     inline const int defaultIncomingPort = 8000;
     inline const int defaultOutgoingPort = 8001;
+}
+
+namespace AlertFieldIDs
+{
+    static inline const juce::String setName = "setNameField";
+    static inline const juce::String storeName = "nameField";
+    static inline const juce::String numStores = "numField";
+    //static inline const juce::String resetStoresDialogTxtEditor = "numStores";
 }
