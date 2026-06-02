@@ -39,7 +39,9 @@ void PresetLoadDialog::configToggles()
     dataToggle.setLookAndFeel(&boxToggleLF);
     fullToggle.setLookAndFeel(&boxToggleLF);
 
-    fullToggle.setToggleState(true, juce::dontSendNotification);
+    layoutToggle.onClick = [this] { loadBtn.setEnabled(true); };
+    dataToggle.onClick = [this] { loadBtn.setEnabled(true); };
+    fullToggle.onClick = [this] { loadBtn.setEnabled(true); };
 
     addAndMakeVisible(layoutToggle);
     addAndMakeVisible(dataToggle);
@@ -48,6 +50,8 @@ void PresetLoadDialog::configToggles()
 
 void PresetLoadDialog::configLoadBtn()
 {
+	loadBtn.setEnabled(false);
+
     loadBtn.onClick = [this]
         {
             if (onRecall) 
