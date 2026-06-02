@@ -1241,6 +1241,9 @@ void PerformanceView::paintOverChildren(juce::Graphics& g)
 
 void PerformanceView::resized()
 {
+	if (getWidth() <= 0 || getHeight() <= 0)
+		return;
+
 	setupAndFillHeader();
 	setupAndFillArea();
 

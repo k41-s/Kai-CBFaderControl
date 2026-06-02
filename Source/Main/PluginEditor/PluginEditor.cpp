@@ -136,6 +136,9 @@ void KaiCBFaderControlAudioProcessorEditor::resized()
 
 void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
 {
+    setupPage.setVisible(showSetupPage);
+    performanceView.setVisible(!showSetupPage);
+
     auto maxSize = getMaxConstrainedWindowSize();
     int trueMaxWidth = maxSize.x;
     int trueMaxHeight = maxSize.y;
@@ -152,7 +155,6 @@ void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
             trueMaxHeight);
 
         setupPage.setBounds(getLocalBounds());
-        performanceView.setBounds(0, 0, 0, 0);
     }
     else
     {
@@ -165,7 +167,6 @@ void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
             trueMaxHeight);
 
         performanceView.setBounds(getLocalBounds());
-        setupPage.setBounds(0, 0, 0, 0);
     }
 }
 
