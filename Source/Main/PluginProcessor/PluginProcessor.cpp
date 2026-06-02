@@ -313,6 +313,9 @@ void KaiCBFaderControlAudioProcessor::getStateInformation(juce::MemoryBlock& des
 {
     juce::XmlElement parentXml(PresetTags::RootXmlTag);
 
+    parentXml.setAttribute(PluginConstants::xmlEditorWidthAttribute, lastEditorWidth);
+    parentXml.setAttribute(PluginConstants::xmlEditorHeightAttribute, lastEditorHeight);
+
     saveApvtsState(parentXml);
     saveStoreState(parentXml);
     copyXmlToBinary(parentXml, destData);
@@ -342,6 +345,9 @@ void KaiCBFaderControlAudioProcessor::setStateInformation(const void* data, int 
     {
         if (parentXml->hasTagName(PresetTags::RootXmlTag))
         {
+            lastEditorWidth = parentXml->getIntAttribute(PluginConstants::xmlEditorWidthAttribute, -1);
+            lastEditorHeight = parentXml->getIntAttribute(PluginConstants::xmlEditorHeightAttribute, -1);
+
             restoreApvts(parentXml);
             restoreStores(parentXml);
         }

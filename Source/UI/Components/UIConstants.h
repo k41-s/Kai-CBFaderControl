@@ -142,6 +142,9 @@ namespace PluginConstants
     
 	static inline const int maxSlotNameLength = 5;
 	static inline const int maxGroupNameLength = maxSlotNameLength; // for now unless they need to be different
+
+	static inline const juce::String xmlEditorWidthAttribute = "editorWidth";
+	static inline const juce::String xmlEditorHeightAttribute = "editorHeight";
 }
 
 namespace NetworkConstants

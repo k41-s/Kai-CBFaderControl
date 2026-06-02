@@ -83,11 +83,27 @@ void KaiCBFaderControlAudioProcessorEditor::configResizing()
 
 void KaiCBFaderControlAudioProcessorEditor::setAppropriateSize()
 {
-    int initialWidth = showSetupPage 
-        ? WindowSizeValues::defaultWidth 
-        : performanceView.getCurrentPreservedWidth();
-    int initialHeight = WindowSizeValues::defaultHeight;
-    updateWindowSize(initialWidth, initialHeight);
+    int savedWidth = audioProcessor.lastEditorWidth;
+    int savedHeight = audioProcessor.lastEditorHeight;
+
+    auto maxSize = getMaxConstrainedWindowSize();
+
+    bool isSavedSizeValid = (savedWidth > 0 && savedHeight > 0) &&
+        (savedWidth <= maxSize.x && savedHeight <= maxSize.y);
+
+    if (isSavedSizeValid)
+    {
+        updateWindowSize(savedWidth, savedHeight);
+    }
+    else
+    {
+        int initialWidth = showSetupPage
+            ? WindowSizeValues::defaultWidth
+            : performanceView.getCurrentPreservedWidth();
+        int initialHeight = WindowSizeValues::defaultHeight;
+
+        updateWindowSize(initialWidth, initialHeight);
+    }
 }
 
 KaiCBFaderControlAudioProcessorEditor::~KaiCBFaderControlAudioProcessorEditor()
@@ -117,7 +133,6 @@ void KaiCBFaderControlAudioProcessorEditor::userTriedToCloseWindow()
     }
     else
     {
-        // Safe to close natively
         if (auto* dw = findParentComponentOfClass<juce::DocumentWindow>())
             dw->closeButtonPressed();
     }
@@ -132,6 +147,9 @@ void KaiCBFaderControlAudioProcessorEditor::paint (juce::Graphics& g)
 void KaiCBFaderControlAudioProcessorEditor::resized()
 {
     showCurrentView(showSetupPage);
+
+    audioProcessor.lastEditorWidth = getWidth();
+    audioProcessor.lastEditorHeight = getHeight();
 }
 
 void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)

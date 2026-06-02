@@ -81,6 +81,10 @@ public:
     std::atomic<bool> isRestoringState{ false };
 
     juce::SharedResourcePointer<GlobalSlotRegistry> globalSlotRegistry;
+
+    int lastEditorWidth = -1;
+    int lastEditorHeight = -1;
+
 private:
     void init();
     void initListeners();
