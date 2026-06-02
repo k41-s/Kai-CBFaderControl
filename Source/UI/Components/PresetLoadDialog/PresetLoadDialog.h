@@ -56,7 +56,7 @@ private:
     juce::ToggleButton colourToggle{ "Colours" };
     juce::ToggleButton routingToggle{ "Grouping & Stereo" };
     juce::ToggleButton activeToggle{ "Active States" };
-    juce::ToggleButton storesToggle{ "Stores & Snapshots" };
+    juce::ToggleButton storesToggle{ "Stores" };
 
     juce::Array<juce::ToggleButton*> mainToggles;
     juce::Array<juce::ToggleButton*> granularToggles;

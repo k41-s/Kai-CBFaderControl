@@ -1255,7 +1255,11 @@ void PerformanceView::resized()
 	bool structureChanged = (currentSignature != lastLayoutSignature);
 	bool widthChanged = (getWidth() != lastWindowWidth);
 
-	if ((widthChanged && !structureChanged) || currentBaselineWidth < 10.0f)
+	int expectedPreservedWidth = getCurrentPreservedWidth();
+
+	bool isAutoResize = std::abs(getWidth() - expectedPreservedWidth) <= 2;
+
+	if ((widthChanged && !structureChanged && !isAutoResize) || currentBaselineWidth < 10.0f)
 	{
 		float baselineWidth = currentBaselineWidth;
 		setBaselineWidth(baselineWidth);
