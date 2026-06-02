@@ -41,6 +41,12 @@
       </GROUP>
       <GROUP id="{C7A96202-9678-0F48-8CA3-6DBA8FCD9D92}" name="UI">
         <GROUP id="{99DEFE1B-A682-C22E-6326-967790FD3A37}" name="CustomLookAndFeel">
+          <GROUP id="{A2F64D67-7E36-2640-83DC-F50284D735CA}" name="BoxToggleLookAndFeel">
+            <FILE id="tqdQ6K" name="BoxToggleLookAndFeel.cpp" compile="1" resource="0"
+                  file="Source/UI/CustomLookAndFeel/BoxToggleLookAndFeel/BoxToggleLookAndFeel.cpp"/>
+            <FILE id="hRgx3h" name="BoxToggleLookAndFeel.h" compile="0" resource="0"
+                  file="Source/UI/CustomLookAndFeel/BoxToggleLookAndFeel/BoxToggleLookAndFeel.h"/>
+          </GROUP>
           <GROUP id="{FC6A8208-1AEA-FB57-1555-81A937EB7C23}" name="PerformanceViewLookFeel">
             <FILE id="RCHQiM" name="PerformanceViewLookFeel.cpp" compile="1" resource="0"
                   file="Source/UI/CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.cpp"/>

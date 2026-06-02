@@ -35,6 +35,10 @@ void PresetLoadDialog::configToggles()
     dataToggle.setRadioGroupId(1);
     fullToggle.setRadioGroupId(1);
 
+    layoutToggle.setLookAndFeel(&boxToggleLF);
+    dataToggle.setLookAndFeel(&boxToggleLF);
+    fullToggle.setLookAndFeel(&boxToggleLF);
+
     fullToggle.setToggleState(true, juce::dontSendNotification);
 
     addAndMakeVisible(layoutToggle);
@@ -70,6 +74,13 @@ void PresetLoadDialog::configCancelBtn()
     addAndMakeVisible(cancelBtn);
 }
 
+PresetLoadDialog::~PresetLoadDialog()
+{
+    layoutToggle.setLookAndFeel(nullptr);
+    dataToggle.setLookAndFeel(nullptr);
+    fullToggle.setLookAndFeel(nullptr);
+}
+
 void PresetLoadDialog::paint(juce::Graphics& g)
 {
     g.fillAll(MyColours::background);
@@ -82,9 +93,9 @@ void PresetLoadDialog::resized()
     titleLabel.setBounds(area.removeFromTop(40));
     area.removeFromTop(10);
 
-    layoutToggle.setBounds(area.removeFromTop(30));
-    dataToggle.setBounds(area.removeFromTop(30));
-    fullToggle.setBounds(area.removeFromTop(30));
+    layoutToggle.setBounds(area.removeFromTop(35).reduced(0, 3));
+    dataToggle.setBounds(area.removeFromTop(35).reduced(0, 3));
+    fullToggle.setBounds(area.removeFromTop(35).reduced(0, 3));
 
     auto btnArea = area.removeFromBottom(40);
     cancelBtn.setBounds(btnArea.removeFromLeft(100));

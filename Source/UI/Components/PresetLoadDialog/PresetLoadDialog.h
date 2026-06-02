@@ -1,11 +1,13 @@
 #pragma once
 #include <JuceHeader.h>
+#include "../../CustomLookAndFeel/MyColours.h"
+#include "../../CustomLookAndFeel/BoxToggleLookAndFeel/BoxToggleLookAndFeel.h"
 
 class PresetLoadDialog : public juce::Component
 {
 public:
     PresetLoadDialog(std::function<void(bool, bool, bool)> onRecallCallback, std::function<void()> onCancelCallback);
-    ~PresetLoadDialog() override = default;
+    ~PresetLoadDialog() override;
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -32,6 +34,8 @@ private:
 
     std::function<void(bool, bool, bool)> onRecall;
     std::function<void()> onCancel;
+
+    BoxToggleLookAndFeel boxToggleLF;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetLoadDialog)
 };
