@@ -162,10 +162,10 @@ void PerformanceView::showPresetLoadDialog(std::unique_ptr<juce::XmlElement> xml
 	presetToLoadXml = std::move(xmlRoot);
 
 	auto* dialog = new PresetLoadDialog(
-		[this](bool layout, bool data, bool stores) {
+		[this](const RecallScope& scope) {
 			if (presetToLoadXml != nullptr)
 			{
-				PresetHelpers::selectivelyApplyState(processor.apvts, *processor.presetManager, *presetToLoadXml, layout, data, stores);
+				PresetHelpers::selectivelyApplyState(processor.apvts, *processor.presetManager, *presetToLoadXml, scope);
 
 				hasUnsavedChanges = false;
 				triggerSettling();
@@ -181,7 +181,7 @@ void PerformanceView::showPresetLoadDialog(std::unique_ptr<juce::XmlElement> xml
 		}
 	);
 
-	dialog->setSize(400, 250);
+	dialog->setSize(450, 500);
 
 	juce::DialogWindow::LaunchOptions options;
 	options.content.setOwned(dialog);
