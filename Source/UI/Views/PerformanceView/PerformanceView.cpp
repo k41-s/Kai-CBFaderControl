@@ -171,6 +171,10 @@ void PerformanceView::showPresetLoadDialog(std::unique_ptr<juce::XmlElement> xml
 				triggerSettling();
 
 				updatePinnedButtons();
+
+				int currentStore = SlotStateHelpers::getActiveStoreId(processor.apvts);
+				updateActiveStoreLabel(currentStore);
+
 				presetToLoadXml.reset();
 			}
 			if (presetDialogWindow != nullptr) presetDialogWindow->exitModalState(1);

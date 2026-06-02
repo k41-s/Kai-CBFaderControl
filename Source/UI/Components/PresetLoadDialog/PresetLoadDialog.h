@@ -15,15 +15,26 @@ public:
 
 private:
     void init();
+
+	// Config methods
+    void configTogglesLists();
     void configComponents();
     void configTitleLabel();
     void configMainToggles();
     void configGranularToggles();
     void configLoadBtn();
+    void setScopeStatesFromGranularToggles(RecallScope& scope);
     void configCancelBtn();
 
     void updateUIStates();
     void setAllGranularToggles(bool state);
+
+	// Layout methods
+    void setupMainToggles(juce::Rectangle<int>& area);
+    void setupCustomGranularArea(juce::Rectangle<int>& area);
+    void setupCustomAreaHeader(juce::Rectangle<int>& area);
+    void setupGranularToggles(juce::Rectangle<int>& area);
+    void setupBottomButtons(juce::Rectangle<int>& area);
 
     juce::Label titleLabel{ "", "Select Data to Load" };
 
@@ -45,7 +56,10 @@ private:
     juce::ToggleButton colourToggle{ "Colours" };
     juce::ToggleButton routingToggle{ "Grouping & Stereo" };
     juce::ToggleButton activeToggle{ "Active States" };
-    juce::ToggleButton storesToggle{ "Stores" };
+    juce::ToggleButton storesToggle{ "Stores & Snapshots" };
+
+    juce::Array<juce::ToggleButton*> mainToggles;
+    juce::Array<juce::ToggleButton*> granularToggles;
 
     juce::TextButton selectAllBtn{ "Select All" };
     juce::TextButton deselectAllBtn{ "Deselect All" };
@@ -57,6 +71,8 @@ private:
     std::function<void()> onCancel;
 
     BoxToggleLookAndFeel boxToggleLF;
+
+    float separatorY = 0.0f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetLoadDialog)
 };

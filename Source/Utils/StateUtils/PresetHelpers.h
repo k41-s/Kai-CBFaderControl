@@ -126,8 +126,12 @@ private:
     {
         if (loadStores)
         {
-            juce::XmlElement rootCopy(rootXml);
-            presetManager.loadFromXml(&rootCopy);
+            auto* storesXml = rootXml.getChildByName(PresetTags::StoresTreeType.toString());
+
+            if (storesXml != nullptr)
+            {
+                presetManager.loadFromXml(storesXml);
+            }
         }
     }
 };
