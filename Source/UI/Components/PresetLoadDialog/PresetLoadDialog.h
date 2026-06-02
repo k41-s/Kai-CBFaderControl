@@ -24,8 +24,8 @@ private:
     juce::Label titleLabel{ "", "Select Data to Load" };
 
     juce::ToggleButton layoutToggle{ "Layout Recall (Names, Colours, Ordering)" };
-    juce::ToggleButton dataToggle{ "Data Recall (Volumes, Mutes, Pans)" };
-    juce::ToggleButton fullToggle{ "Full Recall (Includes Snapshots & Pinned Stores)" };
+    juce::ToggleButton dataToggle{ "Data Recall Only (Volumes, Mutes, Pans, Snapshots)" };
+    juce::ToggleButton fullToggle{ "Full Recall (Layout + Data)" };
 
     juce::TextButton loadBtn{ "Load" };
     juce::TextButton cancelBtn{ "Cancel" };

@@ -2,8 +2,9 @@
 #include "../../CustomLookAndFeel/MyColours.h"
 #include "../../Components/UIConstants.h"
 
-PresetLoadDialog::PresetLoadDialog(std::function<void(bool, bool, bool)> onRecallCallback, std::function<void()> onCancelCallback)
-    : onRecall(std::move(onRecallCallback)), onCancel(std::move(onCancelCallback))
+PresetLoadDialog::PresetLoadDialog(std::function<void(bool, bool, bool)> onRecallCallback, 
+    std::function<void()> onCancelCallback
+)   : onRecall(std::move(onRecallCallback)), onCancel(std::move(onCancelCallback))
 {
     init();
 }
@@ -30,33 +31,33 @@ void PresetLoadDialog::configTitleLabel()
 
 void PresetLoadDialog::configToggles()
 {
-    layoutToggle.setToggleState(true, juce::dontSendNotification);
-    dataToggle.setToggleState(true, juce::dontSendNotification);
+    layoutToggle.setRadioGroupId(1);
+    dataToggle.setRadioGroupId(1);
+    fullToggle.setRadioGroupId(1);
+
     fullToggle.setToggleState(true, juce::dontSendNotification);
 
     addAndMakeVisible(layoutToggle);
     addAndMakeVisible(dataToggle);
     addAndMakeVisible(fullToggle);
-
-    fullToggle.onClick = [this]
-        {
-            if (fullToggle.getToggleState())
-            {
-                layoutToggle.setToggleState(true, juce::dontSendNotification);
-                dataToggle.setToggleState(true, juce::dontSendNotification);
-            }
-        };
 }
 
 void PresetLoadDialog::configLoadBtn()
 {
-    loadBtn.onClick = [this] {
-        if (onRecall) {
-            bool doLayout = layoutToggle.getToggleState() || fullToggle.getToggleState();
-            bool doData = dataToggle.getToggleState() || fullToggle.getToggleState();
-            bool doStores = fullToggle.getToggleState();
-            onRecall(doLayout, doData, doStores);
-        }
+    loadBtn.onClick = [this]
+        {
+            if (onRecall) 
+            {
+                bool isLayoutOnly = layoutToggle.getToggleState();
+                bool isDataOnly = dataToggle.getToggleState();
+                bool isFull = fullToggle.getToggleState();
+
+                bool doLayout = isLayoutOnly || isFull;
+                bool doData = isDataOnly || isFull;
+                bool doStores = isDataOnly || isFull;
+
+                onRecall(doLayout, doData, doStores);
+            }
         };
     addAndMakeVisible(loadBtn);
 }
