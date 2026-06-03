@@ -130,6 +130,8 @@
         </GROUP>
         <GROUP id="{D4DE0E00-C7C6-8602-3529-26D1C61414B2}" name="Enums">
           <FILE id="eXWIsZ" name="ContextMenuId.h" compile="0" resource="0" file="Source/Utils/Enums/ContextMenuId.h"/>
+          <FILE id="Yl1Y44" name="DialogConstants.h" compile="0" resource="0"
+                file="Source/Utils/Enums/DialogConstants.h"/>
           <FILE id="HygPwf" name="GroupRole.h" compile="0" resource="0" file="Source/Utils/Enums/GroupRole.h"/>
           <FILE id="lVfot1" name="SlotMode.h" compile="0" resource="0" file="Source/Utils/Enums/SlotMode.h"/>
           <FILE id="R9MBVg" name="StoresMenuIds.h" compile="0" resource="0" file="Source/Utils/Enums/StoresMenuIds.h"/>
