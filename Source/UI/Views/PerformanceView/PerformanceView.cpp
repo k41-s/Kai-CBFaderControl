@@ -120,6 +120,7 @@ void PerformanceView::handleLoadPresetRequest()
 	if (hasUnsavedChanges)
 	{
 		juce::AlertWindow::showAsync(juce::MessageBoxOptions()
+			.withAssociatedComponent(this)
 			.withIconType(juce::MessageBoxIconType::WarningIcon)
 			.withTitle("Unsaved Changes")
 			.withMessage("You have unsaved changes in your active mix. Loading a preset will discard them. Continue?")
@@ -177,14 +178,17 @@ void PerformanceView::showPresetLoadDialog(std::unique_ptr<juce::XmlElement> xml
 
 				presetToLoadXml.reset();
 			}
-			if (presetDialogWindow != nullptr) presetDialogWindow->exitModalState(1);
+			if (presetDialogWindow != nullptr)
+				presetDialogWindow->exitModalState(1);
 		},
 		[this]() {
 			presetToLoadXml.reset();
-			if (presetDialogWindow != nullptr) presetDialogWindow->exitModalState(0);
+			if (presetDialogWindow != nullptr) 
+				presetDialogWindow->exitModalState(0);
 		}
 	);
 
+	dialog->setLookAndFeel(&performanceLF);
 	dialog->setSize(450, 500);
 
 	juce::DialogWindow::LaunchOptions options;
@@ -371,6 +375,7 @@ void PerformanceView::promptForStoreSetName()
 	alert->addTextEditor(AlertFieldIDs::setName, "", "Set Name");
 	alert->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
 	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+	alert->setLookAndFeel(&performanceLF);
 
 	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int choice) {
 		if (choice == 1)
@@ -449,9 +454,9 @@ void PerformanceView::handleRemoveStoresMenuResult()
 {
 	auto* alert = new juce::AlertWindow("Reset Stores",
 		"How many stores would you like to keep? (Stores beyond this number will be permanently cleared).",
-		juce::AlertWindow::WarningIcon);
+		juce::AlertWindow::NoIcon);
 
-	
+	alert->setLookAndFeel(&performanceLF);
 	alert->addTextEditor(AlertFieldIDs::numStores, juce::String(PresetConstants::defaultStores), "Number of stores:");
 
 	if (auto* editor = alert->getTextEditor(AlertFieldIDs::numStores))
@@ -488,7 +493,8 @@ void PerformanceView::handleRemoveStoresMenuResult()
 void PerformanceView::promptForStoreName(int index)
 {
 	auto* alert = new juce::AlertWindow("Rename Store", "Enter a new name:", juce::AlertWindow::NoIcon);
-
+	
+	alert->setLookAndFeel(&performanceLF);
 	alert->addTextEditor(AlertFieldIDs::storeName, processor.presetManager->getStoreName(index), "Name");
 
 	if (auto* editor = alert->getTextEditor(AlertFieldIDs::storeName))
@@ -528,6 +534,7 @@ void PerformanceView::promptForAddMoreStores()
 		"Enter the new total number of stores (Max " + juce::String(PresetConstants::maxStores) + "):",
 		juce::AlertWindow::NoIcon);
 
+	alert->setLookAndFeel(&performanceLF);
 	alert->addTextEditor(AlertFieldIDs::numStores, juce::String(processor.presetManager->getNumVisibleStores()), "Number");
 	alert->addButton("Update", 1, juce::KeyPress(juce::KeyPress::returnKey));
 	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));

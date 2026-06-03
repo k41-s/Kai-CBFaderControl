@@ -10,6 +10,16 @@ PerformanceViewLookFeel::PerformanceViewLookFeel()
 
 	setColour(juce::LassoComponent<int>::lassoFillColourId, MyColours::cbBlue.withAlpha(0.1f));
 	setColour(juce::LassoComponent<int>::lassoOutlineColourId, MyColours::cbBlue.withAlpha(0.8f));
+
+	setColour(juce::AlertWindow::backgroundColourId, MyColours::background);
+	setColour(juce::AlertWindow::textColourId, MyColours::white);
+	setColour(juce::AlertWindow::outlineColourId, juce::Colours::black);
+
+	setColour(juce::TextEditor::backgroundColourId, MyColours::valueBackground);
+	setColour(juce::TextEditor::textColourId, MyColours::white);
+	setColour(juce::TextEditor::outlineColourId, juce::Colours::black);
+	setColour(juce::TextEditor::focusedOutlineColourId, MyColours::cbBlue);
+	setColour(juce::TextEditor::highlightedTextColourId, juce::Colours::white);
 }
 
 void PerformanceViewLookFeel::drawLinearSlider(juce::Graphics& g, int x, int y, 
@@ -421,8 +431,21 @@ void PerformanceViewLookFeel::drawButtonBackground(juce::Graphics& g, juce::Butt
 	float cornerSize = 4.0f;
 
 	juce::Colour bgColour = MyColours::unpressedBtn;
-
 	getColourFromToggleState(button, bgColour);
+
+	if (!button.isEnabled())
+	{
+		g.setColour(juce::Colours::black.withAlpha(0.2f));
+		g.fillRoundedRectangle(bounds.translated(0.0f, 2.0f), cornerSize);
+
+		g.setColour(bgColour.withMultipliedAlpha(0.3f));
+		g.fillRoundedRectangle(bounds, cornerSize);
+
+		g.setColour(juce::Colours::white.withAlpha(0.1f));
+		g.drawRoundedRectangle(bounds, cornerSize, 1.0f);
+		return;
+	}
+
 	drawButton(g, bgColour, bounds, cornerSize, isButtonDown);
 	handleMouseOverButton(isMouseOverButton, isButtonDown, g, bounds, cornerSize);
 }
@@ -515,7 +538,12 @@ void PerformanceViewLookFeel::drawBtnOutline(juce::Graphics& g, const juce::Rect
 void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton& button,
 	bool isMouseOverButton, bool isButtonDown)
 {
-	g.setColour(button.getToggleState() ? juce::Colours::black : juce::Colours::white);
+	juce::Colour textColour = button.getToggleState() ? juce::Colours::black : juce::Colours::white;
+
+	if (!button.isEnabled())
+		textColour = textColour.withAlpha(0.3f);
+
+	g.setColour(textColour);
 
 	auto textBounds = button.getLocalBounds().toFloat();
 	if (isButtonDown)
