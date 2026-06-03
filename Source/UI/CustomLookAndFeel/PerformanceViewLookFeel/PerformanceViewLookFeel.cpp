@@ -352,8 +352,12 @@ void PerformanceViewLookFeel::drawIndicatorPointer(juce::Graphics& g, juce::Path
 
 void PerformanceViewLookFeel::drawOuterRing(juce::Graphics& g, float centreX, float radius, float centreY)
 {
-	g.setColour(juce::Colours::white.withAlpha(0.08f));
-	g.drawEllipse(centreX - radius - 1.0f, centreY - radius - 1.0f, radius * 2.0f + 2.0f, radius * 2.0f + 2.0f, 1.0f);
+	g.setColour(juce::Colours::white.withAlpha(0.3f));
+	g.drawEllipse(centreX - radius - 1.0f, 
+		centreY - radius - 1.0f, 
+		radius * 2.0f + 2.0f, 
+		radius * 2.0f + 2.0f, 
+		3.0f);
 
 	g.setColour(juce::Colours::black.withAlpha(0.5f));
 	g.drawEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f, 1.5f);
