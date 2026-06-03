@@ -5,6 +5,7 @@
 #include "../../CustomLookAndFeel/MyColours.h"
 #include "../../../Utils/Enums/ContextMenuId.h"
 #include "../../../Utils/Enums/StoresMenuIds.h"
+#include "../../../Utils/Enums/DialogConstants.h"
 #include "../../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../../Components/PinnedStoreButton/PinnedStoreButton.h"
 
@@ -83,16 +84,18 @@ void PerformanceView::configPresetsButton()
 void PerformanceView::showPresetsMenu()
 {
 	juce::PopupMenu menu;
-	menu.addItem(1, "Load Preset...");
-	menu.addItem(2, "Save Preset As...");
+	menu.addItem(PresetsMenuIds::LoadPreset, "Load Preset...");
+	menu.addItem(PresetsMenuIds::SavePreset, "Save Preset As...");
 
 	menu.showMenuAsync(juce::PopupMenu::Options()
 		.withTargetComponent(presetsButton)
 		.withParentComponent(this),
 		[this](int result)
 		{
-			if (result == 1) handleLoadPresetRequest();
-			else if (result == 2) handleSavePresetRequest();
+			if (result == PresetsMenuIds::LoadPreset) 
+				handleLoadPresetRequest();
+			else if (result == PresetsMenuIds::SavePreset) 
+				handleSavePresetRequest();
 		});
 }
 
@@ -122,13 +125,14 @@ void PerformanceView::handleLoadPresetRequest()
 		juce::AlertWindow::showAsync(juce::MessageBoxOptions()
 			.withAssociatedComponent(this)
 			.withIconType(juce::MessageBoxIconType::WarningIcon)
-			.withTitle("Unsaved Changes")
+			.withTitle(DialogStrings::UnsavedTitle)
 			.withMessage("You have unsaved changes in your active mix. Loading a preset will discard them. Continue?")
 			.withButton("Yes, discard")
 			.withButton("No, cancel"),
 			[this](int choice)
 			{
-				if (choice == 1) launchLoadPresetChooser();
+				if (choice == DialogActions::Confirm)
+					launchLoadPresetChooser();
 			});
 	}
 	else
@@ -179,12 +183,12 @@ void PerformanceView::showPresetLoadDialog(std::unique_ptr<juce::XmlElement> xml
 				presetToLoadXml.reset();
 			}
 			if (presetDialogWindow != nullptr)
-				presetDialogWindow->exitModalState(1);
+				presetDialogWindow->exitModalState(DialogActions::Confirm);
 		},
 		[this]() {
 			presetToLoadXml.reset();
 			if (presetDialogWindow != nullptr) 
-				presetDialogWindow->exitModalState(0);
+				presetDialogWindow->exitModalState(DialogActions::Cancel);
 		}
 	);
 
@@ -373,12 +377,12 @@ void PerformanceView::promptForStoreSetName()
 {
 	auto* alert = new juce::AlertWindow("Save Store Set", "Enter a name for this set:", juce::AlertWindow::NoIcon);
 	alert->addTextEditor(AlertFieldIDs::setName, "", "Set Name");
-	alert->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+	alert->addButton(DialogStrings::SaveBtn, DialogActions::Confirm, juce::KeyPress(juce::KeyPress::returnKey));
+	alert->addButton(DialogStrings::CancelBtn, DialogActions::Cancel, juce::KeyPress(juce::KeyPress::escapeKey));
 	alert->setLookAndFeel(&performanceLF);
 
 	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int choice) {
-		if (choice == 1)
+		if (choice == DialogActions::Confirm)
 		{
 			juce::String newName = alert->getTextEditorContents(AlertFieldIDs::setName);
 			if (newName.isNotEmpty())
@@ -464,12 +468,12 @@ void PerformanceView::handleRemoveStoresMenuResult()
 		editor->setInputRestrictions(3, UIStringConstants::numericChars);
 	}
 
-	alert->addButton("Reset", 1, juce::KeyPress(juce::KeyPress::returnKey));
-	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+	alert->addButton(DialogStrings::ResetBtn, DialogActions::Confirm, juce::KeyPress(juce::KeyPress::returnKey));
+	alert->addButton(DialogStrings::CancelBtn, DialogActions::Cancel, juce::KeyPress(juce::KeyPress::escapeKey));
 
 	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int choice)
 		{
-			if (choice == 1)
+			if (choice == DialogActions::Confirm)
 			{
 				int currentVisible = processor.presetManager->getNumVisibleStores();
 
@@ -500,12 +504,12 @@ void PerformanceView::promptForStoreName(int index)
 	if (auto* editor = alert->getTextEditor(AlertFieldIDs::storeName))
 		editor->setInputRestrictions(PresetConstants::maxStoreNameLength);
 
-	alert->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+	alert->addButton(DialogStrings::SaveBtn, DialogActions::Confirm, juce::KeyPress(juce::KeyPress::returnKey));
+	alert->addButton(DialogStrings::CancelBtn, DialogActions::Cancel, juce::KeyPress(juce::KeyPress::escapeKey));
 
 	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert, index](int result)
 		{
-			if (result == 1)
+			if (result == DialogActions::Confirm)
 			{
 				handleStoreRename(alert, index);
 			}
@@ -536,12 +540,12 @@ void PerformanceView::promptForAddMoreStores()
 
 	alert->setLookAndFeel(&performanceLF);
 	alert->addTextEditor(AlertFieldIDs::numStores, juce::String(processor.presetManager->getNumVisibleStores()), "Number");
-	alert->addButton("Update", 1, juce::KeyPress(juce::KeyPress::returnKey));
-	alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+	alert->addButton(DialogStrings::UpdateBtn, DialogActions::Confirm, juce::KeyPress(juce::KeyPress::returnKey));
+	alert->addButton(DialogStrings::CancelBtn, DialogActions::Cancel, juce::KeyPress(juce::KeyPress::escapeKey));
 
 	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int result)
 		{
-			if (result == 1)
+			if (result == DialogActions::Confirm)
 			{
 				int newNum = alert->getTextEditorContents(AlertFieldIDs::numStores).getIntValue();
 				processor.presetManager->setNumVisibleStores(newNum);

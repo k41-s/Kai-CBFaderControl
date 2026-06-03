@@ -10,6 +10,7 @@
 #include "../../UI/Components/UIConstants.h"
 #include "../../UI/CustomLookAndFeel/MyColours.h"
 #include "../../Utils/StateUtils/SlotStateHelpers.h"
+#include "../../Utils/Enums/DialogConstants.h"
 
 //==============================================================================
 KaiCBFaderControlAudioProcessorEditor::KaiCBFaderControlAudioProcessorEditor (KaiCBFaderControlAudioProcessor& p)
@@ -112,18 +113,18 @@ KaiCBFaderControlAudioProcessorEditor::~KaiCBFaderControlAudioProcessorEditor()
 
 void KaiCBFaderControlAudioProcessorEditor::userTriedToCloseWindow()
 {
-    // Check with the Performance View if there are any active unsaved changes
     if (performanceView.getHasUnsavedChanges())
     {
         juce::AlertWindow::showAsync(
             juce::MessageBoxOptions()
             .withIconType(juce::MessageBoxIconType::WarningIcon)
-            .withTitle("Unsaved Changes")
+            .withTitle(DialogStrings::UnsavedTitle)
             .withMessage("You have unsaved changes. Are you sure you want to close?")
-            .withButton("Close anyway").withButton("Cancel"),
+            .withButton(DialogStrings::CloseAnywayBtn)
+            .withButton(DialogStrings::CancelBtn),
             [this](int result) 
             {
-                if (result == 1) 
+                if (result == DialogActions::Confirm) 
                 {
                     if (auto* dw = findParentComponentOfClass<juce::DocumentWindow>())
                         dw->closeButtonPressed();

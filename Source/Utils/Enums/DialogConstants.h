@@ -15,6 +15,7 @@ namespace DialogStrings
     inline const juce::String CancelBtn = "Cancel";
     inline const juce::String UpdateBtn = "Update";
     inline const juce::String ResetBtn = "Reset";
+    inline const juce::String CloseAnywayBtn = "Close anyway";
 
     // Titles
     inline const juce::String UnsavedTitle = "Unsaved Changes";

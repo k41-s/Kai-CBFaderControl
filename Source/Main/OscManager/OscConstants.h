@@ -3,8 +3,8 @@
 
 namespace OscConstants
 {
-    static const juce::String incomingPrefix = "XP4";
-    static const juce::String outgoingPrefix = "XP4";
+    static const juce::String incomingPrefix = "/XP4";
+    static const juce::String outgoingPrefix = incomingPrefix; // Same as of now
 
     static constexpr int fifoSize = 512;
 
