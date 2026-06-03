@@ -282,16 +282,32 @@ void PerformanceViewLookFeel::drawKnobBackground(juce::Graphics& g, float centre
 {
 	drawKnobDropShadow(g, centreX, centreY, radius);
 
-	juce::ColourGradient baseGradient(juce::Colour(0xFF3A3A3A), centreX - radius * 0.5f, centreY - radius * 0.5f,
-		juce::Colour(0xFF151515), centreX + radius * 0.5f, centreY + radius * 0.5f, true);
+	juce::ColourGradient baseGradient(
+		MyColours::knobBaseGradientStart,
+		centreX - radius * 0.5f, 
+		centreY - radius * 0.5f,
+		MyColours::knobBaseGradientEnd,
+		centreX + radius * 0.5f, 
+		centreY + radius * 0.5f, 
+		true
+	);
+
 	g.setGradientFill(baseGradient);
 	g.fillEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f);
 
 	drawKnobGrip(g, centreX, centreY, radius);
 
 	float innerRadius = radius * UILayoutPercentages::knobInnerRadiusPct;
-	juce::ColourGradient innerGradient(juce::Colour(0xFF282828), centreX, centreY - innerRadius,
-		juce::Colour(0xFF1A1A1A), centreX, centreY + innerRadius, false);
+	juce::ColourGradient innerGradient(
+		MyColours::knobInnerGradientStart,
+		centreX, 
+		centreY - innerRadius,
+		MyColours::knobInnerGradientEnd,
+		centreX, 
+		centreY + innerRadius, 
+		false
+	);
+
 	g.setGradientFill(innerGradient);
 	g.fillEllipse(centreX - innerRadius, centreY - innerRadius, innerRadius * 2.0f, innerRadius * 2.0f);
 }

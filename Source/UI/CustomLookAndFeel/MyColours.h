@@ -11,6 +11,12 @@ namespace MyColours
     const juce::Colour faderTrack = juce::Colour::fromRGB(20, 20, 20);
     const juce::Colour faderCap = juce::Colours::white.darker(0.1f);
 
+    const juce::Colour knobBaseGradientStart = juce::Colour(0xFF3A3A3A);
+    const juce::Colour knobBaseGradientEnd = juce::Colour(0xFF151515);
+
+    const juce::Colour knobInnerGradientStart = juce::Colour(0xFF282828);
+    const juce::Colour knobInnerGradientEnd = juce::Colour(0xFF1A1A1A);
+
     const juce::Colour black = juce::Colours::black.withAlpha(0.9f);
     const juce::Colour white = juce::Colours::white.withAlpha(0.9f);
 
