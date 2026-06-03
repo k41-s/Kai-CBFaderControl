@@ -17,6 +17,7 @@ PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 
 void PerformanceView::init()
 {
+	setWantsKeyboardFocus(true);
 	setLookAndFeel(&performanceLF);
 	selectedItems.addChangeListener(this);
 	processor.globalSlotRegistry->addChangeListener(this);
@@ -746,6 +747,8 @@ juce::SelectedItemSet<int>& PerformanceView::getLassoSelection()
 
 void PerformanceView::mouseDown(const juce::MouseEvent& e)
 {
+	grabKeyboardFocus();
+
 	if (handleIsPopupMenuEvent(e)) return;
 
 	if (!e.mods.isShiftDown() && !e.mods.isCommandDown() && !e.mods.isCtrlDown())
@@ -784,6 +787,8 @@ void PerformanceView::timerCallback()
 
 void PerformanceView::handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot)
 {
+	grabKeyboardFocus();
+
 	if (e.mods.isPopupMenu())
 	{
 		if (!selectedItems.isSelected(slot->getIndex()))
@@ -1178,8 +1183,8 @@ void PerformanceView::demoteExistingGroupLeaders(int grpId)
 void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, GroupRole role)
 {
 	auto& state = processor.apvts.state;
-	SlotStateHelpers::setGroupId(state, slotIdx, groupId);
-	SlotStateHelpers::setGroupRole(state, slotIdx, role);
+	SlotStateHelpers::setGroupId(state, slotIdx, groupId, &processor.undoManager);
+	SlotStateHelpers::setGroupRole(state, slotIdx, role, &processor.undoManager);
 }
 
 void PerformanceView::demoteToStandardMember(int slotIdx)
@@ -1719,5 +1724,105 @@ void PerformanceView::updatePinnedButtons()
 			{
 				showPinnedStoreMenu(idx, b);
 			};
+	}
+}
+
+bool PerformanceView::keyPressed(const juce::KeyPress& key)
+{
+	if (key.getModifiers().isCommandDown())
+	{
+		int code = key.getKeyCode();
+		bool isShiftDown = key.getModifiers().isShiftDown();
+
+		if (code == 'a' || code == 'A') 
+		{ 
+			handleSelectAll();
+			return true;
+		}
+		if (code == 'g' || code == 'G')
+		{
+			if (isShiftDown)
+				handleRemoveFromGroup();
+			else
+				handleGroupSelected();
+
+			return true;
+		}
+		if (code == 'z' || code == 'Z') 
+		{ 
+			handleUndo();
+			return true; 
+		}
+		if (code == 's' || code == 'S') 
+		{
+			handleSaveActiveStore();
+			return true; 
+		}
+	}
+
+	return false;
+}
+
+void PerformanceView::handleSelectAll()
+{
+	selectedItems.deselectAll();
+
+	for (int i = 1; i <= PluginConstants::numSlots; ++i)
+	{
+		if (isSlotFullAccess(i))
+		{
+			selectedItems.addToSelection(i);
+		}
+	}
+}
+
+void PerformanceView::handleGroupSelected()
+{
+	juce::Array<int> activeSlots;
+	fillActiveSlots(selectedItems.getItemArray(), activeSlots);
+
+	if (activeSlots.isEmpty()) 
+		return;
+
+	int currentGroup = SlotStateHelpers::getGroupId(processor.apvts.state, activeSlots[0]);
+	int nextGroup = (currentGroup % PluginConstants::numGroups) + 1;
+
+	processor.undoManager.beginNewTransaction("Group Selected Faders");
+
+	for (int idx : activeSlots)
+	{
+		setSlotStandardGroup(idx, nextGroup, GroupRole::Member);
+	}
+}
+
+void PerformanceView::handleRemoveFromGroup()
+{
+	juce::Array<int> activeSlots;
+	fillActiveSlots(selectedItems.getItemArray(), activeSlots);
+
+	if (activeSlots.isEmpty()) return;
+
+	processor.undoManager.beginNewTransaction("Remove Faders from Group");
+
+	for (int idx : activeSlots)
+	{
+		setSlotStandardGroup(idx, 0, GroupRole::Member);
+	}
+}
+
+void PerformanceView::handleUndo()
+{
+	processor.apvts.undoManager->undo();
+}
+
+void PerformanceView::handleSaveActiveStore()
+{
+	int index = SlotStateHelpers::getActiveStoreId(processor.apvts);
+	if (index != PresetConstants::noStore)
+	{
+		processor.presetManager->saveStore(index, processor.apvts.copyState());
+		hasUnsavedChanges = false;
+		triggerSettling();
+		updateActiveStoreLabel(index);
 	}
 }

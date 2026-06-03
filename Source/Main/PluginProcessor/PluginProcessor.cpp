@@ -9,7 +9,8 @@ KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
     : AudioProcessor(BusesProperties()
         .withOutput("Output", juce::AudioChannelSet::stereo(), true)
     ),
-    apvts(*this, nullptr, "Parameters", createParameterLayout())
+    undoManager(),
+    apvts(*this, &undoManager, "Parameters", createParameterLayout())
 {
     init();
 }

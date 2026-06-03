@@ -72,6 +72,7 @@ public:
 
     //==============================================================================
 
+    juce::UndoManager undoManager;
     juce::AudioProcessorValueTreeState apvts;
 
     std::unique_ptr<LinkManager> linkManager;

@@ -55,6 +55,8 @@ public:
 
 	bool getHasUnsavedChanges() const { return hasUnsavedChanges; }
 
+	bool keyPressed(const juce::KeyPress& key) override;
+
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
 private:
@@ -208,6 +210,13 @@ private:
 	void updatePinnedButtons();
 
 	juce::String getLayoutSignature();
+
+	// Key pressed handlers
+	void handleSelectAll();
+	void handleGroupSelected();
+	void handleRemoveFromGroup();
+	void handleUndo();
+	void handleSaveActiveStore();
 
 	float currentBaselineWidth = SlotSizeValues::monoSlotTargetWidth;
 
