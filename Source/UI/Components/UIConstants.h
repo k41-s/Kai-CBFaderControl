@@ -150,8 +150,8 @@ namespace PluginConstants
 namespace NetworkConstants
 {
     inline const juce::String defaultTargetIp = "127.0.0.1";
-    inline const int defaultIncomingPort = 8000;
-    inline const int defaultOutgoingPort = 8001;
+    inline const int defaultIncomingPort = 4000;
+    inline const int defaultOutgoingPort = 4001;
 }
 
 namespace AlertFieldIDs
@@ -159,5 +159,4 @@ namespace AlertFieldIDs
     static inline const juce::String setName = "setNameField";
     static inline const juce::String storeName = "nameField";
     static inline const juce::String numStores = "numField";
-    //static inline const juce::String resetStoresDialogTxtEditor = "numStores";
 }

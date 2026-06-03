@@ -3,8 +3,8 @@
 
 namespace OscConstants
 {
-    static const juce::String incomingPrefix = "/XP4";
-    static const juce::String outgoingPrefix = "/Plugin";
+    static const juce::String incomingPrefix = "XP4";
+    static const juce::String outgoingPrefix = "XP4";
 
     static constexpr int fifoSize = 512;
 
@@ -13,7 +13,7 @@ namespace OscConstants
 
     struct TargetTypes
     {
-        static const juce::String fader() { return "fader"; }
+        static const juce::String fader() { return "fdr"; }
     };
 
     struct SystemCommands
@@ -25,9 +25,9 @@ namespace OscConstants
     struct ParamTypes
     {
         static const juce::String name() { return "name"; }
-        static const juce::String colour() { return "colour"; }
-        static const juce::String volume() { return "volume"; }
-        static const juce::String mute() { return "mute"; }
+        static const juce::String colour() { return "col"; }
+        static const juce::String volume() { return "v"; }
+        static const juce::String mute() { return "m"; }
         static const juce::String pan() { return "pan"; }
         static const juce::String solo() { return "solo"; }
         static const juce::String stereo() { return "stereo"; }
