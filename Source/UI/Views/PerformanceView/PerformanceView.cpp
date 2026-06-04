@@ -59,9 +59,18 @@ void PerformanceView::createVcaFaderSlots()
 
 void PerformanceView::setSlotMouseEvents(PerformanceSlotItem* slot)
 {
-	slot->onBackgroundMouseDown = [this](const juce::MouseEvent& e, PerformanceSlotItem* s) { handleSlotMouseDown(e, s); };
-	slot->onBackgroundMouseDrag = [this](const juce::MouseEvent& e, PerformanceSlotItem* s) { handleSlotMouseDrag(e, s); };
-	slot->onBackgroundMouseUp = [this](const juce::MouseEvent& e, PerformanceSlotItem* s) { handleSlotMouseUp(e, s); };
+	slot->onBackgroundMouseDown = [this](const juce::MouseEvent& e, PerformanceSlotItem* s) { 
+			handleSlotMouseDown(e, s); 
+		};
+	slot->onBackgroundMouseDrag = [this](const juce::MouseEvent& e, PerformanceSlotItem* s) { 
+			handleSlotMouseDrag(e, s); 
+		};
+	slot->onBackgroundMouseUp = [this](const juce::MouseEvent& e, PerformanceSlotItem* s) {
+			handleSlotMouseUp(e, s); 
+		};
+	slot->onBulkToggleRequest = [this](bool isMute, bool newState, PerformanceSlotItem* s) {
+			handleBulkToggle(isMute, newState, s);
+		};
 }
 
 void PerformanceView::configSetupButton()
@@ -824,6 +833,32 @@ void PerformanceView::handleSlotMouseDrag(const juce::MouseEvent& e, Performance
 void PerformanceView::handleSlotMouseUp(const juce::MouseEvent& e, PerformanceSlotItem* slot)
 {
 	lasso.endLasso();
+}
+
+void PerformanceView::handleBulkToggle(bool isMute, bool newState, PerformanceSlotItem* slotClicked)
+{
+	if (!selectedItems.isSelected(slotClicked->getIndex()))
+	{
+		selectedItems.addToSelection(slotClicked->getIndex());
+	}
+
+	auto& selectedArr = selectedItems.getItemArray();
+	if (selectedArr.isEmpty()) return;
+
+	processor.undoManager.beginNewTransaction(isMute ? "Bulk Mute" : "Bulk Solo");
+
+	for (int slotId : selectedArr)
+	{
+		if (slotId == slotClicked->getIndex())
+			continue;
+
+		if (isSlotFullAccess(slotId))
+		{
+			juce::String paramId = isMute ? SlotIDs::mute(slotId) : SlotIDs::solo(slotId);
+
+			SlotStateHelpers::setParamNormalized(processor.apvts, paramId, newState ? 1.0f : 0.0f);
+		}
+	}
 }
 
 void PerformanceView::showContextMenu()

@@ -35,6 +35,7 @@ public:
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDown;
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDrag;
 	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseUp;
+	std::function<void(bool isMute, bool newState, PerformanceSlotItem*)> onBulkToggleRequest;
 
 protected:
 	void updateNameFromValueTree() override;

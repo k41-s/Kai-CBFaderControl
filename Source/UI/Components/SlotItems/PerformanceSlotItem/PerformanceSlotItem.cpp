@@ -62,6 +62,16 @@ void PerformanceSlotItem::configMuteButton()
     addAndMakeVisible(muteButton);
     muteButton.setName(UIComponentNames::muteButton);
     muteButton.setClickingTogglesState(true);
+
+    muteButton.onClick = [this]() 
+        {
+            auto mods = juce::ModifierKeys::getCurrentModifiers();
+            if (mods.isShiftDown() && mods.isAltDown())
+            {
+                if (onBulkToggleRequest)
+                    onBulkToggleRequest(true, muteButton.getToggleState(), this);
+            }
+        };
 }
 
 void PerformanceSlotItem::configSoloButton()
@@ -69,6 +79,16 @@ void PerformanceSlotItem::configSoloButton()
     addAndMakeVisible(soloButton);
     soloButton.setName(UIComponentNames::soloButton);
     soloButton.setClickingTogglesState(true);
+
+    soloButton.onClick = [this]() 
+        {
+            auto mods = juce::ModifierKeys::getCurrentModifiers();
+            if (mods.isShiftDown() && mods.isAltDown())
+            {
+                if (onBulkToggleRequest)
+                    onBulkToggleRequest(false, soloButton.getToggleState(), this);
+            }
+        };
 }
 
 void PerformanceSlotItem::configLabels()
@@ -286,6 +306,9 @@ void PerformanceSlotItem::mouseWheelMove(const juce::MouseEvent& event, const ju
 
 void PerformanceSlotItem::mouseDown(const juce::MouseEvent& e)
 {
+    if (e.originalComponent == &muteButton || e.originalComponent == &soloButton)
+        return;
+
     if (e.originalComponent == this || e.mods.isPopupMenu() || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown())
     {
         if (onBackgroundMouseDown)

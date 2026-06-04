@@ -127,6 +127,7 @@ private:
 	void handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot);
 	void handleSlotMouseDrag(const juce::MouseEvent& e, PerformanceSlotItem* slot);
 	void handleSlotMouseUp(const juce::MouseEvent& e, PerformanceSlotItem* slot);
+	void handleBulkToggle(bool isMute, bool newState, PerformanceSlotItem* slotClicked);
 
 	// Context menu functions
 	bool handleIsPopupMenuEvent(const juce::MouseEvent& e);
