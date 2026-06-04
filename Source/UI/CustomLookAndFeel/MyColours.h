@@ -11,6 +11,8 @@ namespace MyColours
     const juce::Colour faderTrack = juce::Colour::fromRGB(20, 20, 20);
     const juce::Colour faderCap = juce::Colours::white.darker(0.1f);
 
+    const juce::Colour rotarySliderBackground = juce::Colour(0xFF313131);
+
     const juce::Colour knobBaseGradientStart = juce::Colour(0xFF3A3A3A);
     const juce::Colour knobBaseGradientEnd = juce::Colour(0xFF151515);
 

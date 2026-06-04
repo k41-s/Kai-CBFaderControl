@@ -245,7 +245,12 @@ void PerformanceViewLookFeel::drawIndicatorLine(juce::Graphics& g, juce::Rectang
 void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
 	float sliderPos, const float startAngle, const float endAngle, juce::Slider& slider
 ) {
-	auto bounds = juce::Rectangle<float>(x, y, width, height).reduced(2.0f);
+	auto bounds = juce::Rectangle<float>(x, y, width, height);
+
+	g.setColour(MyColours::rotarySliderBackground);
+	g.fillRoundedRectangle(bounds, 4.0f);
+
+	bounds.reduce(7.0f, 3.0f);
 
 	float tickAreaWidth = juce::jlimit(
 		UISizeConstants::tickAreaMinWidth,
