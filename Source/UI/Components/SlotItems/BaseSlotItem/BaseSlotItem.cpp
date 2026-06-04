@@ -170,7 +170,7 @@ void BaseSlotItem::configBaseGroupLabels(std::function<int()> getGroupIdFunc)
         int grpId = getGroupIdFunc();
         if (grpId > 0) 
         {
-            SlotStateHelpers::setVcaName(processor.apvts.state, grpId, groupLabel.getText());
+            SlotStateHelpers::setVcaName(processor.apvts.state, grpId, groupLabel.getText(), &processor.undoManager);
         }
     };
 }

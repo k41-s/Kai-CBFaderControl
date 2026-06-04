@@ -111,7 +111,7 @@ void PerformanceSlotItem::configNameLabel()
 
     nameLabel.onTextChange = [this]()
     {
-        SlotStateHelpers::setSlotCustomName(processor.apvts.state, index, nameLabel.getText());
+        SlotStateHelpers::setSlotCustomName(processor.apvts.state, index, nameLabel.getText(), &processor.undoManager);
     };
 }
 

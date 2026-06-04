@@ -1047,6 +1047,8 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 
 void PerformanceView::handleClaimSlot(const juce::Array<int>& selectedArr)
 {
+	processor.undoManager.beginNewTransaction("Claim Slots");
+
 	for (int idx : selectedArr)
 	{
 		if (!isSlotFullAccess(idx))
@@ -1098,7 +1100,10 @@ void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr
 		int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, selectedArr[0]);
 
 		if (SlotStateHelpers::isValidGroup(grpId))
-			SlotStateHelpers::setGroupColour(processor.apvts.state, grpId, colourIdx);
+		{
+			processor.undoManager.beginNewTransaction("Set Group Colour");
+			SlotStateHelpers::setGroupColour(processor.apvts.state, grpId, colourIdx, &processor.undoManager);
+		}
 	}
 }
 
@@ -1110,6 +1115,8 @@ void PerformanceView::doStereoLink(int slotA, int slotB)
 		selectedItems.deselectAll();
 		return;
 	}
+
+	processor.undoManager.beginNewTransaction("Stereo Link");
 
 	auto& state = processor.apvts.state;
 	int mainIdx = juce::jmin(slotA, slotB);
@@ -1123,19 +1130,19 @@ void PerformanceView::doStereoLink(int slotA, int slotB)
 
 void PerformanceView::setMainSlotProperties(juce::ValueTree& state, int mainIdx, int subIdx)
 {
-	SlotStateHelpers::setStereoLinked(state, mainIdx, true);
-	SlotStateHelpers::setStereoMain(state, mainIdx, true);
-	SlotStateHelpers::setLinkedSlotId(state, mainIdx, subIdx);
+	SlotStateHelpers::setStereoLinked(state, mainIdx, true, &processor.undoManager);
+	SlotStateHelpers::setStereoMain(state, mainIdx, true, &processor.undoManager);
+	SlotStateHelpers::setLinkedSlotId(state, mainIdx, subIdx, &processor.undoManager);
 }
 
 void PerformanceView::setSubSlotProperties(juce::ValueTree& state, int subIdx, int mainIdx)
 {
-	SlotStateHelpers::setStereoLinked(state, subIdx, true);
-	SlotStateHelpers::setStereoMain(state, subIdx, false);
-	SlotStateHelpers::setLinkedSlotId(state, subIdx, mainIdx);
+	SlotStateHelpers::setStereoLinked(state, subIdx, true, &processor.undoManager);
+	SlotStateHelpers::setStereoMain(state, subIdx, false, &processor.undoManager);
+	SlotStateHelpers::setLinkedSlotId(state, subIdx, mainIdx, &processor.undoManager);
 
-	SlotStateHelpers::setGroupId(state, subIdx, 0);
-	SlotStateHelpers::setGroupRole(state, subIdx, GroupRole::Member);
+	SlotStateHelpers::setGroupId(state, subIdx, 0, &processor.undoManager);
+	SlotStateHelpers::setGroupRole(state, subIdx, GroupRole::Member, &processor.undoManager);
 }
 
 void PerformanceView::doStereoUnlink(int slotIdx)
@@ -1143,8 +1150,11 @@ void PerformanceView::doStereoUnlink(int slotIdx)
 	auto& state = processor.apvts.state;
 	int linkedIdx = SlotStateHelpers::getLinkedSlotId(state, slotIdx);
 
-	SlotStateHelpers::unlinkStereoSlot(state, slotIdx);
-	if (linkedIdx != -1) SlotStateHelpers::unlinkStereoSlot(state, linkedIdx);
+	processor.undoManager.beginNewTransaction("Stereo Unlink");
+
+	SlotStateHelpers::unlinkStereoSlot(state, slotIdx, &processor.undoManager);
+	if (linkedIdx != -1) 
+		SlotStateHelpers::unlinkStereoSlot(state, linkedIdx, &processor.undoManager);
 
 	selectedItems.deselectAll();
 }
@@ -1159,8 +1169,9 @@ void PerformanceView::triggerSettling()
 void PerformanceView::promoteToGroupLeader(int slotIdx)
 {
 	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
-
 	if (grpId == 0) return;
+
+	processor.undoManager.beginNewTransaction("Promote Group Leader");
 
 	demoteExistingGroupLeaders(grpId);
 	setSlotStandardGroup(slotIdx, grpId, GroupRole::Leader);
@@ -1189,12 +1200,14 @@ void PerformanceView::setSlotStandardGroup(int slotIdx, int groupId, GroupRole r
 
 void PerformanceView::demoteToStandardMember(int slotIdx)
 {
+	processor.undoManager.beginNewTransaction("Demote to Member");
 	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
 	setSlotStandardGroup(slotIdx, grpId, GroupRole::Member);
 }
 
 void PerformanceView::toggleVcaMaster(int slotIdx)
 {
+	processor.undoManager.beginNewTransaction("Toggle VCA Master");
 	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
 
 	bool currentlyEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, grpId);
@@ -1229,6 +1242,8 @@ void PerformanceView::reactivateGroupMembers(int grpId)
 
 void PerformanceView::toggleSoloSafe(const juce::Array<int>& activeSlots)
 {
+	processor.undoManager.beginNewTransaction("Toggle Solo Safe");
+
 	for (int idx : activeSlots)
 	{
 		bool isCurrentlySafe = SlotStateHelpers::isSlotSoloSafe(processor.apvts, idx);
@@ -1727,42 +1742,6 @@ void PerformanceView::updatePinnedButtons()
 	}
 }
 
-bool PerformanceView::keyPressed(const juce::KeyPress& key)
-{
-	if (key.getModifiers().isCommandDown())
-	{
-		int code = key.getKeyCode();
-		bool isShiftDown = key.getModifiers().isShiftDown();
-
-		if (code == 'a' || code == 'A') 
-		{ 
-			handleSelectAll();
-			return true;
-		}
-		if (code == 'g' || code == 'G')
-		{
-			if (isShiftDown)
-				handleRemoveFromGroup();
-			else
-				handleGroupSelected();
-
-			return true;
-		}
-		if (code == 'z' || code == 'Z') 
-		{ 
-			handleUndo();
-			return true; 
-		}
-		if (code == 's' || code == 'S') 
-		{
-			handleSaveActiveStore();
-			return true; 
-		}
-	}
-
-	return false;
-}
-
 void PerformanceView::handleSelectAll()
 {
 	selectedItems.deselectAll();
@@ -1812,7 +1791,12 @@ void PerformanceView::handleRemoveFromGroup()
 
 void PerformanceView::handleUndo()
 {
-	processor.apvts.undoManager->undo();
+	processor.undoManager.undo();
+}
+
+void PerformanceView::handleRedo()
+{
+	processor.undoManager.redo();
 }
 
 void PerformanceView::handleSaveActiveStore()

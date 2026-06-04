@@ -23,6 +23,9 @@ public:
     void resized() override;
 
     void userTriedToCloseWindow() override;
+
+    bool keyPressed(const juce::KeyPress& key) override;
+
 private:
     void determineInitialState();
     void setAppropriateSize();

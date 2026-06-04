@@ -21,6 +21,7 @@ KaiCBFaderControlAudioProcessorEditor::KaiCBFaderControlAudioProcessorEditor (Ka
 
 void KaiCBFaderControlAudioProcessorEditor::init()
 {
+	setWantsKeyboardFocus(true);
     addScreens();
     configSetupPageLambdas();
     configPerformanceViewLambdas();
@@ -217,4 +218,51 @@ juce::Point<int> KaiCBFaderControlAudioProcessorEditor::getMaxConstrainedWindowS
     int trueMaxHeight = juce::jmin(WindowSizeValues::maxHeight, maxScreenHeight);
 
     return { trueMaxWidth, trueMaxHeight };
+}
+
+bool KaiCBFaderControlAudioProcessorEditor::keyPressed(const juce::KeyPress& key)
+{
+    if (showSetupPage)
+        return false;
+
+    if (key.getModifiers().isCommandDown())
+    {
+        int code = key.getKeyCode();
+        bool isShiftDown = key.getModifiers().isShiftDown();
+
+        if (code == 'a' || code == 'A')
+        {
+            performanceView.handleSelectAll();
+            return true;
+        }
+        if (code == 'g' || code == 'G')
+        {
+            if (isShiftDown)
+                performanceView.handleRemoveFromGroup();
+            else
+                performanceView.handleGroupSelected();
+
+            return true;
+        }
+        if (code == 's' || code == 'S')
+        {
+            performanceView.handleSaveActiveStore();
+            return true;
+        }
+        if (code == 'z' || code == 'Z')
+        {
+            if (isShiftDown) 
+                performanceView.handleRedo();
+            else 
+                performanceView.handleUndo();
+            return true;
+        }
+        if (code == 'y' || code == 'Y')
+        {
+            performanceView.handleRedo();
+            return true;
+        }
+    }
+
+    return false;
 }
