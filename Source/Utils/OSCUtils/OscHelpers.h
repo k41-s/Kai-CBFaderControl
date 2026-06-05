@@ -16,9 +16,9 @@ namespace OscHelpers
 
     static inline bool hasFloatChanged(const juce::String& paramType, float a, float b)
     {
-        if (paramType == OscConstants::ParamTypes::pan())
-            return panRawChanged(a, b);
-        else
+        //if (paramType == OscConstants::ParamTypes::pan())
+        //    return panRawChanged(a, b);
+		if (paramType == OscConstants::ParamTypes::volume())
             return volumeRawChanged(a, b);
     }
 

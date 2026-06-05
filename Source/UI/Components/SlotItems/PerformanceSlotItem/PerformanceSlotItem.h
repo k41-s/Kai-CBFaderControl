@@ -80,6 +80,8 @@ private:
 	void drawSelectedSlotItem(juce::Graphics& g);
 	void drawSlotItem(juce::Graphics& g);
 
+	bool isEventFromButton(juce::Component* comp);
+
 	// Readonly state drawing functions
 	void drawReadOnlyOverlay(juce::Graphics& g);
 	void drawDarkWashLayer(juce::Graphics& g, const juce::Rectangle<int>& bounds);

@@ -837,17 +837,11 @@ void PerformanceView::handleSlotMouseUp(const juce::MouseEvent& e, PerformanceSl
 
 void PerformanceView::handleBulkToggle(bool isMute, bool newState, PerformanceSlotItem* slotClicked)
 {
-	if (!selectedItems.isSelected(slotClicked->getIndex()))
-	{
-		selectedItems.addToSelection(slotClicked->getIndex());
-	}
+	auto selectedArrCopy = selectedItems.getItemArray();
+	if (selectedArrCopy.isEmpty()) 
+		return;
 
-	auto& selectedArr = selectedItems.getItemArray();
-	if (selectedArr.isEmpty()) return;
-
-	processor.undoManager.beginNewTransaction(isMute ? "Bulk Mute" : "Bulk Solo");
-
-	for (int slotId : selectedArr)
+	for (int slotId : selectedArrCopy)
 	{
 		if (slotId == slotClicked->getIndex())
 			continue;
@@ -855,8 +849,14 @@ void PerformanceView::handleBulkToggle(bool isMute, bool newState, PerformanceSl
 		if (isSlotFullAccess(slotId))
 		{
 			juce::String paramId = isMute ? SlotIDs::mute(slotId) : SlotIDs::solo(slotId);
+			float targetVal = newState ? 1.0f : 0.0f;
 
-			SlotStateHelpers::setParamNormalized(processor.apvts, paramId, newState ? 1.0f : 0.0f);
+			SlotStateHelpers::setParamNormalizedIfChanged(processor.apvts, paramId, targetVal);
+
+			if (!isMute && newState)
+			{
+				SlotStateHelpers::setSlotMuted(processor.apvts, slotId, false);
+			}
 		}
 	}
 }

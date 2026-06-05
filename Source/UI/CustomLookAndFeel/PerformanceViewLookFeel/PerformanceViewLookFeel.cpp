@@ -248,9 +248,9 @@ void PerformanceViewLookFeel::drawRotarySlider(juce::Graphics& g, int x, int y, 
 	auto bounds = juce::Rectangle<float>(x, y, width, height);
 
 	g.setColour(MyColours::rotarySliderBackground);
-	g.fillRoundedRectangle(bounds, 4.0f);
+	g.fillRoundedRectangle(bounds, 6.0f);
 
-	bounds.reduce(7.0f, 3.0f);
+	bounds.reduce(3.0f, 0.0f);
 
 	float tickAreaWidth = juce::jlimit(
 		UISizeConstants::tickAreaMinWidth,
@@ -378,7 +378,7 @@ void PerformanceViewLookFeel::drawOuterRing(juce::Graphics& g, float centreX, fl
 		centreY - radius - 1.0f, 
 		radius * 2.0f + 2.0f, 
 		radius * 2.0f + 2.0f, 
-		3.0f);
+		1.0f);
 
 	g.setColour(juce::Colours::black.withAlpha(0.5f));
 	g.drawEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f, 1.5f);

@@ -230,7 +230,7 @@ namespace SlotStateHelpers
     }
 
     // =========================================================================
-    // APVTS PARAMETER HELPERS (Audio Parameters)
+    // APVTS PARAMETER Getters (Audio Parameters)
     // =========================================================================
 
     static inline float getRawParamValue(const juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId)
@@ -238,18 +238,6 @@ namespace SlotStateHelpers
         if (auto* param = apvts.getRawParameterValue(paramId))
             return param->load();
         return 0.0f;
-    }
-
-    static inline void setParamNormalized(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float normalizedValue)
-    {
-        if (auto* param = apvts.getParameter(paramId))
-            param->setValueNotifyingHost(normalizedValue);
-    }
-
-    static inline void setParamUnnormalized(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float unnormalizedValue)
-    {
-        if (auto* param = apvts.getParameter(paramId))
-            param->setValueNotifyingHost(param->convertTo0to1(unnormalizedValue));
     }
 
     static inline float denormalizeValue(const juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float normalizedValue)
@@ -262,11 +250,6 @@ namespace SlotStateHelpers
     static inline int getActiveStoreId(const juce::AudioProcessorValueTreeState& apvts)
     {
         return juce::roundToInt(getRawParamValue(apvts, PresetTags::ActiveStoreParamId));
-    }
-
-    static inline void setActiveStoreId(juce::AudioProcessorValueTreeState& apvts, int index)
-    {
-        setParamUnnormalized(apvts, PresetTags::ActiveStoreParamId, static_cast<float>(index));
     }
 
     static inline bool isVcaEnabled(const juce::AudioProcessorValueTreeState& apvts, int grpId)
@@ -289,14 +272,64 @@ namespace SlotStateHelpers
         return getRawParamValue(apvts, SlotIDs::soloSafe(slotIdx)) > 0.5f;
     }
 
+    static inline bool isSlotSoloed(const juce::AudioProcessorValueTreeState& apvts, int slotIdx)
+    {
+        return getRawParamValue(apvts, SlotIDs::solo(slotIdx)) > 0.5f;
+    }
+
+    static inline bool isSlotMuted(const juce::AudioProcessorValueTreeState& apvts, int slotIdx)
+    {
+        return getRawParamValue(apvts, SlotIDs::mute(slotIdx)) > 0.5f;
+    }
+
+    // =========================================================================
+    // APVTS PARAMETER Setters (Audio Parameters)
+    // =========================================================================
+
+    static inline void setParamNormalized(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float normalizedValue)
+    {
+        if (auto* param = apvts.getParameter(paramId))
+            param->setValueNotifyingHost(normalizedValue);
+    }
+
+    static inline void setParamNormalizedIfChanged(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float normalizedValue)
+    {
+        if (auto* param = apvts.getParameter(paramId))
+        {
+            if (param->getValue() != normalizedValue)
+                param->setValueNotifyingHost(normalizedValue);
+        }
+    }
+
+    static inline void setParamUnnormalized(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, float unnormalizedValue)
+    {
+        if (auto* param = apvts.getParameter(paramId))
+            param->setValueNotifyingHost(param->convertTo0to1(unnormalizedValue));
+    }
+
+    static inline void setActiveStoreId(juce::AudioProcessorValueTreeState& apvts, int index)
+    {
+        setParamUnnormalized(apvts, PresetTags::ActiveStoreParamId, static_cast<float>(index));
+    }
+
     static inline void setSlotActive(juce::AudioProcessorValueTreeState& apvts, int slotIdx, bool shouldBeActive)
     {
-        setParamNormalized(apvts, SlotIDs::isActive(slotIdx), shouldBeActive ? 1.0f : 0.0f);
+        setParamNormalizedIfChanged(apvts, SlotIDs::isActive(slotIdx), shouldBeActive ? 1.0f : 0.0f);
     }
 
     static inline void setSlotSoloSafe(juce::AudioProcessorValueTreeState& apvts, int slotIdx, bool shouldBeSoloSafe)
     {
-        setParamNormalized(apvts, SlotIDs::soloSafe(slotIdx), shouldBeSoloSafe ? 1.0f : 0.0f);
+        setParamNormalizedIfChanged(apvts, SlotIDs::soloSafe(slotIdx), shouldBeSoloSafe ? 1.0f : 0.0f);
+    }
+
+    static inline void setSlotSoloed(juce::AudioProcessorValueTreeState& apvts, int slotIdx, bool shouldBeSoloed)
+    {
+        setParamNormalizedIfChanged(apvts, SlotIDs::solo(slotIdx), shouldBeSoloed ? 1.0f : 0.0f);
+    }
+
+    static inline void setSlotMuted(juce::AudioProcessorValueTreeState& apvts, int slotIdx, bool shouldBeMuted)
+    {
+        setParamNormalizedIfChanged(apvts, SlotIDs::mute(slotIdx), shouldBeMuted ? 1.0f : 0.0f);
     }
 
     static inline void initSliderFromParam(const juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, juce::Slider& slider)

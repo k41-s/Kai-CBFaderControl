@@ -28,9 +28,9 @@ namespace OscConstants
         static const juce::String colour() { return "col"; }
         static const juce::String volume() { return "v"; }
         static const juce::String mute() { return "m"; }
-        static const juce::String pan() { return "pan"; }
-        static const juce::String solo() { return "solo"; }
         static const juce::String stereo() { return "stereo"; }
+        //static const juce::String pan() { return "pan"; }
+        //static const juce::String solo() { return "solo"; }
     };
 
     struct Parsing
