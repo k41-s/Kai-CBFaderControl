@@ -15,6 +15,18 @@ public:
     int getIndex() const { return index; }
     void setTargetSlotWidth(int width);
 
+    virtual int getSelectionId() const = 0;
+    void setSelected(bool selected);
+    bool getSelected() const { return isSelected; }
+
+    std::function<void(const juce::MouseEvent&, BaseSlotItem*)> onBackgroundMouseDown;
+    std::function<void(const juce::MouseEvent&, BaseSlotItem*)> onBackgroundMouseDrag;
+    std::function<void(const juce::MouseEvent&, BaseSlotItem*)> onBackgroundMouseUp;
+
+    void mouseDown(const juce::MouseEvent& e) override;
+    void mouseDrag(const juce::MouseEvent& e) override;
+    void mouseUp(const juce::MouseEvent& e) override;
+
 protected:
     virtual void updateNameFromValueTree() = 0;
     virtual void setupSlotBounds() = 0;
@@ -35,6 +47,9 @@ protected:
 
     void configBaseGroupLabels(std::function<int()> getGroupIdFunc);
     void updateBaseGroupState(int grpId, bool applyFaderIndicator = false);
+
+    virtual bool isEventFromButton(juce::Component* comp);
+    bool isSelected = false;
 
     virtual juce::String getVolumeParamID() const = 0; // Dynamic Id
 

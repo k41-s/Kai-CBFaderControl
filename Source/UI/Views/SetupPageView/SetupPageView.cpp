@@ -191,6 +191,8 @@ void SetupPageView::configNavBtn()
 	addAndMakeVisible(navigateBtn);
 	navigateBtn.onClick = [this]()
 		{
+			saveNetworkSettings();
+			 
 			if (onNavigateToPerformance)
 				onNavigateToPerformance();
 		};

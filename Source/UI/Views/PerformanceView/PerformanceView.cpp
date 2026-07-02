@@ -43,7 +43,10 @@ void PerformanceView::createFaderSlots()
 	for (int i = 1; i <= PluginConstants::numSlots; ++i)
 	{
 		auto* slot = slots.add(new PerformanceSlotItem(processor, i));
-		setSlotMouseEvents(slot);
+		bindSelectionEvents(slot);
+		slot->onBulkToggleRequest = [this](bool isMute, bool newState, PerformanceSlotItem* s) { 
+			handleBulkToggle(isMute, newState, s);
+		};
 		addAndMakeVisible(slot);
 	}
 }
@@ -53,24 +56,9 @@ void PerformanceView::createVcaFaderSlots()
 	for (int i = 1; i <= PluginConstants::numVcas; ++i)
 	{
 		auto* vca = vcaSlots.add(new VcaSlotItem(processor, i));
+		bindSelectionEvents(vca);
 		addAndMakeVisible(vca);
 	}
-}
-
-void PerformanceView::setSlotMouseEvents(PerformanceSlotItem* slot)
-{
-	slot->onBackgroundMouseDown = [this](const juce::MouseEvent& e, PerformanceSlotItem* s) { 
-			handleSlotMouseDown(e, s); 
-		};
-	slot->onBackgroundMouseDrag = [this](const juce::MouseEvent& e, PerformanceSlotItem* s) { 
-			handleSlotMouseDrag(e, s); 
-		};
-	slot->onBackgroundMouseUp = [this](const juce::MouseEvent& e, PerformanceSlotItem* s) {
-			handleSlotMouseUp(e, s); 
-		};
-	slot->onBulkToggleRequest = [this](bool isMute, bool newState, PerformanceSlotItem* s) {
-			handleBulkToggle(isMute, newState, s);
-		};
 }
 
 void PerformanceView::configSetupButton()
@@ -732,9 +720,10 @@ void PerformanceView::changeListenerCallback(juce::ChangeBroadcaster* source)
 	if (source == &selectedItems)
 	{
 		for (auto* slot : slots)
-		{
-			slot->setSelected(selectedItems.isSelected(slot->getIndex()));
-		}
+			slot->setSelected(selectedItems.isSelected(slot->getSelectionId()));
+
+		for (auto* vca : vcaSlots)
+			vca->setSelected(selectedItems.isSelected(vca->getSelectionId()));
 	}
 	else if (source == &processor.globalSlotRegistry.get())
 		triggerAsyncUpdate();
@@ -745,7 +734,13 @@ void PerformanceView::findLassoItemsInArea(juce::Array<int>& itemsFound, const j
 	for (auto* slot : slots)
 	{
 		if (slot->isVisible() && slot->getBounds().intersects(area))
-			itemsFound.add(slot->getIndex());
+			itemsFound.add(slot->getSelectionId());
+	}
+
+	for (auto* vca : vcaSlots)
+	{
+		if (vca->isVisible() && vca->getBounds().intersects(area))
+			itemsFound.add(vca->getSelectionId());
 	}
 }
 
@@ -794,16 +789,16 @@ void PerformanceView::timerCallback()
 	isSettling = false;
 }
 
-void PerformanceView::handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot)
+void PerformanceView::handleSlotMouseDown(const juce::MouseEvent& e, BaseSlotItem* slot)
 {
 	grabKeyboardFocus();
 
 	if (e.mods.isPopupMenu())
 	{
-		if (!selectedItems.isSelected(slot->getIndex()))
+		if (!selectedItems.isSelected(slot->getSelectionId()))
 		{
 			selectedItems.deselectAll();
-			selectedItems.addToSelection(slot->getIndex());
+			selectedItems.addToSelection(slot->getSelectionId());
 		}
 		showContextMenu();
 		return;
@@ -811,28 +806,35 @@ void PerformanceView::handleSlotMouseDown(const juce::MouseEvent& e, Performance
 
 	if (e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown())
 	{
-		if (selectedItems.isSelected(slot->getIndex()))
-			selectedItems.deselect(slot->getIndex());
+		if (selectedItems.isSelected(slot->getSelectionId()))
+			selectedItems.deselect(slot->getSelectionId());
 		else
-			selectedItems.addToSelection(slot->getIndex());
+			selectedItems.addToSelection(slot->getSelectionId());
 	}
 	else
 	{
 		selectedItems.deselectAll();
-		selectedItems.addToSelection(slot->getIndex());
+		selectedItems.addToSelection(slot->getSelectionId());
 	}
 
 	lasso.beginLasso(e.getEventRelativeTo(this), this);
 }
 
-void PerformanceView::handleSlotMouseDrag(const juce::MouseEvent& e, PerformanceSlotItem* slot)
+void PerformanceView::handleSlotMouseDrag(const juce::MouseEvent& e, BaseSlotItem* slot)
 {
 	lasso.dragLasso(e.getEventRelativeTo(this));
 }
 
-void PerformanceView::handleSlotMouseUp(const juce::MouseEvent& e, PerformanceSlotItem* slot)
+void PerformanceView::handleSlotMouseUp(const juce::MouseEvent& e, BaseSlotItem* slot)
 {
 	lasso.endLasso();
+}
+
+void PerformanceView::bindSelectionEvents(BaseSlotItem* slot)
+{
+	slot->onBackgroundMouseDown = [this](const juce::MouseEvent& e, BaseSlotItem* s) { handleSlotMouseDown(e, s); };
+	slot->onBackgroundMouseDrag = [this](const juce::MouseEvent& e, BaseSlotItem* s) { handleSlotMouseDrag(e, s); };
+	slot->onBackgroundMouseUp = [this](const juce::MouseEvent& e, BaseSlotItem* s) { handleSlotMouseUp(e, s); };
 }
 
 void PerformanceView::handleBulkToggle(bool isMute, bool newState, PerformanceSlotItem* slotClicked)
@@ -909,12 +911,51 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 	if (!readOnlySlots.isEmpty())
 		menu.addSeparator();
 
-	addStereoMenuItems(activeSlots, menu);
-	addGroupMenu(activeSlots, menu);
-	addSoloSafeMenuItem(activeSlots, menu);
+	juce::Array<int> normalSlots;
+	juce::Array<int> vcaSlots;
 
-	if (activeSlots.size() == 1)
-		addSingleSlotGroupOptions(activeSlots, menu);
+	// Parse selected array
+	for (int id : activeSlots)
+	{
+		if (id > PluginConstants::vcaSelectionOffset)
+			vcaSlots.add(id - PluginConstants::vcaSelectionOffset);
+		else
+			normalSlots.add(id);
+	}
+
+	// 2. Adaptive Menu: Single VCA Selected
+	if (vcaSlots.size() == 1 && normalSlots.isEmpty())
+	{
+		addVcaMenuItem(menu, vcaSlots[0]);
+		setupAndAddColourMenu(menu, vcaSlots[0]);
+		return;
+	}
+
+	// 3. Adaptive Menu: Normal Slots Only
+	if (vcaSlots.isEmpty() && normalSlots.size() > 0)
+	{
+		addStereoMenuItems(normalSlots, menu);
+		addGroupMenu(normalSlots, menu);
+		addSoloSafeMenuItem(normalSlots, menu);
+
+		if (normalSlots.size() == 1)
+			addSingleSlotGroupOptions(normalSlots, menu);
+	}
+
+	// 4. Adaptive Menu: Link Masks (Exactly 2 items)
+	if (activeSlots.size() == 2)
+	{
+		addLinkMaskMenu(activeSlots, normalSlots, vcaSlots, menu);
+	}
+
+	// Ensure all of these are where they are meant to be
+	//addStereoMenuItems(activeSlots, menu);
+	//addGroupMenu(activeSlots, menu);
+	//addLinkMaskMenu(activeSlots, menu);
+	//addSoloSafeMenuItem(activeSlots, menu);
+
+	//if (activeSlots.size() == 1)
+	//	addSingleSlotGroupOptions(activeSlots, menu);
 }
 
 void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu) const
@@ -938,6 +979,107 @@ void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, ju
 		if (SlotStateHelpers::isStereoLinked(processor.apvts.state, selectedArr[0]))
 			menu.addItem(2, "Unlink Stereo Pair");
 	}
+}
+
+void PerformanceView::addLinkMaskMenu(const juce::Array<int>& activeSlots, const juce::Array<int>& normalSlots, const juce::Array<int>& vcaSlots, juce::PopupMenu& menu) const
+{
+	// Safety Check 1: Normal + VCA Collision
+	if (normalSlots.size() == 1 && vcaSlots.size() == 1)
+	{
+		int normalId = normalSlots[0];
+		int vcaId = vcaSlots[0];
+		if (SlotStateHelpers::getGroupId(processor.apvts.state, normalId) == vcaId)
+			return; // Abort: The fader is already controlled by this VCA
+	}
+
+	// Safety Check 2: Normal + Normal (Same Group)
+	if (normalSlots.size() == 2)
+	{
+		int group1 = SlotStateHelpers::getGroupId(processor.apvts.state, normalSlots[0]);
+		int group2 = SlotStateHelpers::getGroupId(processor.apvts.state, normalSlots[1]);
+		if (SlotStateHelpers::isValidGroup(group1) && group1 == group2)
+			return; // Abort: They are already ganged via a VCA/Group
+	}
+
+	menu.addSeparator();
+	juce::PopupMenu linkMaskMenu;
+	setupLinkMaskMenu(activeSlots, linkMaskMenu);
+	menu.addSubMenu("Link Masks", linkMaskMenu);
+}
+
+void PerformanceView::setupLinkMaskMenu(const juce::Array<int>& activeSlots, juce::PopupMenu& linkMaskMenu) const
+{
+	// Determine visual toggle ticks based on the first selected slot's state tree properties
+	int slotIdx = activeSlots[0];
+	bool isInverse = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, slotIdx);
+	bool linkVolume = SlotStateHelpers::isLinkMaskVolume(processor.apvts.state, slotIdx);
+	bool linkMute = SlotStateHelpers::isLinkMaskMute(processor.apvts.state, slotIdx);
+	bool linkSolo = SlotStateHelpers::isLinkMaskSolo(processor.apvts.state, slotIdx);
+
+	linkMaskMenu.addItem(LinkMaskPolarityParallel, "Parallel Link (1:1)", true, !isInverse);
+	linkMaskMenu.addItem(LinkMaskPolarityInverse, "Inverse Link (Mirror)", true, isInverse);
+	linkMaskMenu.addSeparator();
+	linkMaskMenu.addItem(LinkMaskVolume, "Link Volume", true, linkVolume);
+	linkMaskMenu.addItem(LinkMaskMute, "Link Mute", true, linkMute);
+	linkMaskMenu.addItem(LinkMaskSolo, "Link Solo", true, linkSolo);
+}
+
+void PerformanceView::handleLinkMaskResult(int result, const juce::Array<int>& activeSlots)
+{
+	processor.undoManager.beginNewTransaction("Update Link Masks");
+
+	int slotA = activeSlots[0];
+	int slotB = activeSlots[1];
+
+	auto& state = processor.apvts.state;
+
+	// Decode true IDs and types
+	bool isAVca = slotA > PluginConstants::vcaSelectionOffset;
+	int trueIdA = isAVca ? slotA - PluginConstants::vcaSelectionOffset : slotA;
+
+	bool isBVca = slotB > PluginConstants::vcaSelectionOffset;
+	int trueIdB = isBVca ? slotB - PluginConstants::vcaSelectionOffset : slotB;
+
+	SlotStateHelpers::setCustomLinkedId(state, slotA, trueIdB, &processor.undoManager);
+	SlotStateHelpers::setCustomLinkedIsVca(state, slotA, isBVca, &processor.undoManager);
+
+	SlotStateHelpers::setCustomLinkedId(state, slotB, trueIdA, &processor.undoManager);
+	SlotStateHelpers::setCustomLinkedIsVca(state, slotB, isAVca, &processor.undoManager);
+
+	// Apply the selected mask to both slots so the tree remains consistent
+	for (int idx : activeSlots)
+	{
+		switch (result)
+		{
+			case LinkMaskPolarityParallel:
+				SlotStateHelpers::setLinkPolarityInverse(state, idx, false, &processor.undoManager);
+				break;
+			case LinkMaskPolarityInverse:
+				SlotStateHelpers::setLinkPolarityInverse(state, idx, true, &processor.undoManager);
+				break;
+			case LinkMaskVolume:
+			{
+				bool current = SlotStateHelpers::isLinkMaskVolume(state, idx);
+				SlotStateHelpers::setLinkMaskVolume(state, idx, !current, &processor.undoManager);
+				break;
+			}
+			case LinkMaskMute:
+			{
+				bool current = SlotStateHelpers::isLinkMaskMute(state, idx);
+				SlotStateHelpers::setLinkMaskMute(state, idx, !current, &processor.undoManager);
+				break;
+			}
+			case LinkMaskSolo:
+			{
+				bool current = SlotStateHelpers::isLinkMaskSolo(state, idx);
+				SlotStateHelpers::setLinkMaskSolo(state, idx, !current, &processor.undoManager);
+				break;
+			}
+			default:
+				break;
+		}
+	}
+	triggerAsyncUpdate();
 }
 
 void PerformanceView::addGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& menu)
@@ -1046,37 +1188,52 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 		return;
 	}
 
+	if (result >= LinkMaskBase && result <= LinkMaskSolo)
+	{
+		handleLinkMaskResult(result, activeSlots);
+		return;
+	}
+
 	switch (result) {
-	case StereoLink:
-		if (activeSlots.size() == 2) doStereoLink(activeSlots[0], activeSlots[1]);
-		break;
+		case StereoLink:
+			if (activeSlots.size() == 2) doStereoLink(activeSlots[0], activeSlots[1]);
+			break;
 
-	case StereoUnlink:
-		if (activeSlots.size() == 1) doStereoUnlink(activeSlots[0]);
-		break;
+		case StereoUnlink:
+			if (activeSlots.size() == 1) doStereoUnlink(activeSlots[0]);
+			break;
 
-	case RemoveGroup:
-		for (int idx : activeSlots) setSlotStandardGroup(idx, 0, GroupRole::Member);
-		break;
+		case RemoveGroup:
+			for (int idx : activeSlots) setSlotStandardGroup(idx, 0, GroupRole::Member);
+			break;
 
-	case PromoteLeader:
-		if (activeSlots.size() == 1) promoteToGroupLeader(activeSlots[0]);
-		break;
+		case PromoteLeader:
+			if (activeSlots.size() == 1) promoteToGroupLeader(activeSlots[0]);
+			break;
 
-	case DemoteMember:
-		if (activeSlots.size() == 1) demoteToStandardMember(activeSlots[0]);
-		break;
+		case DemoteMember:
+			if (activeSlots.size() == 1) demoteToStandardMember(activeSlots[0]);
+			break;
 
-	case ToggleVCA:
-		if (activeSlots.size() == 1) toggleVcaMaster(activeSlots[0]);
-		break;
+		case ToggleVCA:
+			if (activeSlots.size() == 1)
+			{
+				int id = activeSlots[0];
+				int grpId = (id > PluginConstants::vcaSelectionOffset) ?
+					(id - PluginConstants::vcaSelectionOffset) :
+					SlotStateHelpers::getGroupId(processor.apvts.state, id);
 
-	case ToggleSoloSafe:
-		toggleSoloSafe(activeSlots);
-		break;
+				if (SlotStateHelpers::isValidGroup(grpId))
+					toggleVcaMaster(grpId);
+			}
+			break;
 
-	default:
-		break;
+		case ToggleSoloSafe:
+			toggleSoloSafe(activeSlots);
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -1132,7 +1289,11 @@ void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr
 	if (selectedArr.size() == 1)
 	{
 		int colourIdx = result - AssignColourBase;
-		int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, selectedArr[0]);
+		int id = selectedArr[0];
+
+		int grpId = (id > PluginConstants::vcaSelectionOffset) ?
+			(id - PluginConstants::vcaSelectionOffset) :
+			SlotStateHelpers::getGroupId(processor.apvts.state, id);
 
 		if (SlotStateHelpers::isValidGroup(grpId))
 		{
@@ -1240,11 +1401,9 @@ void PerformanceView::demoteToStandardMember(int slotIdx)
 	setSlotStandardGroup(slotIdx, grpId, GroupRole::Member);
 }
 
-void PerformanceView::toggleVcaMaster(int slotIdx)
+void PerformanceView::toggleVcaMaster(int grpId)
 {
 	processor.undoManager.beginNewTransaction("Toggle VCA Master");
-	int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotIdx);
-
 	bool currentlyEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, grpId);
 	SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaEnabled(grpId), currentlyEnabled ? 0.0f : 1.0f);
 }

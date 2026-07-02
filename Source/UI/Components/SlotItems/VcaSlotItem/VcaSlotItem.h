@@ -15,12 +15,16 @@ public:
 	void paint(juce::Graphics& g) override;
 	void resized() override;
 
+	int getSelectionId() const override { return index + PluginConstants::vcaSelectionOffset; }
+
 protected:
 	void updateNameFromValueTree() override;
 
 	void refreshAllVisuals() override;
 
 	void setupSlotBounds() override;
+
+	bool isEventFromButton(juce::Component* comp) override;
 
 private:
 	void init();
@@ -46,11 +50,6 @@ private:
 	void setupExpandButton(juce::Rectangle<int>& topArea);
 
 	bool hasAssignedMembers() const;
-
-	void mouseDown(const juce::MouseEvent& e) override;
-
-	void showContextMenu();
-	void handleMenuResult(int result);
 
 	juce::String getVolumeParamID() const override { return SlotIDs::vcaVolume(index); }
 

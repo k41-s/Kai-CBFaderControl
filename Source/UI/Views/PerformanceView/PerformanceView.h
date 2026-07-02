@@ -72,7 +72,6 @@ private:
 	void configComponents();
 	void createVcaFaderSlots();
 	void createFaderSlots();
-	void setSlotMouseEvents(PerformanceSlotItem* slot);
 	void configSetupButton();
 
 	// Presets Helpers
@@ -124,9 +123,10 @@ private:
 	void configImages();
 
 	// Mouse event handlers
-	void handleSlotMouseDown(const juce::MouseEvent& e, PerformanceSlotItem* slot);
-	void handleSlotMouseDrag(const juce::MouseEvent& e, PerformanceSlotItem* slot);
-	void handleSlotMouseUp(const juce::MouseEvent& e, PerformanceSlotItem* slot);
+	void handleSlotMouseDown(const juce::MouseEvent& e, BaseSlotItem* slot);
+	void handleSlotMouseDrag(const juce::MouseEvent& e, BaseSlotItem* slot);
+	void handleSlotMouseUp(const juce::MouseEvent& e, BaseSlotItem* slot);
+	void bindSelectionEvents(BaseSlotItem* slot);
 	void handleBulkToggle(bool isMute, bool newState, PerformanceSlotItem* slotClicked);
 
 	// Context menu functions
@@ -138,6 +138,10 @@ private:
 	void addClaimSlotMenuItem(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu);
 	void addStandardMenuOptions(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu, juce::Array<int>& activeSlots);
 	void addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu) const;
+
+	void addLinkMaskMenu(const juce::Array<int>& activeSlots, const juce::Array<int>& normalSlots, const juce::Array<int>& vcaSlots, juce::PopupMenu& menu) const;
+	void setupLinkMaskMenu(const juce::Array<int>& activeSlots, juce::PopupMenu& linkMaskMenu) const;
+	void handleLinkMaskResult(int result, const juce::Array<int>& activeSlots);
 
 	void addGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 	void setupGroupMenu(const juce::Array<int>& selectedArr, juce::PopupMenu& groupMenu) const;
@@ -175,7 +179,7 @@ private:
 	void promoteToGroupLeader(int slotIdx);
 	void demoteExistingGroupLeaders(int grpId);
 	void demoteToStandardMember(int slotIdx);
-	void toggleVcaMaster(int slotIdx);
+	void toggleVcaMaster(int grpId);
 	void reactivateGroupMembers(int grpId);
 
 	void toggleSoloSafe(const juce::Array<int>& activeSlots);

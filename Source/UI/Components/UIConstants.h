@@ -139,6 +139,8 @@ namespace PluginConstants
     static constexpr float infCutoff = -95.75f;
     static constexpr float fineRes = 0.25f;
     static constexpr float coarseRes = 1.0f;
+
+    static constexpr int vcaSelectionOffset = 100;
     
 	static inline const int maxSlotNameLength = 5;
 	static inline const int maxGroupNameLength = maxSlotNameLength; // for now unless they need to be different

@@ -369,6 +369,7 @@ void KaiCBFaderControlAudioProcessor::setStateInformation(const void* data, int 
         }
     }
 
+    initialiseNetworkingDefaults();
     claimActiveSlots();
     isRestoringState = false;
 }

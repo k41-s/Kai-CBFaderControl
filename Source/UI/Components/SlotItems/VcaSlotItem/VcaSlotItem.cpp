@@ -134,6 +134,15 @@ void VcaSlotItem::paint(juce::Graphics& g)
 
     g.setColour(groupColour.withAlpha(0.6f));
     g.drawRect(getLocalBounds(), 1);
+
+    if (isSelected)
+    {
+        auto bounds = getLocalBounds().toFloat();
+        g.setColour(juce::Colours::white.withAlpha(0.15f));
+        g.fillRect(bounds);
+        g.setColour(juce::Colours::white.withAlpha(0.6f));
+        g.drawRect(bounds, 2.0f);
+    }
 }
 
 void VcaSlotItem::resized()
@@ -216,58 +225,13 @@ bool VcaSlotItem::hasAssignedMembers() const
     return false;
 }
 
-void VcaSlotItem::mouseDown(const juce::MouseEvent& e)
+bool VcaSlotItem::isEventFromButton(juce::Component* comp)
 {
-    if (e.mods.isPopupMenu())
-    {
-        showContextMenu();
-    }
-    else
-    {
-        BaseSlotItem::mouseDown(e);
-    }
-}
+    if (BaseSlotItem::isEventFromButton(comp)) 
+        return true;
 
-void VcaSlotItem::showContextMenu()
-{
-    juce::PopupMenu menu;
+    if (comp == &expandButton || expandButton.isParentOf(comp)) 
+        return true;
 
-    menu.addItem(ContextMenuID::ToggleVCA, "Disable VCA Master");
-
-    menu.addSeparator();
-
-    juce::PopupMenu colourMenu;
-    int currentColourIdx = SlotStateHelpers::getGroupColour(processor.apvts.state, index);
-
-    for (int i = 0; i < GroupColours::numColours; ++i)
-    {
-        colourMenu.addItem(ContextMenuID::AssignColourBase + i,
-            GroupColours::names[i],
-            true,
-            currentColourIdx == i);
-    }
-    menu.addSubMenu("Group Colour", colourMenu);
-
-    menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(getParentComponent()),
-        [this](int result)
-        {
-            handleMenuResult(result);
-        });
-}
-
-void VcaSlotItem::handleMenuResult(int result)
-{
-    if (result == 0) return;
-
-    if (result == ContextMenuID::ToggleVCA)
-    {
-        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::isVcaExpanded(index), 1.0f);
-        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaEnabled(index), 0.0f);
-    }
-    else if (result >= ContextMenuID::AssignColourBase &&
-        result < ContextMenuID::AssignColourBase + GroupColours::numColours)
-    {
-        int colourIdx = result - ContextMenuID::AssignColourBase;
-        SlotStateHelpers::setGroupColour(processor.apvts.state, index, colourIdx);
-    }
+    return false;
 }

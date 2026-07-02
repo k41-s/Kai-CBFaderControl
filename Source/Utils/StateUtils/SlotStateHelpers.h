@@ -144,6 +144,32 @@ namespace SlotStateHelpers
         return getBoolProp(state, SlotIDs::isConnected().toString(), false);
     }
 
+    static inline bool isLinkPolarityInverse(const juce::ValueTree& state, int slotIdx) {
+        return getBoolProp(state, SlotIDs::linkPolarityInverse(slotIdx), false);
+    }
+
+    static inline bool isLinkMaskVolume(const juce::ValueTree& state, int slotIdx) {
+        return getBoolProp(state, SlotIDs::linkMaskVolume(slotIdx), true);
+    }
+
+    static inline bool isLinkMaskMute(const juce::ValueTree& state, int slotIdx) {
+        return getBoolProp(state, SlotIDs::linkMaskMute(slotIdx), true);
+    }
+
+    static inline bool isLinkMaskSolo(const juce::ValueTree& state, int slotIdx) {
+        return getBoolProp(state, SlotIDs::linkMaskSolo(slotIdx), true);
+    }
+
+    static inline int getCustomLinkedId(const juce::ValueTree& state, int slotIdx)
+    {
+        return getIntProp(state, SlotIDs::customLinkedId(slotIdx), 0);
+    }
+
+    static inline bool getCustomLinkedIsVca(const juce::ValueTree& state, int slotIdx)
+    {
+        return getBoolProp(state, SlotIDs::customLinkedIsVca(slotIdx), false);
+    }
+
     // =========================================================================
     // SEMANTIC DOMAIN SETTERS (Slot Logic)
     // =========================================================================
@@ -227,6 +253,32 @@ namespace SlotStateHelpers
     static inline void setPluginConnected(juce::ValueTree& state, bool isConnected, juce::UndoManager* undoManager = nullptr)
     {
         setBoolProp(state, SlotIDs::isConnected().toString(), isConnected, undoManager);
+    }
+
+    static inline void setLinkPolarityInverse(juce::ValueTree& state, int slotIdx, bool isInverse, juce::UndoManager* undoManager = nullptr) {
+        setBoolProp(state, SlotIDs::linkPolarityInverse(slotIdx), isInverse, undoManager);
+    }
+
+    static inline void setLinkMaskVolume(juce::ValueTree& state, int slotIdx, bool isLinked, juce::UndoManager* undoManager = nullptr) {
+        setBoolProp(state, SlotIDs::linkMaskVolume(slotIdx), isLinked, undoManager);
+    }
+
+    static inline void setLinkMaskMute(juce::ValueTree& state, int slotIdx, bool isLinked, juce::UndoManager* undoManager = nullptr) {
+        setBoolProp(state, SlotIDs::linkMaskMute(slotIdx), isLinked, undoManager);
+    }
+
+    static inline void setLinkMaskSolo(juce::ValueTree& state, int slotIdx, bool isLinked, juce::UndoManager* undoManager = nullptr) {
+        setBoolProp(state, SlotIDs::linkMaskSolo(slotIdx), isLinked, undoManager);
+    }
+
+    static inline void setCustomLinkedId(juce::ValueTree& state, int slotIdx, int linkedIdx, juce::UndoManager* undoManager = nullptr)
+    {
+        setIntProp(state, SlotIDs::customLinkedId(slotIdx), linkedIdx, undoManager);
+    }
+
+    static inline void setCustomLinkedIsVca(juce::ValueTree& state, int slotIdx, bool isVca, juce::UndoManager* undoManager = nullptr)
+    {
+        setBoolProp(state, SlotIDs::customLinkedIsVca(slotIdx), isVca, undoManager);
     }
 
     // =========================================================================

@@ -8,5 +8,11 @@ enum ContextMenuID {
     DemoteMember = 51,
     ToggleVCA = 60,
     ToggleSoloSafe = 70,
-    AssignColourBase = 100
+    AssignColourBase = 100,
+    LinkMaskBase = 200,
+    LinkMaskPolarityParallel = 201,
+    LinkMaskPolarityInverse = 202,
+    LinkMaskVolume = 203,
+    LinkMaskMute = 204,
+    LinkMaskSolo = 205
 };

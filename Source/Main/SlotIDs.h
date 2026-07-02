@@ -37,6 +37,15 @@ namespace SlotIdStringPrefixes
 
     // Presets
     static const juce::String slotOrder = "slotOrder_";
+
+    // Link Mask
+	static const juce::String linkPolarityInverse = "linkPolarityInverse_";
+	static const juce::String linkMaskVolume = "linkMaskVolume_";
+	static const juce::String linkMaskMute = "linkMaskMute_";
+	static const juce::String linkMaskSolo = "linkMaskSolo_";
+
+    static const juce::String customLinkedId = "customLinkedId_";
+    static const juce::String customLinkedIsVca = "customLinkedIsVca_";
 }
 
 struct SlotIDs
@@ -70,6 +79,14 @@ struct SlotIDs
     static juce::Identifier incomingPort() { return "incomingPort"; }
     static juce::Identifier outgoingPort() { return "outgoingPort"; }
     static juce::Identifier isConnected() { return "isConnected"; }
+
+    static inline juce::String linkPolarityInverse(int slotIdx) { return SlotIdStringPrefixes::linkPolarityInverse + juce::String(slotIdx); }
+    static inline juce::String linkMaskVolume(int slotIdx) { return SlotIdStringPrefixes::linkMaskVolume + juce::String(slotIdx); }
+    static inline juce::String linkMaskMute(int slotIdx) { return SlotIdStringPrefixes::linkMaskMute + juce::String(slotIdx); }
+    static inline juce::String linkMaskSolo(int slotIdx) { return SlotIdStringPrefixes::linkMaskSolo + juce::String(slotIdx); }
+    
+    static juce::String customLinkedId(int i) { return SlotIdStringPrefixes::customLinkedId + juce::String(i); }
+    static juce::String customLinkedIsVca(int i) { return SlotIdStringPrefixes::customLinkedIsVca + juce::String(i); }
 };
 
 namespace ParamSlotNameStringPrefixes

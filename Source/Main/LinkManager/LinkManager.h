@@ -17,29 +17,35 @@ private:
 
     void addRegularSlotListeners();
     void addVcaMasterListeners();
-
     void removeRegularSlotListeners();
     void removeVcaMasterListeners();
-
     void handleProcessorRestoringState(const juce::String& parameterID, float newValue);
+
+	// Parameter Handlers
     void handleVcaVolumeParameterChanged(const juce::String& parameterID, float newValue);
-    void applyDeltaToGroupFromVca(int grpIdx, float delta);
-
     void handleVcaMuteParameterChanged(const juce::String& parameterID, float newValue);
-    void syncGroupMutesWithVca(int vcaIdx, float newValue);
-    
     void handleVolumeParameterChanged(const juce::String& parameterID, float newValue);
-    void applyDeltaToGroupMembers(int slotIdx, int grpId, float delta);
-    
     void handleMuteParameterChanged(const juce::String& parameterID, float newValue);
-    void syncMutesWithinGroup(int slotIdx, int grpId, float newValue);
+    void handleSoloParameterChanged(const juce::String& parameterID, float newValue);
 
+	// Group Propagation Logic
+    void applyDeltaToGroupFromVca(int grpIdx, float delta);
+    void syncGroupMutesWithVca(int vcaIdx, float newValue);
+    void applyDeltaToGroupMembers(int slotIdx, int grpId, float delta);
+    void syncMutesWithinGroup(int slotIdx, int grpId, float newValue);
+    void applyGroupVolumeDeltaToSlot(int slotIdx, float delta);
+
+    // SIP Logic
     void updateSipState();
+    void applyOrReleaseSIPMutes(bool anySoloActive);
     void handleNotCurrentlyMuted(bool isCurrentlyMuted, int i);
     void handleIsSipMuted(bool isSipMuted, int i);
     void handleSIP(int i, bool mute);
 
-    void applyVolumeDeltaToSlot(int slotIdx, float delta);
+    // Custom Link Propagation Logic
+    void propagateCustomLinkVolume(int sourceTrueId, bool isSourceVca, float delta);
+    void propagateCustomLinkMute(int sourceTrueId, bool isSourceVca, float newValue);
+    void propagateCustomLinkSolo(int sourceTrueId, bool isSourceVca, float newValue);
 
     // --- Array Wrappers ---
     float getLastVolume(int slotId) const { return lastVolume[slotId - 1]; }
@@ -57,7 +63,9 @@ private:
     std::array<float, PluginConstants::numSlots> unclampedVolume;
     std::array<float, PluginConstants::numVcas> lastVcaVolume;
 
-    std::atomic<bool> isPropagating{ false };
+    // Separate Atomic Locks
+    std::atomic<bool> isPropagatingGroup{ false };
+    std::atomic<bool> isPropagatingCustomLink{ false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LinkManager)
 };

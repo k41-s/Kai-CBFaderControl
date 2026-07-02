@@ -160,6 +160,58 @@ void BaseSlotItem::setTargetSlotWidth(int width)
     }
 }
 
+void BaseSlotItem::setSelected(bool selected)
+{
+    if (isSelected != selected)
+    {
+        isSelected = selected;
+        repaint();
+    }
+}
+
+bool BaseSlotItem::isEventFromButton(juce::Component* comp)
+{
+    if (comp == nullptr) 
+        return false;
+    if (comp == &muteButton || muteButton.isParentOf(comp)) 
+        return true;
+    return false;
+}
+
+void BaseSlotItem::mouseDown(const juce::MouseEvent& e)
+{
+    if (isEventFromButton(e.originalComponent)) return;
+    if (e.originalComponent == this || 
+        e.mods.isPopupMenu() || e.mods.isCommandDown() || 
+        e.mods.isCtrlDown() || e.mods.isShiftDown())
+    {
+        if (onBackgroundMouseDown)
+            onBackgroundMouseDown(e.getEventRelativeTo(this), this);
+    }
+}
+
+void BaseSlotItem::mouseDrag(const juce::MouseEvent& e)
+{
+    if (isEventFromButton(e.originalComponent)) return;
+    if (e.originalComponent == this || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown())
+    {
+        if (onBackgroundMouseDrag)
+            onBackgroundMouseDrag(e.getEventRelativeTo(this), this);
+    }
+}
+
+void BaseSlotItem::mouseUp(const juce::MouseEvent& e)
+{
+    if (isEventFromButton(e.originalComponent)) return;
+    if (e.originalComponent == this || 
+        e.mods.isPopupMenu() || e.mods.isCommandDown() ||
+        e.mods.isCtrlDown() || e.mods.isShiftDown())
+    {
+        if (onBackgroundMouseUp)
+            onBackgroundMouseUp(e.getEventRelativeTo(this), this);
+    }
+}
+
 void BaseSlotItem::configBaseGroupLabels(std::function<int()> getGroupIdFunc)
 {
     addAndMakeVisible(groupLabel);

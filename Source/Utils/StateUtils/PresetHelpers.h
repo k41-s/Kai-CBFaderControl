@@ -59,6 +59,8 @@ private:
             else if (scope.routing && (propStr.startsWith(SlotIdStringPrefixes::group) ||
                 propStr.startsWith(SlotIdStringPrefixes::isStereo) ||
                 propStr.startsWith(SlotIdStringPrefixes::linkedSlotId) ||
+                propStr.startsWith(SlotIdStringPrefixes::customLinkedId) ||
+                propStr.startsWith(SlotIdStringPrefixes::customLinkedIsVca) ||
                 propStr.startsWith(SlotIdStringPrefixes::slotOrder)))
             {
                 apply = true;

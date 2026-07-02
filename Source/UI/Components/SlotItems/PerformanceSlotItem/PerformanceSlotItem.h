@@ -17,9 +17,6 @@ public:
 	void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 
 	void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
-	void mouseDown(const juce::MouseEvent& e) override;
-	void mouseDrag(const juce::MouseEvent& e) override;
-	void mouseUp(const juce::MouseEvent& e) override;
 
 	void parameterChanged(const juce::String& parameterID, float newValue) override;
 
@@ -28,13 +25,10 @@ public:
 	void paintOverChildren(juce::Graphics& g) override;
 	void drawSoloSafeIndicator(juce::Graphics& g);
 
-	void setSelected(bool selected);
-	bool getSelected() const { return isSelected; }
 	void setMode(SlotMode mode);
 
-	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDown;
-	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseDrag;
-	std::function<void(const juce::MouseEvent&, PerformanceSlotItem*)> onBackgroundMouseUp;
+	int getSelectionId() const override { return index; }
+
 	std::function<void(bool isMute, bool newState, PerformanceSlotItem*)> onBulkToggleRequest;
 
 protected:
@@ -44,6 +38,8 @@ protected:
 	juce::String getVolumeParamID() const override { return SlotIDs::volume(index); }
 
 	void refreshAllVisuals() override;
+
+	bool isEventFromButton(juce::Component* comp) override;
 
 private:
 	void init(int slotIndex);
@@ -80,8 +76,6 @@ private:
 	void drawSelectedSlotItem(juce::Graphics& g);
 	void drawSlotItem(juce::Graphics& g);
 
-	bool isEventFromButton(juce::Component* comp);
-
 	// Readonly state drawing functions
 	void drawReadOnlyOverlay(juce::Graphics& g);
 	void drawDarkWashLayer(juce::Graphics& g, const juce::Rectangle<int>& bounds);
@@ -103,7 +97,6 @@ private:
 
 	SlotMode currentMode = SlotMode::Disabled;
 
-	bool isSelected = false;
 	bool isStereoMain = false;
 	bool isStereoLinked = false;
 	bool isXpStereo = false;

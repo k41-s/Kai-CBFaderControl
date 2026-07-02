@@ -304,60 +304,12 @@ void PerformanceSlotItem::mouseWheelMove(const juce::MouseEvent& event, const ju
 
 bool PerformanceSlotItem::isEventFromButton(juce::Component* comp)
 {
-    if (comp == nullptr) 
-        return false;
-
-    if (comp == &muteButton || muteButton.isParentOf(comp)) 
+    if (BaseSlotItem::isEventFromButton(comp)) 
         return true;
-    if (comp == &soloButton || soloButton.isParentOf(comp)) 
+    if (comp == &soloButton || soloButton.isParentOf(comp))
         return true;
 
     return false;
-}
-
-void PerformanceSlotItem::mouseDown(const juce::MouseEvent& e)
-{
-    if (isEventFromButton(e.originalComponent))
-        return;
-
-    if (e.originalComponent == this || e.mods.isPopupMenu() || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown())
-    {
-        if (onBackgroundMouseDown)
-            onBackgroundMouseDown(e.getEventRelativeTo(this), this);
-    }
-}
-
-void PerformanceSlotItem::mouseDrag(const juce::MouseEvent& e)
-{
-    if (isEventFromButton(e.originalComponent))
-        return;
-
-    if (e.originalComponent == this || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown())
-    {
-        if (onBackgroundMouseDrag)
-            onBackgroundMouseDrag(e.getEventRelativeTo(this), this);
-    }
-}
-
-void PerformanceSlotItem::mouseUp(const juce::MouseEvent& e)
-{
-    if (isEventFromButton(e.originalComponent))
-        return;
-
-    if (e.originalComponent == this || e.mods.isPopupMenu() || e.mods.isCommandDown() || e.mods.isCtrlDown() || e.mods.isShiftDown())
-    {
-        if (onBackgroundMouseUp)
-            onBackgroundMouseUp(e.getEventRelativeTo(this), this);
-    }
-}
-
-void PerformanceSlotItem::setSelected(bool selected)
-{
-    if (isSelected != selected)
-    {
-        isSelected = selected;
-        repaint();
-    }
 }
 
 PerformanceSlotItem::~PerformanceSlotItem()
