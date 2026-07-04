@@ -22,6 +22,7 @@ void LinkManager::addRegularSlotListeners()
         processor.apvts.addParameterListener(SlotIDs::mute(i), this);
         processor.apvts.addParameterListener(SlotIDs::solo(i), this);
         processor.apvts.addParameterListener(SlotIDs::soloSafe(i), this);
+        processor.apvts.addParameterListener(SlotIDs::pan(i), this);
 
         float initialVol = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::volume(i));
         setLastVolume(i, initialVol);
@@ -54,6 +55,7 @@ void LinkManager::removeRegularSlotListeners()
         processor.apvts.removeParameterListener(SlotIDs::mute(i), this);
         processor.apvts.removeParameterListener(SlotIDs::solo(i), this);
         processor.apvts.removeParameterListener(SlotIDs::soloSafe(i), this);
+        processor.apvts.removeParameterListener(SlotIDs::pan(i), this);
     }
 }
 
@@ -87,6 +89,9 @@ void LinkManager::parameterChanged(const juce::String& parameterID, float newVal
 
     else if (parameterID.startsWith(SlotIdStringPrefixes::mute))
         handleMuteParameterChanged(parameterID, newValue);
+
+    else if (parameterID.startsWith(SlotIdStringPrefixes::pan))
+        handlePanParameterChanged(parameterID, newValue);
 
     else if (parameterID.startsWith(SlotIdStringPrefixes::solo))
         handleSoloParameterChanged(parameterID, newValue);
@@ -158,6 +163,13 @@ void LinkManager::handleSoloParameterChanged(const juce::String& parameterID, fl
 
     if (!isPropagatingGroup)
         updateSipState();
+}
+
+void LinkManager::handlePanParameterChanged(const juce::String& parameterID, float newValue)
+{
+    int slotIdx = SlotStateHelpers::getIndexFromParamId(parameterID, SlotIdStringPrefixes::pan);
+    if (!isPropagatingCustomLink)
+        propagateCustomLinkPan(slotIdx, false, newValue);
 }
 
 void LinkManager::handleVcaVolumeParameterChanged(const juce::String& parameterID, float rawValue)
@@ -343,7 +355,6 @@ void LinkManager::propagateCustomLinkVolume(int sourceTrueId, bool isSourceVca, 
         : delta;
     bool isTargetVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, sourceTreeId);
 
-    // Apply the Custom Link Lock before pushing APVTS changes
     isPropagatingCustomLink = true;
 
     if (isTargetVca)
@@ -401,11 +412,37 @@ void LinkManager::propagateCustomLinkSolo(int sourceTrueId, bool isSourceVca, fl
 
     bool isTargetVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, sourceTreeId);
 
-    // VCAs do not have solo parameters, so we only propagate to standard slots
     if (!isTargetVca)
     {
         isPropagatingCustomLink = true;
         SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::solo(targetId), newValue);
+        isPropagatingCustomLink = false;
+    }
+}
+
+void LinkManager::propagateCustomLinkPan(int sourceTrueId, bool isSourceVca, float newValue)
+{
+    int sourceTreeId = isSourceVca
+        ? sourceTrueId + PluginConstants::vcaSelectionOffset
+        : sourceTrueId;
+
+    int targetId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, sourceTreeId);
+    if (targetId == 0 || !SlotStateHelpers::isLinkMaskPan(processor.apvts.state, sourceTreeId))
+        return;
+
+    bool isTargetVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, sourceTreeId);
+
+    if (!isTargetVca)
+    {
+        isPropagatingCustomLink = true;
+
+        float valToApply = newValue;
+        if (SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, sourceTreeId))
+        {
+            valToApply = -newValue;
+        }
+
+        SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::pan(targetId), valToApply);
         isPropagatingCustomLink = false;
     }
 }

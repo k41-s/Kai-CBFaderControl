@@ -43,6 +43,7 @@ namespace SlotIdStringPrefixes
 	static const juce::String linkMaskVolume = "linkMaskVolume_";
 	static const juce::String linkMaskMute = "linkMaskMute_";
 	static const juce::String linkMaskSolo = "linkMaskSolo_";
+	static const juce::String linkMaskPan = "linkMaskPan_";
 
     static const juce::String customLinkedId = "customLinkedId_";
     static const juce::String customLinkedIsVca = "customLinkedIsVca_";
@@ -84,6 +85,7 @@ struct SlotIDs
     static inline juce::String linkMaskVolume(int slotIdx) { return SlotIdStringPrefixes::linkMaskVolume + juce::String(slotIdx); }
     static inline juce::String linkMaskMute(int slotIdx) { return SlotIdStringPrefixes::linkMaskMute + juce::String(slotIdx); }
     static inline juce::String linkMaskSolo(int slotIdx) { return SlotIdStringPrefixes::linkMaskSolo + juce::String(slotIdx); }
+    static inline juce::String linkMaskPan(int slotIdx) { return SlotIdStringPrefixes::linkMaskPan + juce::String(slotIdx); }
     
     static juce::String customLinkedId(int i) { return SlotIdStringPrefixes::customLinkedId + juce::String(i); }
     static juce::String customLinkedIsVca(int i) { return SlotIdStringPrefixes::customLinkedIsVca + juce::String(i); }

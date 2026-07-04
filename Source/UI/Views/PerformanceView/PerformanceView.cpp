@@ -890,7 +890,7 @@ void PerformanceView::sortSelectedSlots(const juce::Array<int>& selectedArr, juc
 {
 	for (int idx : selectedArr)
 	{
-		if (isSlotFullAccess(idx))
+		if (idx > PluginConstants::vcaSelectionOffset || isSlotFullAccess(idx))
 			activeSlots.add(idx);
 		else
 			readOnlySlots.add(idx);
@@ -942,10 +942,56 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 			addSingleSlotGroupOptions(normalSlots, menu);
 	}
 
-	// 4. Adaptive Menu: Link Masks (Exactly 2 items)
+	// Link Masks
 	if (activeSlots.size() == 2)
 	{
-		addLinkMaskMenu(activeSlots, normalSlots, vcaSlots, menu);
+		int slotA = activeSlots[0];
+		int slotB = activeSlots[1];
+
+		int targetA = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, slotA);
+		bool isTargetAVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, slotA);
+
+		int trueIdB = slotB > PluginConstants::vcaSelectionOffset ? slotB - PluginConstants::vcaSelectionOffset : slotB;
+		bool isBVca = slotB > PluginConstants::vcaSelectionOffset;
+
+		bool alreadyLinkedToEachOther = (targetA == trueIdB && isTargetAVca == isBVca);
+
+		menu.addSeparator();
+
+		if (alreadyLinkedToEachOther)
+		{
+			juce::PopupMenu linkMaskMenu;
+			setupLinkMaskMenu(activeSlots, linkMaskMenu);
+			menu.addSubMenu("Link Masks", linkMaskMenu);
+			menu.addItem(CustomUnlink, "Remove Link");
+		}
+		else
+		{
+			bool allowLink = true;
+			if ((isBVca && !isTargetAVca) || (!isBVca && isTargetAVca))
+			{
+				int normalId = isBVca ? slotA : slotB;
+				int vcaId = isBVca ? trueIdB : targetA;
+				if (SlotStateHelpers::getGroupId(processor.apvts.state, normalId) == vcaId) allowLink = false;
+			}
+
+			if (allowLink)
+				menu.addItem(CreateCustomLink, "Link Faders");
+		}
+	}
+	else if (activeSlots.size() == 1)
+	{
+		int slotId = activeSlots[0];
+		int linkedTarget = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, slotId);
+
+		if (linkedTarget != 0)
+		{
+			menu.addSeparator();
+			juce::PopupMenu linkMaskMenu;
+			setupLinkMaskMenu(activeSlots, linkMaskMenu);
+			menu.addSubMenu("Link Masks", linkMaskMenu);
+			menu.addItem(CustomUnlink, "Remove Link");
+		}
 	}
 
 	// Ensure all of these are where they are meant to be
@@ -953,9 +999,6 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 	//addGroupMenu(activeSlots, menu);
 	//addLinkMaskMenu(activeSlots, menu);
 	//addSoloSafeMenuItem(activeSlots, menu);
-
-	//if (activeSlots.size() == 1)
-	//	addSingleSlotGroupOptions(activeSlots, menu);
 }
 
 void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu) const
@@ -1011,6 +1054,7 @@ void PerformanceView::setupLinkMaskMenu(const juce::Array<int>& activeSlots, juc
 {
 	// Determine visual toggle ticks based on the first selected slot's state tree properties
 	int slotIdx = activeSlots[0];
+
 	bool isInverse = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, slotIdx);
 	bool linkVolume = SlotStateHelpers::isLinkMaskVolume(processor.apvts.state, slotIdx);
 	bool linkMute = SlotStateHelpers::isLinkMaskMute(processor.apvts.state, slotIdx);
@@ -1022,6 +1066,39 @@ void PerformanceView::setupLinkMaskMenu(const juce::Array<int>& activeSlots, juc
 	linkMaskMenu.addItem(LinkMaskVolume, "Link Volume", true, linkVolume);
 	linkMaskMenu.addItem(LinkMaskMute, "Link Mute", true, linkMute);
 	linkMaskMenu.addItem(LinkMaskSolo, "Link Solo", true, linkSolo);
+
+	bool showPan = true;
+	juce::Array<int> slotsToCheck = activeSlots;
+
+	// If only 1 slot is selected, check itself and its target
+	if (slotsToCheck.size() == 1)
+	{
+		int targetTrueId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, slotIdx);
+		bool targetIsVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, slotIdx);
+		int targetSlotId = targetIsVca ? targetTrueId + PluginConstants::vcaSelectionOffset : targetTrueId;
+		slotsToCheck.add(targetSlotId);
+	}
+
+	for (int id : slotsToCheck)
+	{
+		if (id > PluginConstants::vcaSelectionOffset)
+		{
+			showPan = false;
+			break;
+		}
+		else if (!SlotStateHelpers::isStereoMain(processor.apvts.state, id) &&
+			!SlotStateHelpers::isXpStereo(processor.apvts.state, id))
+		{
+			showPan = false;
+			break;
+		}
+	}
+
+	if (showPan)
+	{
+		bool linkPan = SlotStateHelpers::isLinkMaskPan(processor.apvts.state, slotIdx);
+		linkMaskMenu.addItem(LinkMaskPan, "Link Pan", true, linkPan);
+	}
 }
 
 void PerformanceView::handleLinkMaskResult(int result, const juce::Array<int>& activeSlots)
@@ -1029,56 +1106,42 @@ void PerformanceView::handleLinkMaskResult(int result, const juce::Array<int>& a
 	processor.undoManager.beginNewTransaction("Update Link Masks");
 
 	int slotA = activeSlots[0];
-	int slotB = activeSlots[1];
+	int targetTrueId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, slotA);
+	if (targetTrueId == 0) return;
 
+	bool targetIsVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, slotA);
+	int slotB = targetIsVca ? targetTrueId + PluginConstants::vcaSelectionOffset : targetTrueId;
+
+	juce::Array<int> slotsToUpdate = { slotA, slotB };
 	auto& state = processor.apvts.state;
 
-	// Decode true IDs and types
-	bool isAVca = slotA > PluginConstants::vcaSelectionOffset;
-	int trueIdA = isAVca ? slotA - PluginConstants::vcaSelectionOffset : slotA;
-
-	bool isBVca = slotB > PluginConstants::vcaSelectionOffset;
-	int trueIdB = isBVca ? slotB - PluginConstants::vcaSelectionOffset : slotB;
-
-	SlotStateHelpers::setCustomLinkedId(state, slotA, trueIdB, &processor.undoManager);
-	SlotStateHelpers::setCustomLinkedIsVca(state, slotA, isBVca, &processor.undoManager);
-
-	SlotStateHelpers::setCustomLinkedId(state, slotB, trueIdA, &processor.undoManager);
-	SlotStateHelpers::setCustomLinkedIsVca(state, slotB, isAVca, &processor.undoManager);
-
-	// Apply the selected mask to both slots so the tree remains consistent
-	for (int idx : activeSlots)
+	for (int idx : slotsToUpdate)
 	{
 		switch (result)
 		{
-			case LinkMaskPolarityParallel:
-				SlotStateHelpers::setLinkPolarityInverse(state, idx, false, &processor.undoManager);
-				break;
-			case LinkMaskPolarityInverse:
-				SlotStateHelpers::setLinkPolarityInverse(state, idx, true, &processor.undoManager);
-				break;
-			case LinkMaskVolume:
-			{
-				bool current = SlotStateHelpers::isLinkMaskVolume(state, idx);
-				SlotStateHelpers::setLinkMaskVolume(state, idx, !current, &processor.undoManager);
-				break;
-			}
-			case LinkMaskMute:
-			{
-				bool current = SlotStateHelpers::isLinkMaskMute(state, idx);
-				SlotStateHelpers::setLinkMaskMute(state, idx, !current, &processor.undoManager);
-				break;
-			}
-			case LinkMaskSolo:
-			{
-				bool current = SlotStateHelpers::isLinkMaskSolo(state, idx);
-				SlotStateHelpers::setLinkMaskSolo(state, idx, !current, &processor.undoManager);
-				break;
-			}
-			default:
-				break;
+		case LinkMaskPolarityParallel:
+			SlotStateHelpers::setLinkPolarityInverse(state, idx, false, &processor.undoManager);
+			break;
+		case LinkMaskPolarityInverse:
+			SlotStateHelpers::setLinkPolarityInverse(state, idx, true, &processor.undoManager);
+			break;
+		case LinkMaskVolume:
+			SlotStateHelpers::setLinkMaskVolume(state, idx, !SlotStateHelpers::isLinkMaskVolume(state, idx), &processor.undoManager);
+			break;
+		case LinkMaskMute:
+			SlotStateHelpers::setLinkMaskMute(state, idx, !SlotStateHelpers::isLinkMaskMute(state, idx), &processor.undoManager);
+			break;
+		case LinkMaskSolo:
+			SlotStateHelpers::setLinkMaskSolo(state, idx, !SlotStateHelpers::isLinkMaskSolo(state, idx), &processor.undoManager);
+			break;
+		case LinkMaskPan:
+			SlotStateHelpers::setLinkMaskPan(state, idx, !SlotStateHelpers::isLinkMaskPan(state, idx), &processor.undoManager);
+			break;
+		default:
+			break;
 		}
 	}
+
 	triggerAsyncUpdate();
 }
 
@@ -1188,9 +1251,49 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 		return;
 	}
 
-	if (result >= LinkMaskBase && result <= LinkMaskSolo)
+	if (result >= LinkMaskBase && result <= LinkMaskPan) {
+		handleLinkMaskResult(result, activeSlots); 
+		return;
+	}
+
+	// put these next 2 into the switch and extract methods
+	if (result == CreateCustomLink)
 	{
-		handleLinkMaskResult(result, activeSlots);
+		int slotA = activeSlots[0];
+		int slotB = activeSlots[1];
+
+		bool isAVca = slotA > PluginConstants::vcaSelectionOffset;
+		int trueIdA = isAVca ? slotA - PluginConstants::vcaSelectionOffset : slotA;
+
+		bool isBVca = slotB > PluginConstants::vcaSelectionOffset;
+		int trueIdB = isBVca ? slotB - PluginConstants::vcaSelectionOffset : slotB;
+
+		processor.undoManager.beginNewTransaction("Create Custom Link");
+		SlotStateHelpers::setCustomLinkedId(processor.apvts.state, slotA, trueIdB, &processor.undoManager);
+		SlotStateHelpers::setCustomLinkedIsVca(processor.apvts.state, slotA, isBVca, &processor.undoManager);
+
+		SlotStateHelpers::setCustomLinkedId(processor.apvts.state, slotB, trueIdA, &processor.undoManager);
+		SlotStateHelpers::setCustomLinkedIsVca(processor.apvts.state, slotB, isAVca, &processor.undoManager);
+		triggerAsyncUpdate();
+		return;
+	}
+	
+	if (result == CustomUnlink)
+	{
+		int slotA = activeSlots[0];
+		int targetTrueId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, slotA);
+		bool targetIsVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, slotA);
+		int slotB = targetIsVca ? targetTrueId + PluginConstants::vcaSelectionOffset : targetTrueId;
+
+		processor.undoManager.beginNewTransaction("Remove Custom Link");
+		SlotStateHelpers::setCustomLinkedId(processor.apvts.state, slotA, 0, &processor.undoManager);
+		SlotStateHelpers::setCustomLinkedIsVca(processor.apvts.state, slotA, false, &processor.undoManager);
+		if (slotB != 0)
+		{
+			SlotStateHelpers::setCustomLinkedId(processor.apvts.state, slotB, 0, &processor.undoManager);
+			SlotStateHelpers::setCustomLinkedIsVca(processor.apvts.state, slotB, false, &processor.undoManager);
+		}
+		triggerAsyncUpdate();
 		return;
 	}
 

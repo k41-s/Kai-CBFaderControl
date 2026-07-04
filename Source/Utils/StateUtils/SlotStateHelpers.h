@@ -160,6 +160,10 @@ namespace SlotStateHelpers
         return getBoolProp(state, SlotIDs::linkMaskSolo(slotIdx), true);
     }
 
+    static inline bool isLinkMaskPan(const juce::ValueTree& state, int slotIdx) {
+        return getBoolProp(state, SlotIDs::linkMaskPan(slotIdx), true);
+    }
+
     static inline int getCustomLinkedId(const juce::ValueTree& state, int slotIdx)
     {
         return getIntProp(state, SlotIDs::customLinkedId(slotIdx), 0);
@@ -269,6 +273,10 @@ namespace SlotStateHelpers
 
     static inline void setLinkMaskSolo(juce::ValueTree& state, int slotIdx, bool isLinked, juce::UndoManager* undoManager = nullptr) {
         setBoolProp(state, SlotIDs::linkMaskSolo(slotIdx), isLinked, undoManager);
+    }
+
+    static inline void setLinkMaskPan(juce::ValueTree& state, int slotIdx, bool isLinked, juce::UndoManager* undoManager = nullptr) {
+        setBoolProp(state, SlotIDs::linkMaskPan(slotIdx), isLinked, undoManager);
     }
 
     static inline void setCustomLinkedId(juce::ValueTree& state, int slotIdx, int linkedIdx, juce::UndoManager* undoManager = nullptr)

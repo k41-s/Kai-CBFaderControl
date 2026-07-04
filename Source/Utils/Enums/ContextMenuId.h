@@ -14,5 +14,8 @@ enum ContextMenuID {
     LinkMaskPolarityInverse = 202,
     LinkMaskVolume = 203,
     LinkMaskMute = 204,
-    LinkMaskSolo = 205
+    LinkMaskSolo = 205,
+    LinkMaskPan = 206,
+    CustomUnlink = 210,
+    CreateCustomLink = 211
 };

@@ -27,6 +27,7 @@ private:
     void handleVolumeParameterChanged(const juce::String& parameterID, float newValue);
     void handleMuteParameterChanged(const juce::String& parameterID, float newValue);
     void handleSoloParameterChanged(const juce::String& parameterID, float newValue);
+    void handlePanParameterChanged(const juce::String& parameterID, float newValue);
 
 	// Group Propagation Logic
     void applyDeltaToGroupFromVca(int grpIdx, float delta);
@@ -46,6 +47,7 @@ private:
     void propagateCustomLinkVolume(int sourceTrueId, bool isSourceVca, float delta);
     void propagateCustomLinkMute(int sourceTrueId, bool isSourceVca, float newValue);
     void propagateCustomLinkSolo(int sourceTrueId, bool isSourceVca, float newValue);
+    void propagateCustomLinkPan(int sourceTrueId, bool isSourceVca, float newValue);
 
     // --- Array Wrappers ---
     float getLastVolume(int slotId) const { return lastVolume[slotId - 1]; }
