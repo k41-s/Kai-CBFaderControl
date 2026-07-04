@@ -49,6 +49,8 @@ protected:
     void updateBaseGroupState(int grpId, bool applyFaderIndicator = false);
 
     virtual bool isEventFromButton(juce::Component* comp);
+    void drawLinkIndicator(juce::Graphics& g, bool isInverse);
+
     bool isSelected = false;
 
     virtual juce::String getVolumeParamID() const = 0; // Dynamic Id

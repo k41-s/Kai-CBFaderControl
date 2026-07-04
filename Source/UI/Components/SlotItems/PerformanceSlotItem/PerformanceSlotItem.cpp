@@ -292,6 +292,11 @@ void PerformanceSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePro
     {
         updateGroupState();
     }
+    else if (propName.startsWith(SlotIdStringPrefixes::customLinkedId) ||
+        propName.startsWith(SlotIdStringPrefixes::linkPolarityInverse))
+    {
+        repaint();
+    }
 }
 
 void PerformanceSlotItem::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
@@ -397,6 +402,13 @@ void PerformanceSlotItem::paintOverChildren(juce::Graphics& g)
     if (SlotStateHelpers::isSlotSoloSafe(processor.apvts, index) && soloButton.isVisible())
     {
         drawSoloSafeIndicator(g);
+    }
+
+    int linkedId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, index);
+    if (linkedId != 0)
+    {
+        bool isInverse = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, index);
+        drawLinkIndicator(g, isInverse);
     }
 }
 

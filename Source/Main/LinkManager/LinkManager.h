@@ -59,10 +59,14 @@ private:
     float getUnclampedVolume(int slotId) const { return unclampedVolume[slotId - 1]; }
     void setUnclampedVolume(int slotId, float volume) { unclampedVolume[slotId - 1] = volume; }
 
+    float getLastPan(int slotId) const { return lastPan[slotId - 1]; }
+    void setLastPan(int slotId, float pan) { lastPan[slotId - 1] = pan; }
+
     KaiCBFaderControlAudioProcessor& processor;
 
     std::array<float, PluginConstants::numSlots> lastVolume;
     std::array<float, PluginConstants::numSlots> unclampedVolume;
+    std::array<float, PluginConstants::numSlots> lastPan;
     std::array<float, PluginConstants::numVcas> lastVcaVolume;
 
     // Separate Atomic Locks

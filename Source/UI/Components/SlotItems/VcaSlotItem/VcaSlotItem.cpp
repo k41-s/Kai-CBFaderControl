@@ -122,6 +122,10 @@ void VcaSlotItem::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHas
     {
         expandButton.setVisible(hasAssignedMembers());
     }
+    else if (propName.startsWith(SlotIdStringPrefixes::customLinkedId) || propName.startsWith(SlotIdStringPrefixes::linkPolarityInverse))
+    {
+        repaint();
+    }
 }
 
 void VcaSlotItem::paint(juce::Graphics& g)
@@ -142,6 +146,14 @@ void VcaSlotItem::paint(juce::Graphics& g)
         g.fillRect(bounds);
         g.setColour(juce::Colours::white.withAlpha(0.6f));
         g.drawRect(bounds, 2.0f);
+    }
+
+    int vcaTreeId = index + PluginConstants::vcaSelectionOffset;
+    int linkedId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, vcaTreeId);
+    if (linkedId != 0)
+    {
+        bool isInverse = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, vcaTreeId);
+        drawLinkIndicator(g, isInverse);
     }
 }
 

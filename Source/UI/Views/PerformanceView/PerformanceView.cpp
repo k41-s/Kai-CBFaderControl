@@ -1359,8 +1359,10 @@ void PerformanceView::handleClaimSlot(const juce::Array<int>& selectedArr)
 void PerformanceView::fillActiveSlots(const juce::Array<int>& selectedArr, juce::Array<int>& activeSlots)
 {
 	for (int idx : selectedArr)
-		if (isSlotFullAccess(idx))
+	{
+		if (idx > PluginConstants::vcaSelectionOffset || isSlotFullAccess(idx))
 			activeSlots.add(idx);
+	}
 }
 
 void PerformanceView::handleGroupAssignment(int result, const juce::Array<int>& selectedArr)

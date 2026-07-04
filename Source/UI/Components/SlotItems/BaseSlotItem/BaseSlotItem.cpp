@@ -178,6 +178,18 @@ bool BaseSlotItem::isEventFromButton(juce::Component* comp)
     return false;
 }
 
+void BaseSlotItem::drawLinkIndicator(juce::Graphics& g, bool isInverse)
+{
+    juce::Rectangle<float> iconArea(2, 2, 20, 16);
+    g.setColour(juce::Colours::cyan.withAlpha(0.9f));
+    g.setFont(juce::Font(11.0f, juce::Font::bold));
+
+    if (isInverse)
+        g.drawText("<>", iconArea, juce::Justification::centred);
+    else
+        g.drawText("==", iconArea, juce::Justification::centred);
+}
+
 void BaseSlotItem::mouseDown(const juce::MouseEvent& e)
 {
     if (isEventFromButton(e.originalComponent)) return;
