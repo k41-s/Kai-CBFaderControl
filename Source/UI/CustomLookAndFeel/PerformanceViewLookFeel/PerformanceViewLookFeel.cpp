@@ -653,10 +653,17 @@ void PerformanceViewLookFeel::drawPopupMenuItem(juce::Graphics& g, const juce::R
 		g.fillRect(area.reduced(2, 1));
 	}
 
+	if (isTicked)
+	{
+		juce::Rectangle<float> tickArea(area.getX() + 6.0f, area.getCentreY() - 3.0f, 6.0f, 6.0f);
+		g.setColour(juce::Colours::white.withAlpha(0.85f));
+		g.fillEllipse(tickArea);
+	}
+
 	g.setColour(isActive ? juce::Colours::white : juce::Colours::grey.withAlpha(0.5f));
 	g.setFont(juce::Font(UISizeConstants::popupMenuFont));
 
-	auto r = area.reduced(12, 0);
+	auto r = area.withTrimmedLeft(18).reduced(2, 0);
 	g.drawText(text, r, juce::Justification::centredLeft, true);
 
 	if (hasSubMenu)

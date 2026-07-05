@@ -59,6 +59,12 @@ private:
     float getUnclampedVolume(int slotId) const { return unclampedVolume[slotId - 1]; }
     void setUnclampedVolume(int slotId, float volume) { unclampedVolume[slotId - 1] = volume; }
 
+    float getUnclampedPan(int slotId) const { return unclampedPan[slotId - 1]; }
+    void setUnclampedPan(int slotId, float pan) { unclampedPan[slotId - 1] = pan; }
+
+    float getUnclampedVcaVolume(int vcaId) const { return unclampedVcaVolume[vcaId - 1]; }
+    void setUnclampedVcaVolume(int vcaId, float volume) { unclampedVcaVolume[vcaId - 1] = volume; }
+
     float getLastPan(int slotId) const { return lastPan[slotId - 1]; }
     void setLastPan(int slotId, float pan) { lastPan[slotId - 1] = pan; }
 
@@ -67,7 +73,9 @@ private:
     std::array<float, PluginConstants::numSlots> lastVolume;
     std::array<float, PluginConstants::numSlots> unclampedVolume;
     std::array<float, PluginConstants::numSlots> lastPan;
+    std::array<float, PluginConstants::numSlots> unclampedPan;
     std::array<float, PluginConstants::numVcas> lastVcaVolume;
+    std::array<float, PluginConstants::numVcas> unclampedVcaVolume;
 
     // Separate Atomic Locks
     std::atomic<bool> isPropagatingGroup{ false };

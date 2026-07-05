@@ -148,13 +148,7 @@ void VcaSlotItem::paint(juce::Graphics& g)
         g.drawRect(bounds, 2.0f);
     }
 
-    int vcaTreeId = index + PluginConstants::vcaSelectionOffset;
-    int linkedId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, vcaTreeId);
-    if (linkedId != 0)
-    {
-        bool isInverse = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, vcaTreeId);
-        drawLinkIndicator(g, isInverse);
-    }
+	paintLinkIndicator(g);
 }
 
 void VcaSlotItem::resized()

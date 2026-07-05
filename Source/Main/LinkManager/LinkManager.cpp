@@ -30,6 +30,7 @@ void LinkManager::addRegularSlotListeners()
 
         float initialPan = SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::pan(i));
         setLastPan(i, initialPan);
+		setUnclampedPan(i, initialPan);
     }
 }
 
@@ -41,6 +42,7 @@ void LinkManager::addVcaMasterListeners()
         processor.apvts.addParameterListener(SlotIDs::vcaMute(i), this);
 
         setLastVcaVolume(i, SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::vcaVolume(i)));
+		setUnclampedVcaVolume(i, SlotStateHelpers::getRawParamValue(processor.apvts, SlotIDs::vcaVolume(i)));
     }
 }
 
@@ -115,11 +117,13 @@ void LinkManager::handleProcessorRestoringState(const juce::String& parameterID,
     {
         int slotIdx = SlotStateHelpers::getIndexFromParamId(parameterID, SlotIdStringPrefixes::pan);
         setLastPan(slotIdx, rawValue);
+		setUnclampedPan(slotIdx, rawValue);
     }
     else if (parameterID.startsWith(SlotIdStringPrefixes::vcaVolume)) 
     {
         int grpIdx = SlotStateHelpers::getIndexFromParamId(parameterID, SlotIdStringPrefixes::vcaVolume);
         setLastVcaVolume(grpIdx, rawValue);
+        setUnclampedVcaVolume(grpIdx, rawValue);
     }
 }
 
@@ -181,6 +185,7 @@ void LinkManager::handlePanParameterChanged(const juce::String& parameterID, flo
     if (std::abs(delta) < 0.001f) return;
 
     setLastPan(slotIdx, newValue);
+    setUnclampedPan(slotIdx, newValue);
 
     if (!isPropagatingCustomLink)
         propagateCustomLinkPan(slotIdx, false, delta);
@@ -193,6 +198,7 @@ void LinkManager::handleVcaVolumeParameterChanged(const juce::String& parameterI
     if (std::abs(delta) < 0.001f) return;
 
     setLastVcaVolume(grpIdx, rawValue);
+    setUnclampedVcaVolume(grpIdx, rawValue);
 
     if (!isPropagatingCustomLink)
         propagateCustomLinkVolume(grpIdx, true, delta);
@@ -373,8 +379,9 @@ void LinkManager::propagateCustomLinkVolume(int sourceTrueId, bool isSourceVca, 
 
     if (isTargetVca)
     {
-        float currentVol = getLastVcaVolume(targetId);
-        float targetVol = juce::jlimit(PluginConstants::volumeMin, PluginConstants::volumeMax, currentVol + appliedDelta);
+        float newUnclamped = getUnclampedVcaVolume(targetId) + appliedDelta;
+        setUnclampedVcaVolume(targetId, newUnclamped);
+        float targetVol = juce::jlimit(PluginConstants::volumeMin, PluginConstants::volumeMax, newUnclamped);
         SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::vcaVolume(targetId), targetVol);
         setLastVcaVolume(targetId, targetVol);
     }
@@ -450,12 +457,11 @@ void LinkManager::propagateCustomLinkPan(int sourceTrueId, bool isSourceVca, flo
     {
         isPropagatingCustomLink = true;
 
-        float appliedDelta = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, sourceTreeId)
-            ? -delta
-            : delta;
+        float appliedDelta = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, sourceTreeId) ? -delta : delta;
 
-        float currentTargetPan = getLastPan(targetId);
-        float newPan = juce::jlimit(-1.0f, 1.0f, currentTargetPan + appliedDelta);
+        float newUnclamped = getUnclampedPan(targetId) + appliedDelta;
+        setUnclampedPan(targetId, newUnclamped);
+        float newPan = juce::jlimit(-1.0f, 1.0f, newUnclamped);
 
         SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::pan(targetId), newPan);
         setLastPan(targetId, newPan);

@@ -174,6 +174,11 @@ namespace SlotStateHelpers
         return getBoolProp(state, SlotIDs::customLinkedIsVca(slotIdx), false);
     }
 
+    static inline int getLinkColourIndex(const juce::ValueTree& state, int slotIdx) 
+    {
+        return getIntProp(state, SlotIDs::linkColourIndex(slotIdx), -1);
+    }
+
     // =========================================================================
     // SEMANTIC DOMAIN SETTERS (Slot Logic)
     // =========================================================================
@@ -287,6 +292,11 @@ namespace SlotStateHelpers
     static inline void setCustomLinkedIsVca(juce::ValueTree& state, int slotIdx, bool isVca, juce::UndoManager* undoManager = nullptr)
     {
         setBoolProp(state, SlotIDs::customLinkedIsVca(slotIdx), isVca, undoManager);
+    }
+
+    static inline void setLinkColourIndex(juce::ValueTree& state, int slotIdx, int colourIdx, juce::UndoManager* undoManager = nullptr)
+    {
+        setIntProp(state, SlotIDs::linkColourIndex(slotIdx), colourIdx, undoManager);
     }
 
     // =========================================================================

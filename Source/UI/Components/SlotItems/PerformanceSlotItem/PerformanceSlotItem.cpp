@@ -404,12 +404,7 @@ void PerformanceSlotItem::paintOverChildren(juce::Graphics& g)
         drawSoloSafeIndicator(g);
     }
 
-    int linkedId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, index);
-    if (linkedId != 0)
-    {
-        bool isInverse = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, index);
-        drawLinkIndicator(g, isInverse);
-    }
+	paintLinkIndicator(g);
 }
 
 void PerformanceSlotItem::drawSoloSafeIndicator(juce::Graphics& g)

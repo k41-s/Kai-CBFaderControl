@@ -47,6 +47,7 @@ namespace SlotIdStringPrefixes
 
     static const juce::String customLinkedId = "customLinkedId_";
     static const juce::String customLinkedIsVca = "customLinkedIsVca_";
+    static const juce::String linkColourIndex = "linkColourIndex_";
 }
 
 struct SlotIDs
@@ -89,6 +90,7 @@ struct SlotIDs
     
     static juce::String customLinkedId(int i) { return SlotIdStringPrefixes::customLinkedId + juce::String(i); }
     static juce::String customLinkedIsVca(int i) { return SlotIdStringPrefixes::customLinkedIsVca + juce::String(i); }
+    static inline juce::String linkColourIndex(int slotIdx) { return SlotIdStringPrefixes::linkColourIndex + juce::String(slotIdx); }
 };
 
 namespace ParamSlotNameStringPrefixes

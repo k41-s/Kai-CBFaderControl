@@ -928,7 +928,6 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 	{
 		addVcaMenuItem(menu, vcaSlots[0]);
 		setupAndAddColourMenu(menu, vcaSlots[0]);
-		return;
 	}
 
 	// 3. Adaptive Menu: Normal Slots Only
@@ -972,7 +971,8 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 			{
 				int normalId = isBVca ? slotA : slotB;
 				int vcaId = isBVca ? trueIdB : targetA;
-				if (SlotStateHelpers::getGroupId(processor.apvts.state, normalId) == vcaId) allowLink = false;
+				if (SlotStateHelpers::getGroupId(processor.apvts.state, normalId) == vcaId) 
+					allowLink = false;
 			}
 
 			if (allowLink)
@@ -993,12 +993,6 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 			menu.addItem(CustomUnlink, "Remove Link");
 		}
 	}
-
-	// Ensure all of these are where they are meant to be
-	//addStereoMenuItems(activeSlots, menu);
-	//addGroupMenu(activeSlots, menu);
-	//addLinkMaskMenu(activeSlots, menu);
-	//addSoloSafeMenuItem(activeSlots, menu);
 }
 
 void PerformanceView::addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu) const
@@ -1065,8 +1059,8 @@ void PerformanceView::setupLinkMaskMenu(const juce::Array<int>& activeSlots, juc
 	linkMaskMenu.addSeparator();
 	linkMaskMenu.addItem(LinkMaskVolume, "Link Volume", true, linkVolume);
 	linkMaskMenu.addItem(LinkMaskMute, "Link Mute", true, linkMute);
-	linkMaskMenu.addItem(LinkMaskSolo, "Link Solo", true, linkSolo);
 
+	bool showSolo = true;
 	bool showPan = true;
 	juce::Array<int> slotsToCheck = activeSlots;
 
@@ -1075,7 +1069,10 @@ void PerformanceView::setupLinkMaskMenu(const juce::Array<int>& activeSlots, juc
 	{
 		int targetTrueId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, slotIdx);
 		bool targetIsVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, slotIdx);
-		int targetSlotId = targetIsVca ? targetTrueId + PluginConstants::vcaSelectionOffset : targetTrueId;
+		int targetSlotId = targetIsVca 
+			? targetTrueId + PluginConstants::vcaSelectionOffset 
+			: targetTrueId;
+
 		slotsToCheck.add(targetSlotId);
 	}
 
@@ -1083,17 +1080,23 @@ void PerformanceView::setupLinkMaskMenu(const juce::Array<int>& activeSlots, juc
 	{
 		if (id > PluginConstants::vcaSelectionOffset)
 		{
+			showSolo = false;
 			showPan = false;
-			break;
+			//break;
 		}
 		else if (!SlotStateHelpers::isStereoMain(processor.apvts.state, id) &&
 			!SlotStateHelpers::isXpStereo(processor.apvts.state, id))
 		{
 			showPan = false;
-			break;
+			//break;
 		}
 	}
 
+	if (showSolo)
+	{
+		bool linkSolo = SlotStateHelpers::isLinkMaskSolo(processor.apvts.state, slotIdx);
+		linkMaskMenu.addItem(LinkMaskSolo, "Link Solo", true, linkSolo);
+	}
 	if (showPan)
 	{
 		bool linkPan = SlotStateHelpers::isLinkMaskPan(processor.apvts.state, slotIdx);
@@ -1269,11 +1272,51 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 		int trueIdB = isBVca ? slotB - PluginConstants::vcaSelectionOffset : slotB;
 
 		processor.undoManager.beginNewTransaction("Create Custom Link");
+
 		SlotStateHelpers::setCustomLinkedId(processor.apvts.state, slotA, trueIdB, &processor.undoManager);
 		SlotStateHelpers::setCustomLinkedIsVca(processor.apvts.state, slotA, isBVca, &processor.undoManager);
 
 		SlotStateHelpers::setCustomLinkedId(processor.apvts.state, slotB, trueIdA, &processor.undoManager);
 		SlotStateHelpers::setCustomLinkedIsVca(processor.apvts.state, slotB, isAVca, &processor.undoManager);
+		
+		juce::Array<int> usedColours;
+		auto& state = processor.apvts.state;
+
+		for (int i = 1; i <= PluginConstants::numSlots; ++i) 
+		{
+			if (SlotStateHelpers::getCustomLinkedId(state, i) != 0)
+				usedColours.addIfNotAlreadyThere(SlotStateHelpers::getLinkColourIndex(state, i));
+		}
+		for (int i = 1; i <= PluginConstants::numVcas; ++i) 
+		{
+			int vcaTreeId = i + PluginConstants::vcaSelectionOffset;
+			if (SlotStateHelpers::getCustomLinkedId(state, vcaTreeId) != 0)
+				usedColours.addIfNotAlreadyThere(SlotStateHelpers::getLinkColourIndex(state, vcaTreeId));
+		}
+
+		int chosenColour = 0;
+		for (int i = 0; i < LinkColours::numColours; ++i) 
+		{
+			if (!usedColours.contains(i)) 
+			{
+				chosenColour = i;
+				break;
+			}
+		}
+
+		SlotStateHelpers::setLinkColourIndex(state, slotA, chosenColour, &processor.undoManager);
+		SlotStateHelpers::setLinkColourIndex(state, slotB, chosenColour, &processor.undoManager);
+
+		juce::Array<int> slotsToUpdate = { slotA, slotB };
+		for (int idx : slotsToUpdate)
+		{
+			SlotStateHelpers::setLinkPolarityInverse(processor.apvts.state, idx, false, &processor.undoManager);
+			SlotStateHelpers::setLinkMaskVolume(processor.apvts.state, idx, true, &processor.undoManager);
+			SlotStateHelpers::setLinkMaskMute(processor.apvts.state, idx, true, &processor.undoManager);
+			SlotStateHelpers::setLinkMaskSolo(processor.apvts.state, idx, true, &processor.undoManager);
+			SlotStateHelpers::setLinkMaskPan(processor.apvts.state, idx, true, &processor.undoManager);
+		}
+		
 		triggerAsyncUpdate();
 		return;
 	}
@@ -1286,13 +1329,18 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 		int slotB = targetIsVca ? targetTrueId + PluginConstants::vcaSelectionOffset : targetTrueId;
 
 		processor.undoManager.beginNewTransaction("Remove Custom Link");
+
 		SlotStateHelpers::setCustomLinkedId(processor.apvts.state, slotA, 0, &processor.undoManager);
 		SlotStateHelpers::setCustomLinkedIsVca(processor.apvts.state, slotA, false, &processor.undoManager);
+		SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::linkColourIndex(slotA), &processor.undoManager);
+
 		if (slotB != 0)
 		{
 			SlotStateHelpers::setCustomLinkedId(processor.apvts.state, slotB, 0, &processor.undoManager);
 			SlotStateHelpers::setCustomLinkedIsVca(processor.apvts.state, slotB, false, &processor.undoManager);
+			SlotStateHelpers::removeProp(processor.apvts.state, SlotIDs::linkColourIndex(slotB), &processor.undoManager);
 		}
+
 		triggerAsyncUpdate();
 		return;
 	}

@@ -178,11 +178,41 @@ bool BaseSlotItem::isEventFromButton(juce::Component* comp)
     return false;
 }
 
-void BaseSlotItem::drawLinkIndicator(juce::Graphics& g, bool isInverse)
+void BaseSlotItem::paintLinkIndicator(juce::Graphics& g)
 {
-    juce::Rectangle<float> iconArea(2, 2, 20, 16);
-    g.setColour(juce::Colours::cyan.withAlpha(0.9f));
-    g.setFont(juce::Font(11.0f, juce::Font::bold));
+    int mySelectionId = getSelectionId();
+    int targetTrueId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, mySelectionId);
+
+    if (targetTrueId != 0)
+    {
+        bool targetIsVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, mySelectionId);
+        int linkedSelectionId = targetIsVca ? targetTrueId + PluginConstants::vcaSelectionOffset : targetTrueId;
+        bool isInverse = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, mySelectionId);
+
+        juce::Colour pairColour;
+        int colourIdx = SlotStateHelpers::getLinkColourIndex(processor.apvts.state, mySelectionId);
+
+        if (colourIdx >= 0 && colourIdx < LinkColours::numColours)
+        {
+            pairColour = LinkColours::palette[colourIdx];
+        }
+        else
+        {
+            int minId = juce::jmin(mySelectionId, linkedSelectionId);
+            pairColour = LinkColours::palette[minId % LinkColours::numColours];
+        }
+
+        drawLinkIndicator(g, isInverse, pairColour);
+    }
+}
+
+void BaseSlotItem::drawLinkIndicator(juce::Graphics& g, bool isInverse, juce::Colour pairColour)
+{
+    juce::Rectangle<float> iconArea(4, 4, 18, 12);
+    g.setColour(pairColour);
+
+    float fontSize = juce::jlimit(8.0f, 12.0f, sharedFont.getHeight() * 0.85f);
+    g.setFont(juce::Font(fontSize, juce::Font::bold));
 
     if (isInverse)
         g.drawText("<>", iconArea, juce::Justification::centred);

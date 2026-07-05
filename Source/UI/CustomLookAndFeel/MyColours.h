@@ -71,3 +71,18 @@ namespace GroupColours
         "White"
     };
 }
+
+namespace LinkColours
+{
+    static constexpr int numColours = 24;
+    static inline const juce::Colour palette[numColours] = {
+        juce::Colour(0xFFFF5252), juce::Colour(0xFFFF4081), juce::Colour(0xFFE040FB),
+        juce::Colour(0xFF7C4DFF), juce::Colour(0xFF536DFE), juce::Colour(0xFF448AFF),
+        juce::Colour(0xFF40C4FF), juce::Colour(0xFF18FFFF), juce::Colour(0xFF64FFDA),
+        juce::Colour(0xFF69F0AE), juce::Colour(0xFFB2FF59), juce::Colour(0xFFEEFF41),
+        juce::Colour(0xFFFFFF00), juce::Colour(0xFFFFD740), juce::Colour(0xFFFFAB40),
+        juce::Colour(0xFFFF6E40), juce::Colour(0xFFA1887F), juce::Colour(0xFFE0E0E0),
+        juce::Colour(0xFF90A4AE), juce::Colour(0xFF00BFA5), juce::Colour(0xFFC0CA33),
+        juce::Colour(0xFFFDD835), juce::Colour(0xFF8D6E63), juce::Colour(0xFF26A69A)
+    };
+}
