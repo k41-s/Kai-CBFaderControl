@@ -1,9 +1,10 @@
 #include "OscManager.h"
 #include "../PluginProcessor/PluginProcessor.h"
-#include "../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../SlotIDs.h"
 #include "../../UI/Components/UIConstants.h"
+#include "../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../../Utils/OSCUtils/OscHelpers.h"
+#include "../../Utils/ScopedAtomicSetter.h"
 
 OscManager::OscManager(KaiCBFaderControlAudioProcessor& p) 
     : processor(p), messageQueue(OscConstants::fifoSize, juce::OSCMessage("/empty"))
@@ -130,15 +131,13 @@ void OscManager::processFifoQueue()
     {
         auto readHandle = messageFifo.read(numReady);
 
-        isProcessingQueue = true;
+        ScopedAtomicSetter setter(isProcessingQueue, true);
 
         for (int i = 0; i < readHandle.blockSize1; ++i)
             processQueuedMessage(messageQueue[(size_t)(readHandle.startIndex1 + i)]);
 
         for (int i = 0; i < readHandle.blockSize2; ++i)
             processQueuedMessage(messageQueue[(size_t)(readHandle.startIndex2 + i)]);
-
-        isProcessingQueue = false;
     }
 }
 

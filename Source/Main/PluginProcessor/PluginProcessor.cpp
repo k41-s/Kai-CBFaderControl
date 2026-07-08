@@ -2,6 +2,7 @@
 #include "../PluginEditor/PluginEditor.h"
 #include "../SlotIDs.h"
 #include "../../Utils/StateUtils/SlotStateHelpers.h"
+#include "../../Utils/ScopedAtomicSetter.h"
 #include "../../UI/Components/UIConstants.h"
 
 //==============================================================================
@@ -339,7 +340,7 @@ void KaiCBFaderControlAudioProcessor::saveStoreState(juce::XmlElement& parentXml
 
 void KaiCBFaderControlAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-    isRestoringState = true;
+    ScopedAtomicSetter setter(isRestoringState, true);
     std::unique_ptr<juce::XmlElement> parentXml(getXmlFromBinary(data, sizeInBytes));
 
     if (parentXml.get() != nullptr)
@@ -371,7 +372,6 @@ void KaiCBFaderControlAudioProcessor::setStateInformation(const void* data, int 
 
     initialiseNetworkingDefaults();
     claimActiveSlots();
-    isRestoringState = false;
 }
 
 void KaiCBFaderControlAudioProcessor::restoreApvts(std::unique_ptr<juce::XmlElement>& parentXml)
@@ -454,9 +454,8 @@ void KaiCBFaderControlAudioProcessor::forceRecallStore(int storeIdx)
                 auto storeState = presetManager->getStore(storeIdx);
                 if (storeState.isValid())
                 {
-                    isRestoringState = true;
+                    ScopedAtomicSetter setter(isRestoringState, true);
                     apvts.replaceState(storeState.createCopy());
-                    isRestoringState = false;
                 }
             });
     }
@@ -494,9 +493,8 @@ void KaiCBFaderControlAudioProcessor::handleActiveStoreParameterChanged(float ne
                 auto storeState = presetManager->getStore(storeIdx);
                 if (storeState.isValid())
                 {
-                    isRestoringState = true;
+                    ScopedAtomicSetter setter(isRestoringState, true);
                     apvts.replaceState(storeState.createCopy());
-                    isRestoringState = false;
                 }
             });
     }

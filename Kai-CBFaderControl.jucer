@@ -145,10 +145,6 @@
         <GROUP id="{6641C19B-C8BE-D82C-67FD-49F295D718F0}" name="LayoutUtils">
           <FILE id="rCd6Fe" name="LayoutUtils.h" compile="0" resource="0" file="Source/Utils/LayoutUtils/LayoutUtils.h"/>
         </GROUP>
-        <GROUP id="{1A99AB3E-0299-8EE1-D603-D1E048E9DBC7}" name="LinkUtils">
-          <FILE id="L1rQkn" name="ScopedAtomicSetter.h" compile="0" resource="0"
-                file="Source/Utils/LinkUtils/ScopedAtomicSetter.h"/>
-        </GROUP>
         <GROUP id="{B4F04243-B42F-AB96-A8EB-6348DC5C010C}" name="OSCUtils">
           <FILE id="FhJHET" name="NetworkUtils.h" compile="0" resource="0" file="Source/Utils/OSCUtils/NetworkUtils.h"/>
           <FILE id="YxMaUz" name="OscHelpers.h" compile="0" resource="0" file="Source/Utils/OSCUtils/OscHelpers.h"/>
@@ -161,6 +157,8 @@
         <GROUP id="{433CB2C2-8DC7-A5D5-637C-424EA87D602B}" name="UIUtils">
           <FILE id="mx1hQX" name="UIUtils.h" compile="0" resource="0" file="Source/Utils/UIUtils/UIUtils.h"/>
         </GROUP>
+        <FILE id="xcbogh" name="ScopedAtomicSetter.h" compile="0" resource="0"
+              file="Source/Utils/ScopedAtomicSetter.h"/>
       </GROUP>
     </GROUP>
   </MAINGROUP>

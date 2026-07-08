@@ -2,7 +2,7 @@
 #include "../SlotIDs.h"
 #include "../PluginProcessor/PluginProcessor.h"
 #include "../../Utils/StateUtils/SlotStateHelpers.h"
-#include "../../Utils/LinkUtils/ScopedAtomicSetter.h"
+#include "../../Utils/ScopedAtomicSetter.h"
 
 LinkManager::LinkManager(KaiCBFaderControlAudioProcessor& p) : processor(p)
 {
@@ -221,7 +221,7 @@ void LinkManager::handleVcaMuteParameterChanged(const juce::String& parameterID,
 
 void LinkManager::applyDeltaToGroupFromVca(int grpIdx, float delta)
 {
-    isPropagatingGroup = true;
+    ScopedAtomicSetter setter(isPropagatingGroup, true);
     for (int i = 1; i <= PluginConstants::numSlots; ++i)
     {
         int assignedGrp = SlotStateHelpers::getGroupId(processor.apvts.state, i);
@@ -230,12 +230,11 @@ void LinkManager::applyDeltaToGroupFromVca(int grpIdx, float delta)
             applyGroupVolumeDeltaToSlot(i, delta);
         }
     }
-    isPropagatingGroup = false;
 }
 
 void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
 {
-    isPropagatingGroup = true;
+    ScopedAtomicSetter setter(isPropagatingGroup, true);
     for (int i = 1; i <= PluginConstants::numSlots; ++i)
     {
         int assignedGrp = SlotStateHelpers::getGroupId(processor.apvts.state, i);
@@ -244,12 +243,11 @@ void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
             SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(i), newValue);
         }
     }
-    isPropagatingGroup = false;
 }
 
 void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
 {
-	isPropagatingGroup = true;
+    ScopedAtomicSetter setter(isPropagatingGroup, true);
     for (int i = 1; i <= PluginConstants::numSlots; ++i)
     {
         if (i == slotIdx) continue;
@@ -262,12 +260,11 @@ void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
             applyGroupVolumeDeltaToSlot(i, delta);
         }
     }
-	isPropagatingGroup = false;
 }
 
 void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
 {
-	isPropagatingGroup = true;
+    ScopedAtomicSetter setter(isPropagatingGroup, true);
     for (int i = 1; i <= PluginConstants::numSlots; ++i)
     {
         if (i == slotIdx) continue;
@@ -280,7 +277,6 @@ void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
             SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(i), newValue);
         }
     }
-	isPropagatingGroup = false;
 }
 
 void LinkManager::updateSipState()
@@ -295,9 +291,8 @@ void LinkManager::updateSipState()
         }
     }
 
-    isPropagatingGroup = true;
+    ScopedAtomicSetter setter(isPropagatingGroup, true);
     applyOrReleaseSIPMutes(anySoloActive);
-    isPropagatingGroup = false;
 }
 
 void LinkManager::applyOrReleaseSIPMutes(bool anySoloActive)

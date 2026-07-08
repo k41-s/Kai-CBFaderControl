@@ -73,7 +73,7 @@ private:
     juce::OSCReceiver receiver;
     juce::OSCSender sender;
 
-    bool isProcessingQueue{ false };
+    std::atomic<bool> isProcessingQueue{ false };
 
     juce::AbstractFifo messageFifo{ OscConstants::fifoSize };
     std::vector<juce::OSCMessage> messageQueue;
