@@ -13,6 +13,14 @@ public:
     void parameterChanged(const juce::String& parameterID, float newValue) override;
 
 private:
+
+    struct LinkRouteDetails
+    {
+        int sourceTreeId = 0;
+        int targetId = 0;
+        bool isTargetVca = false;
+    };
+
     void init();
 
     void addRegularSlotListeners();
@@ -67,6 +75,11 @@ private:
 
     float getLastPan(int slotId) const { return lastPan[slotId - 1]; }
     void setLastPan(int slotId, float pan) { lastPan[slotId - 1] = pan; }
+
+    LinkRouteDetails getLinkRouteDetails(int sourceTrueId, bool isSourceVca) const;
+	void applyVolumeDelta(int targetId, bool isVca, float delta);
+	void applyPanDelta(int targetId, float delta);
+    float applyPolarity(float delta, int sourceTreeId) const;
 
     KaiCBFaderControlAudioProcessor& processor;
 

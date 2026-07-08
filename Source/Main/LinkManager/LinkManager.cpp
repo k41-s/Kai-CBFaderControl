@@ -2,6 +2,7 @@
 #include "../SlotIDs.h"
 #include "../PluginProcessor/PluginProcessor.h"
 #include "../../Utils/StateUtils/SlotStateHelpers.h"
+#include "../../Utils/LinkUtils/ScopedAtomicSetter.h"
 
 LinkManager::LinkManager(KaiCBFaderControlAudioProcessor& p) : processor(p)
 {
@@ -350,122 +351,109 @@ void LinkManager::handleSIP(int i, bool mute)
 
 void LinkManager::applyGroupVolumeDeltaToSlot(int slotIdx, float delta)
 {
-    float newUnclamped = getUnclampedVolume(slotIdx) + delta;
-    setUnclampedVolume(slotIdx, newUnclamped);
-    float targetVol = juce::jlimit(PluginConstants::volumeMin, PluginConstants::volumeMax, newUnclamped);
-
-    SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(slotIdx), targetVol);
-    setLastVolume(slotIdx, targetVol);
+    applyVolumeDelta(slotIdx, false, delta);
 }
 
 void LinkManager::propagateCustomLinkVolume(int sourceTrueId, bool isSourceVca, float delta)
 {
-    int sourceTreeId = isSourceVca 
-        ? sourceTrueId + PluginConstants::vcaSelectionOffset 
-        : sourceTrueId;
+    auto route = getLinkRouteDetails(sourceTrueId, isSourceVca);
 
-    int targetId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, sourceTreeId);
-
-    if (targetId == 0 || !SlotStateHelpers::isLinkMaskVolume(processor.apvts.state, sourceTreeId))
+    if (route.targetId == 0 || !SlotStateHelpers::isLinkMaskVolume(processor.apvts.state, route.sourceTreeId))
         return;
 
-    float appliedDelta = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, sourceTreeId) 
-        ? (-1.0f * delta) 
-        
-        : delta;
-    bool isTargetVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, sourceTreeId);
+    float appliedDelta = applyPolarity(delta, route.sourceTreeId);
 
-    isPropagatingCustomLink = true;
-
-    if (isTargetVca)
-    {
-        float newUnclamped = getUnclampedVcaVolume(targetId) + appliedDelta;
-        setUnclampedVcaVolume(targetId, newUnclamped);
-        float targetVol = juce::jlimit(PluginConstants::volumeMin, PluginConstants::volumeMax, newUnclamped);
-        SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::vcaVolume(targetId), targetVol);
-        setLastVcaVolume(targetId, targetVol);
-    }
-    else
-    {
-        float newUnclamped = getUnclampedVolume(targetId) + appliedDelta;
-        setUnclampedVolume(targetId, newUnclamped);
-        float targetVol = juce::jlimit(PluginConstants::volumeMin, PluginConstants::volumeMax, newUnclamped);
-        SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(targetId), targetVol);
-        setLastVolume(targetId, targetVol);
-    }
-
-    isPropagatingCustomLink = false;
+    ScopedAtomicSetter setter(isPropagatingCustomLink, true);
+    applyVolumeDelta(route.targetId, route.isTargetVca, appliedDelta);
 }
 
 void LinkManager::propagateCustomLinkMute(int sourceTrueId, bool isSourceVca, float newValue)
 {
-    int sourceTreeId = isSourceVca 
-        ? sourceTrueId + PluginConstants::vcaSelectionOffset 
-        : sourceTrueId;
+    auto route = getLinkRouteDetails(sourceTrueId, isSourceVca);
 
-    int targetId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, sourceTreeId);
-
-    if (targetId == 0 || !SlotStateHelpers::isLinkMaskMute(processor.apvts.state, sourceTreeId))
+    if (route.targetId == 0 || !SlotStateHelpers::isLinkMaskMute(processor.apvts.state, route.sourceTreeId))
         return;
 
-    bool isTargetVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, sourceTreeId);
+    ScopedAtomicSetter setter(isPropagatingCustomLink, true);
 
-    isPropagatingCustomLink = true;
-
-    if (isTargetVca)
-        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaMute(targetId), newValue);
+    if (route.isTargetVca)
+        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaMute(route.targetId), newValue);
     else
-        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(targetId), newValue);
-
-    isPropagatingCustomLink = false;
+        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(route.targetId), newValue);
 }
 
 void LinkManager::propagateCustomLinkSolo(int sourceTrueId, bool isSourceVca, float newValue)
 {
-    int sourceTreeId = isSourceVca 
-        ? sourceTrueId + PluginConstants::vcaSelectionOffset 
-        : sourceTrueId;
+    auto route = getLinkRouteDetails(sourceTrueId, isSourceVca);
 
-    int targetId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, sourceTreeId);
-
-    if (targetId == 0 || !SlotStateHelpers::isLinkMaskSolo(processor.apvts.state, sourceTreeId))
+    if (route.targetId == 0 || route.isTargetVca || !SlotStateHelpers::isLinkMaskSolo(processor.apvts.state, route.sourceTreeId))
         return;
 
-    bool isTargetVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, sourceTreeId);
-
-    if (!isTargetVca)
-    {
-        isPropagatingCustomLink = true;
-        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::solo(targetId), newValue);
-        isPropagatingCustomLink = false;
-    }
+    ScopedAtomicSetter setter(isPropagatingCustomLink, true);
+    SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::solo(route.targetId), newValue);
 }
 
 void LinkManager::propagateCustomLinkPan(int sourceTrueId, bool isSourceVca, float delta)
 {
-    int sourceTreeId = isSourceVca
-        ? sourceTrueId + PluginConstants::vcaSelectionOffset
-        : sourceTrueId;
+    auto route = getLinkRouteDetails(sourceTrueId, isSourceVca);
 
-    int targetId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, sourceTreeId);
-    if (targetId == 0 || !SlotStateHelpers::isLinkMaskPan(processor.apvts.state, sourceTreeId))
+    if (route.targetId == 0 || route.isTargetVca || !SlotStateHelpers::isLinkMaskPan(processor.apvts.state, route.sourceTreeId))
         return;
 
-    bool isTargetVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, sourceTreeId);
+    float appliedDelta = applyPolarity(delta, route.sourceTreeId);
 
-    if (!isTargetVca)
+    ScopedAtomicSetter setter(isPropagatingCustomLink, true);
+    applyPanDelta(route.targetId, appliedDelta);
+}
+
+LinkManager::LinkRouteDetails LinkManager::getLinkRouteDetails(int sourceTrueId, bool isSourceVca) const
+{
+    LinkRouteDetails route;
+    route.sourceTreeId = isSourceVca 
+        ? sourceTrueId + PluginConstants::vcaSelectionOffset 
+        : sourceTrueId;
+
+    route.targetId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, route.sourceTreeId);
+    if (route.targetId != 0) 
     {
-        isPropagatingCustomLink = true;
-
-        float appliedDelta = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, sourceTreeId) ? -delta : delta;
-
-        float newUnclamped = getUnclampedPan(targetId) + appliedDelta;
-        setUnclampedPan(targetId, newUnclamped);
-        float newPan = juce::jlimit(-1.0f, 1.0f, newUnclamped);
-
-        SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::pan(targetId), newPan);
-        setLastPan(targetId, newPan);
-
-        isPropagatingCustomLink = false;
+        route.isTargetVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, route.sourceTreeId);
     }
+    return route;
+}
+
+void LinkManager::applyVolumeDelta(int targetId, bool isVca, float delta)
+{
+    float currentUnclamped = isVca ? getUnclampedVcaVolume(targetId) : getUnclampedVolume(targetId);
+    float newUnclamped = currentUnclamped + delta;
+    float clampedVol = juce::jlimit(PluginConstants::volumeMin, PluginConstants::volumeMax, newUnclamped);
+
+    if (isVca)
+    {
+        setUnclampedVcaVolume(targetId, newUnclamped);
+        SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::vcaVolume(targetId), clampedVol);
+        setLastVcaVolume(targetId, clampedVol);
+    }
+    else
+    {
+        setUnclampedVolume(targetId, newUnclamped);
+        SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::volume(targetId), clampedVol);
+        setLastVolume(targetId, clampedVol);
+    }
+}
+
+void LinkManager::applyPanDelta(int targetId, float delta)
+{
+    float newUnclamped = getUnclampedPan(targetId) + delta;
+    setUnclampedPan(targetId, newUnclamped);
+    float clampedPan = juce::jlimit(-1.0f, 1.0f, newUnclamped);
+
+    SlotStateHelpers::setParamUnnormalized(processor.apvts, SlotIDs::pan(targetId), clampedPan);
+    setLastPan(targetId, clampedPan);
+}
+
+float LinkManager::applyPolarity(float delta, int sourceTreeId) const
+{
+    return SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, sourceTreeId) 
+        ? -delta 
+        : delta;
 }
