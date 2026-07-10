@@ -391,11 +391,22 @@ LinkManager::LinkRouteDetails LinkManager::getLinkRouteDetails(int sourceTrueId,
     route.sourceTreeId = isSourceVca 
         ? sourceTrueId + PluginConstants::vcaSelectionOffset 
         : sourceTrueId;
-
     route.targetId = SlotStateHelpers::getCustomLinkedId(processor.apvts.state, route.sourceTreeId);
+
     if (route.targetId != 0) 
     {
         route.isTargetVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, route.sourceTreeId);
+        
+        if (!isSourceVca && !route.isTargetVca)
+        {
+            int sourceGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, sourceTrueId);
+            int targetGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, route.targetId);
+
+            if (sourceGrpId > 0 && sourceGrpId == targetGrpId)
+            {
+                route.targetId = 0;
+            }
+        }
     }
     return route;
 }

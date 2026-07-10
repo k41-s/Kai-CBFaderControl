@@ -992,6 +992,14 @@ bool PerformanceView::canCreateCustomLink(int slotA, int slotB) const
 		if (SlotStateHelpers::getGroupId(processor.apvts.state, normalId) == vcaId)
 			return false;
 	}
+	else if (!isAVca && !isBVca)
+	{
+		int groupA = SlotStateHelpers::getGroupId(processor.apvts.state, slotA);
+		int groupB = SlotStateHelpers::getGroupId(processor.apvts.state, slotB);
+		if (SlotStateHelpers::isValidGroup(groupA) && groupA == groupB)
+			return false;
+	}
+
 	return true;
 }
 
