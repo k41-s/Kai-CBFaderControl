@@ -2,11 +2,17 @@
 #include <JuceHeader.h>
 #include "../../Main/SlotIDs.h"
 #include "../../UI/Components/UIConstants.h"
+#include "../../UI/CustomLookAndFeel/MyColours.h"
 #include "../Enums/GroupRole.h"
 #include "../../Main/PresetManager/PresetConstants.h"
 
 namespace SlotStateHelpers
 {
+    namespace detail
+    {
+        static inline int findManualGroupColour(const juce::ValueTree& state, int targetGrpId, std::array<bool, GroupColours::numColours>& isColourUsed);
+        static inline int resolveAutoGroupColour(const juce::ValueTree& state, int targetGrpId, std::array<bool, GroupColours::numColours>& isColourUsed);
+    }
     // =========================================================================
     // GETTERS
     // =========================================================================
@@ -116,7 +122,44 @@ namespace SlotStateHelpers
 
     static inline int getGroupColour(const juce::ValueTree& state, int grpId)
     {
-        return getIntProp(state, SlotIDs::groupColour(grpId), 0);
+        int whiteIndex = GroupColours::numColours - 1;
+
+        if (grpId < 1 || grpId > PluginConstants::numGroups)
+            return whiteIndex;
+
+        std::array<bool, GroupColours::numColours> isColourUsed = { false };
+
+        int manualColour = detail::findManualGroupColour(state, grpId, isColourUsed);
+        if (manualColour != -1)
+            return manualColour;
+
+        return detail::resolveAutoGroupColour(state, grpId, isColourUsed);
+    }
+
+    static inline bool isGroupColourClaimed(const juce::ValueTree& state, int colourIdx, int ignoreGroupId = -1)
+    {
+        for (int i = 1; i <= PluginConstants::numGroups; ++i)
+        {
+            if (i == ignoreGroupId)
+                continue;
+
+            juce::Identifier propId = SlotIDs::groupColour(i);
+
+            if (state.hasProperty(propId))
+            {
+                int manualColourIndex = static_cast<int>(state.getProperty(propId));
+                if (manualColourIndex == colourIdx)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static inline void clearGroupColour(juce::ValueTree& state, int grpId, juce::UndoManager* undoManager = nullptr)
+    {
+        removeProp(state, SlotIDs::groupColour(grpId), undoManager);
     }
 
     static inline juce::String getVcaName(const juce::ValueTree& state, int vcaIdx)
@@ -445,4 +488,62 @@ namespace SlotStateHelpers
     {
         return isStereoProperty(propName) || isGroupProperty(propName);
     }
+
+    namespace detail
+    {
+        static inline int findManualGroupColour(const juce::ValueTree& state, int targetGrpId, std::array<bool, GroupColours::numColours>& isColourUsed)
+        {
+            for (int i = 1; i <= PluginConstants::numGroups; ++i)
+            {
+                juce::Identifier propId = SlotIDs::groupColour(i);
+
+                if (state.hasProperty(propId))
+                {
+                    int manualColourIndex = static_cast<int>(state.getProperty(propId));
+
+                    if (manualColourIndex >= 0 && manualColourIndex < GroupColours::numColours)
+                    {
+                        isColourUsed[manualColourIndex] = true;
+
+                        if (i == targetGrpId)
+                            return manualColourIndex;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        static inline int resolveAutoGroupColour(const juce::ValueTree& state, int targetGrpId, std::array<bool, GroupColours::numColours>& isColourUsed)
+        {
+            int numStandardColours = GroupColours::numColours - 1;
+            int whiteIndex = GroupColours::numColours - 1;
+
+            for (int i = 1; i <= targetGrpId; ++i)
+            {
+                juce::Identifier propId = SlotIDs::groupColour(i);
+
+                if (!state.hasProperty(propId))
+                {
+                    int startIndex = (i - 1) % numStandardColours;
+                    int assignedColourIndex = whiteIndex;
+
+                    for (int c = 0; c < numStandardColours; ++c)
+                    {
+                        int testIndex = (startIndex + c) % numStandardColours;
+                        if (!isColourUsed[testIndex])
+                        {
+                            assignedColourIndex = testIndex;
+                            isColourUsed[testIndex] = true;
+                            break;
+                        }
+                    }
+
+                    if (i == targetGrpId)
+                        return assignedColourIndex;
+                }
+            }
+            return whiteIndex;
+        }
+    }
+
 }

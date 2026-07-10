@@ -120,6 +120,8 @@ private:
 
     void handleActiveStoreParameterChanged(float newValue);
 
+    void recallStoreStateAsync(int storeIdx);
+
     juce::Uuid instanceId;
     juce::Array<bool> wasSlotOwned;
 

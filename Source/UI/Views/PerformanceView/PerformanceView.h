@@ -66,6 +66,14 @@ public:
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
 private:
+
+	struct SlotDisplayInfo {
+		bool shouldProcess = false;
+		bool isVisible = false;
+		bool isStereoMain = false;
+		SlotMode mode = SlotMode::Disabled;
+	};
+
 	void init();
 
 	// Configuration functions
@@ -137,6 +145,13 @@ private:
 
 	void addClaimSlotMenuItem(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu);
 	void addStandardMenuOptions(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu, juce::Array<int>& activeSlots);
+	void parseSelectedArray(juce::Array<int>& activeSlots, juce::Array<int>& vcaSlots, juce::Array<int>& normalSlots);
+	void addNormalSlotItems(juce::Array<int>& normalSlots, juce::PopupMenu& menu);
+
+	void addLinkMasksMenuItems(juce::Array<int>& activeSlots, juce::PopupMenu& menu);
+	bool canCreateCustomLink(int slotA, int slotB) const;
+	void addExistingLinkMenuOptions(const juce::Array<int>& activeSlots, juce::PopupMenu& menu);
+
 	void addStereoMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu) const;
 
 	void addLinkMaskMenu(const juce::Array<int>& activeSlots, const juce::Array<int>& normalSlots, const juce::Array<int>& vcaSlots, juce::PopupMenu& menu) const;
@@ -151,11 +166,22 @@ private:
 	void addGroupMemberItems(GroupRole role, juce::PopupMenu& menu);
 	void addVcaMenuItem(juce::PopupMenu& menu, int grpId) const;
 
-	void setupAndAddColourMenu(juce::PopupMenu& menu, int grpId);
-	void setupColourMenu(int grpId, juce::PopupMenu& colourMenu) const;
+	void setupAndAddGrpColourMenu(juce::PopupMenu& menu, int grpId);
+	void setupGrpColourMenu(int grpId, juce::PopupMenu& colourMenu) const;
 
 	void showPopupMenuIfNotEmpty(juce::PopupMenu& menu, const juce::Array<int>& selectedArr);
 	void handlePopupMenuResult(int result, const juce::Array<int>& selectedArr);
+
+	void handleCreateCustomLink(juce::Array<int>& activeSlots);
+	void handleCustomUnlink(juce::Array<int>& activeSlots);
+
+	void applyDefaultLinkMasks(int slotId);
+	void clearLinkState(int slotId);
+
+	juce::Array<int> getUsedLinkColours(int ignoreSlotA = -1, int ignoreSlotB = -1) const;
+	int getAvailableLinkColourIndex() const;
+	void setupLinkColourMenu(const juce::Array<int>& activeSlots, juce::PopupMenu& colourMenu) const;
+	void handleLinkColourAssignment(const juce::Array<int>& activeSlots, int result);
 
 	void handleClaimSlot(const juce::Array<int>& selectedArr);
 	void fillActiveSlots(const juce::Array<int>& selectedArr, juce::Array<int>& activeSlots);
@@ -197,12 +223,6 @@ private:
 	void plotVcaMasters(juce::FlexBox& flexBox);
 	void addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot, bool isMainStereo);
 
-	struct SlotDisplayInfo {
-		bool shouldProcess = false;
-		bool isVisible = false;
-		bool isStereoMain = false;
-		SlotMode mode = SlotMode::Disabled;
-	};
 	SlotDisplayInfo getSlotDisplayInfo(int index);
 
 	bool isSlotFullAccess(int slotIdx);
@@ -219,8 +239,15 @@ private:
 
 	// Stores helpers
 	void updatePinnedButtons();
+	void createAndAddPinnedButton(int storeIdx);
 
 	juce::String getLayoutSignature();
+
+	// ID Translation Helpers
+	bool isVcaSelection(int selectionId) const;
+	int getTrueId(int selectionId) const;
+	int makeSelectionId(int trueId, bool isVca) const;
+	int getLinkedSelectionId(int selectionId) const;
 
 	float currentBaselineWidth = SlotSizeValues::monoSlotTargetWidth;
 

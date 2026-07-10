@@ -81,6 +81,8 @@ private:
 	void applyPanDelta(int targetId, float delta);
     float applyPolarity(float delta, int sourceTreeId) const;
 
+    void forEachGroupMember(int leaderSlotIdx, int grpId, std::function<void(int)> action) const;
+
     KaiCBFaderControlAudioProcessor& processor;
 
     std::array<float, PluginConstants::numSlots> lastVolume;

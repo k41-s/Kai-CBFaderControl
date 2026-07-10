@@ -211,24 +211,7 @@ void OscManager::pollAndBroadcastFaders()
 
     for (int i = 1; i <= PluginConstants::numSlots; ++i)
     {
-        bool isLocallyActive = SlotStateHelpers::isSlotActive(processor.apvts, i);
-        SlotMode mode = processor.globalSlotRegistry->getSlotMode(i, processor.getInstanceId(), isLocallyActive);
-
-        bool shouldProcessOsc = false;
-
-        if (mode == SlotMode::FullAccess)
-        {
-            shouldProcessOsc = true;
-        }
-        else if (mode == SlotMode::Disabled)
-        {
-            if (processor.globalSlotRegistry->isSlotUnowned(i))
-            {
-                shouldProcessOsc = true;
-            }
-        }
-
-        if (shouldProcessOsc)
+        if (shouldProcessSlotOsc(i))
         {
             sendOscVolume(i, frameBundle);
             sendOscMute(i, frameBundle);
@@ -514,4 +497,18 @@ void OscManager::syncStringCaches(const juce::String& key, const juce::String& v
 {
     lastSentOscStrings[key] = value;
     lastReceivedOscStrings[key] = value;
+}
+
+bool OscManager::shouldProcessSlotOsc(int slotId) const
+{
+    bool isLocallyActive = SlotStateHelpers::isSlotActive(processor.apvts, slotId);
+    SlotMode mode = processor.globalSlotRegistry->getSlotMode(slotId, processor.getInstanceId(), isLocallyActive);
+
+    if (mode == SlotMode::FullAccess)
+        return true;
+
+    if (mode == SlotMode::Disabled && processor.globalSlotRegistry->isSlotUnowned(slotId))
+        return true;
+
+    return false;
 }

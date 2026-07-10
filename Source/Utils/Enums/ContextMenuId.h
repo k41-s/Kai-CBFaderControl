@@ -1,7 +1,7 @@
 enum ContextMenuID {
-    ClaimSlot = 10,
     StereoLink = 1,
     StereoUnlink = 2,
+    ClaimSlot = 10,
     AssignGroupBase = 30,
     RemoveGroup = 40,
     PromoteLeader = 50,
@@ -17,5 +17,6 @@ enum ContextMenuID {
     LinkMaskSolo = 205,
     LinkMaskPan = 206,
     CustomUnlink = 210,
-    CreateCustomLink = 211
+    CreateCustomLink = 211,
+    AssignLinkColourBase = 220
 };

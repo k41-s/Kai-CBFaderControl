@@ -69,6 +69,8 @@ private:
     void syncIntCaches(const juce::String& key, int value);
     void syncStringCaches(const juce::String& key, const juce::String& value);
 
+    bool shouldProcessSlotOsc(int slotId) const;
+
     KaiCBFaderControlAudioProcessor& processor;
     juce::OSCReceiver receiver;
     juce::OSCSender sender;

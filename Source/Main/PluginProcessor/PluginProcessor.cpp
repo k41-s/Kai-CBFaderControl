@@ -449,15 +449,7 @@ void KaiCBFaderControlAudioProcessor::forceRecallStore(int storeIdx)
 {
     if (storeIdx > 0)
     {
-        juce::MessageManager::callAsync([this, storeIdx]()
-            {
-                auto storeState = presetManager->getStore(storeIdx);
-                if (storeState.isValid())
-                {
-                    ScopedAtomicSetter setter(isRestoringState, true);
-                    apvts.replaceState(storeState.createCopy());
-                }
-            });
+        recallStoreStateAsync(storeIdx);
     }
 }
 
@@ -488,14 +480,19 @@ void KaiCBFaderControlAudioProcessor::handleActiveStoreParameterChanged(float ne
 
     if (storeIdx > 0 && !isRestoringState)
     {
-        juce::MessageManager::callAsync([this, storeIdx]()
-            {
-                auto storeState = presetManager->getStore(storeIdx);
-                if (storeState.isValid())
-                {
-                    ScopedAtomicSetter setter(isRestoringState, true);
-                    apvts.replaceState(storeState.createCopy());
-                }
-            });
+        recallStoreStateAsync(storeIdx);
     }
+}
+
+void KaiCBFaderControlAudioProcessor::recallStoreStateAsync(int storeIdx)
+{
+    juce::MessageManager::callAsync([this, storeIdx]()
+        {
+            auto storeState = presetManager->getStore(storeIdx);
+            if (storeState.isValid())
+            {
+                ScopedAtomicSetter setter(isRestoringState, true);
+                apvts.replaceState(storeState.createCopy());
+            }
+        });
 }

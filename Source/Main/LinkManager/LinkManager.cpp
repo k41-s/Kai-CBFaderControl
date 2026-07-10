@@ -248,35 +248,19 @@ void LinkManager::syncGroupMutesWithVca(int grpIdx, float newValue)
 void LinkManager::applyDeltaToGroupMembers(int slotIdx, int grpId, float delta)
 {
     ScopedAtomicSetter setter(isPropagatingGroup, true);
-    for (int i = 1; i <= PluginConstants::numSlots; ++i)
+    forEachGroupMember(slotIdx, grpId, [&](int memberIdx) 
     {
-        if (i == slotIdx) continue;
-
-        int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
-        GroupRole otherRoleId = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
-
-        if (otherGrpId == grpId && otherRoleId == GroupRole::Member)
-        {
-            applyGroupVolumeDeltaToSlot(i, delta);
-        }
-    }
+        applyGroupVolumeDeltaToSlot(memberIdx, delta);
+    });
 }
 
 void LinkManager::syncMutesWithinGroup(int slotIdx, int grpId, float newValue)
 {
     ScopedAtomicSetter setter(isPropagatingGroup, true);
-    for (int i = 1; i <= PluginConstants::numSlots; ++i)
+    forEachGroupMember(slotIdx, grpId, [&](int memberIdx) 
     {
-        if (i == slotIdx) continue;
-
-        int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
-        GroupRole otherRoleId = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
-
-        if (otherGrpId == grpId && otherRoleId == GroupRole::Member)
-        {
-            SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(i), newValue);
-        }
-    }
+        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(memberIdx), newValue);
+    });
 }
 
 void LinkManager::updateSipState()
@@ -451,4 +435,20 @@ float LinkManager::applyPolarity(float delta, int sourceTreeId) const
     return SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, sourceTreeId) 
         ? -delta 
         : delta;
+}
+
+void LinkManager::forEachGroupMember(int leaderSlotIdx, int grpId, std::function<void(int)> action) const
+{
+    for (int i = 1; i <= PluginConstants::numSlots; ++i)
+    {
+        if (i == leaderSlotIdx) continue;
+
+        int otherGrpId = SlotStateHelpers::getGroupId(processor.apvts.state, i);
+        GroupRole otherRoleId = SlotStateHelpers::getGroupRole(processor.apvts.state, i);
+
+        if (otherGrpId == grpId && otherRoleId == GroupRole::Member)
+        {
+            action(i);
+        }
+    }
 }

@@ -192,14 +192,14 @@ void BaseSlotItem::paintLinkIndicator(juce::Graphics& g)
         juce::Colour pairColour;
         int colourIdx = SlotStateHelpers::getLinkColourIndex(processor.apvts.state, mySelectionId);
 
-        if (colourIdx >= 0 && colourIdx < LinkColours::numColours)
+        if (colourIdx >= 0 && colourIdx < GroupColours::numColours)
         {
-            pairColour = LinkColours::palette[colourIdx];
+            pairColour = GroupColours::palette[colourIdx];
         }
         else
         {
             int minId = juce::jmin(mySelectionId, linkedSelectionId);
-            pairColour = LinkColours::palette[minId % LinkColours::numColours];
+            pairColour = GroupColours::palette[minId % GroupColours::numColours];
         }
 
         drawLinkIndicator(g, isInverse, pairColour);
