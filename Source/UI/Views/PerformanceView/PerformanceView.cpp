@@ -897,6 +897,30 @@ void PerformanceView::sortSelectedSlots(const juce::Array<int>& selectedArr, juc
 	}
 }
 
+bool PerformanceView::isSelectionUnifiedGroup(const juce::Array<int>& normalSlots, const juce::Array<int>& vcaSlots, int& commonGrpId) const
+{
+	if (vcaSlots.size() > 1) return false;
+
+	commonGrpId = 0;
+	if (vcaSlots.size() == 1)
+		commonGrpId = vcaSlots[0];
+
+	for (int slotId : normalSlots)
+	{
+		int grpId = SlotStateHelpers::getGroupId(processor.apvts.state, slotId);
+
+		if (!SlotStateHelpers::isValidGroup(grpId)) 
+			return false;
+
+		if (commonGrpId == 0)
+			commonGrpId = grpId;
+		else if (commonGrpId != grpId)
+			return false;
+	}
+
+	return SlotStateHelpers::isValidGroup(commonGrpId);
+}
+
 void PerformanceView::addClaimSlotMenuItem(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu)
 {
 	juce::String text = readOnlySlots.size() == 1
@@ -913,18 +937,20 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 
 	juce::Array<int> normalSlots;
 	juce::Array<int> vcaSlots;
-
 	parseSelectedArray(activeSlots, vcaSlots, normalSlots);
 
-	if (vcaSlots.size() == 1 && normalSlots.isEmpty())
+	int commonGrpId = 0;
+	bool isUnifiedGroup = isSelectionUnifiedGroup(normalSlots, vcaSlots, commonGrpId);
+
+	if (!normalSlots.isEmpty())
 	{
-		addVcaMenuItem(menu, vcaSlots[0]);
-		setupAndAddGrpColourMenu(menu, vcaSlots[0]);
+		addNormalSlotItems(normalSlots, menu, !vcaSlots.isEmpty());
 	}
 
-	if (vcaSlots.isEmpty() && normalSlots.size() > 0)
+	if (isUnifiedGroup && SlotStateHelpers::isValidGroup(commonGrpId))
 	{
-		addNormalSlotItems(normalSlots, menu);
+		addVcaMenuItem(menu, commonGrpId);
+		setupAndAddGrpColourMenu(menu, commonGrpId);
 	}
 
 	addLinkMasksMenuItems(activeSlots, menu);
@@ -941,14 +967,19 @@ void PerformanceView::parseSelectedArray(juce::Array<int>& activeSlots, juce::Ar
 	}
 }
 
-void PerformanceView::addNormalSlotItems(juce::Array<int>& normalSlots, juce::PopupMenu& menu)
+void PerformanceView::addNormalSlotItems(juce::Array<int>& normalSlots, juce::PopupMenu& menu, bool containsVca)
 {
 	addStereoMenuItems(normalSlots, menu);
-	addGroupMenu(normalSlots, menu);
-	addSoloSafeMenuItem(normalSlots, menu);
 
-	if (normalSlots.size() == 1)
-		addSingleSlotGroupOptions(normalSlots, menu);
+	if (!containsVca)
+	{
+		addGroupMenu(normalSlots, menu);
+
+		if (normalSlots.size() == 1)
+			addSingleSlotGroupOptions(normalSlots, menu);
+	}
+
+	addSoloSafeMenuItem(normalSlots, menu);
 }
 
 void PerformanceView::addLinkMasksMenuItems(juce::Array<int>& activeSlots, juce::PopupMenu& menu)
@@ -1183,8 +1214,6 @@ void PerformanceView::addSingleSlotGroupOptions(const juce::Array<int>& selected
 	{
 		menu.addSeparator();
 		addGroupMemberItems(role, menu);
-		addVcaMenuItem(menu, grpId);
-		setupAndAddGrpColourMenu(menu, grpId);
 	}
 }
 
@@ -1299,7 +1328,7 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 			break;
 
 		case ToggleVCA:
-			if (activeSlots.size() == 1)
+			if (!activeSlots.isEmpty())
 			{
 				int id = activeSlots[0];
 				int grpId = (id > PluginConstants::vcaSelectionOffset) 
@@ -1494,42 +1523,44 @@ void PerformanceView::addSoloSafeMenuItem(const juce::Array<int>& activeSlots, j
 {
 	if (activeSlots.isEmpty()) return;
 
+	bool allSafe = true;
+	for (int idx : activeSlots)
+	{
+		if (!SlotStateHelpers::isSlotSoloSafe(processor.apvts, idx))
+		{
+			allSafe = false;
+			break;
+		}
+	}
+
 	menu.addSeparator();
 
-	if (activeSlots.size() == 1)
-	{
-		bool isSafe = SlotStateHelpers::isSlotSoloSafe(processor.apvts, activeSlots[0]);
-		menu.addItem(ToggleSoloSafe, isSafe ? "Disable Solo Safe" : "Enable Solo Safe");
-	}
-	else
-	{
-		menu.addItem(ToggleSoloSafe, "Toggle Solo Safe (Bulk)");
-	}
+	juce::String text = activeSlots.size() == 1 ? "Solo Safe" : "Solo Safe (Bulk)";
+	menu.addItem(ToggleSoloSafe, text, true, allSafe);
 }
 
 void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr, int result)
 {
-	if (selectedArr.size() == 1)
+	if (selectedArr.isEmpty()) return;
+
+	int id = selectedArr[0];
+
+	int grpId = (id > PluginConstants::vcaSelectionOffset) 
+		? (id - PluginConstants::vcaSelectionOffset) 
+		: SlotStateHelpers::getGroupId(processor.apvts.state, id);
+
+	if (SlotStateHelpers::isValidGroup(grpId))
 	{
-		int id = selectedArr[0];
+		processor.undoManager.beginNewTransaction("Set Group Colour");
 
-		int grpId = (id > PluginConstants::vcaSelectionOffset) ?
-			(id - PluginConstants::vcaSelectionOffset) :
-			SlotStateHelpers::getGroupId(processor.apvts.state, id);
-
-		if (SlotStateHelpers::isValidGroup(grpId))
+		if (result == AssignColourBase + GroupColours::numColours)
 		{
-			processor.undoManager.beginNewTransaction("Set Group Colour");
-
-			if (result == AssignColourBase + GroupColours::numColours)
-			{
-				SlotStateHelpers::clearGroupColour(processor.apvts.state, grpId, &processor.undoManager);
-			}
-			else
-			{
-				int colourIdx = result - AssignColourBase;
-				SlotStateHelpers::setGroupColour(processor.apvts.state, grpId, colourIdx, &processor.undoManager);
-			}
+			SlotStateHelpers::clearGroupColour(processor.apvts.state, grpId, &processor.undoManager);
+		}
+		else
+		{
+			int colourIdx = result - AssignColourBase;
+			SlotStateHelpers::setGroupColour(processor.apvts.state, grpId, colourIdx, &processor.undoManager);
 		}
 	}
 }
@@ -1669,11 +1700,21 @@ void PerformanceView::toggleSoloSafe(const juce::Array<int>& activeSlots)
 {
 	processor.undoManager.beginNewTransaction("Toggle Solo Safe");
 
+	bool allSafe = true;
 	for (int idx : activeSlots)
 	{
-		bool isCurrentlySafe = SlotStateHelpers::isSlotSoloSafe(processor.apvts, idx);
+		if (!SlotStateHelpers::isSlotSoloSafe(processor.apvts, idx))
+		{
+			allSafe = false;
+			break;
+		}
+	}
 
-		SlotStateHelpers::setSlotSoloSafe(processor.apvts, idx, !isCurrentlySafe);
+	bool targetState = !allSafe;
+
+	for (int idx : activeSlots)
+	{
+		SlotStateHelpers::setSlotSoloSafe(processor.apvts, idx, targetState);
 	}
 }
 

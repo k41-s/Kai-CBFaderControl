@@ -142,11 +142,12 @@ private:
 	void showContextMenu();
 	void addMenuItems(const juce::Array<int>& selectedArr, juce::PopupMenu& menu);
 	void sortSelectedSlots(const juce::Array<int>& selectedArr, juce::Array<int>& activeSlots, juce::Array<int>& readOnlySlots);
+	bool isSelectionUnifiedGroup(const juce::Array<int>& normalSlots, const juce::Array<int>& vcaSlots, int& commonGrpId) const;
 
 	void addClaimSlotMenuItem(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu);
 	void addStandardMenuOptions(juce::Array<int>& readOnlySlots, juce::PopupMenu& menu, juce::Array<int>& activeSlots);
 	void parseSelectedArray(juce::Array<int>& activeSlots, juce::Array<int>& vcaSlots, juce::Array<int>& normalSlots);
-	void addNormalSlotItems(juce::Array<int>& normalSlots, juce::PopupMenu& menu);
+	void addNormalSlotItems(juce::Array<int>& normalSlots, juce::PopupMenu& menu, bool containsVca);
 
 	void addLinkMasksMenuItems(juce::Array<int>& activeSlots, juce::PopupMenu& menu);
 	bool canCreateCustomLink(int slotA, int slotB) const;
