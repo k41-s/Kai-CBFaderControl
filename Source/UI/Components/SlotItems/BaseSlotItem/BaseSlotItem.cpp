@@ -326,7 +326,10 @@ void BaseSlotItem::injectGrabHandle(juce::Rectangle<int>& area)
 {
     if (grabHandle != nullptr && grabHandle->isVisible())
     {
-        grabHandle->setBounds(area.removeFromTop(12));
-        area.removeFromTop(2);
+        int handleWidth = juce::jlimit(19, 24, juce::roundToInt(area.getWidth() * 0.2f));
+        int handleHeight = 16;
+
+        grabHandle->setBounds(area.getRight() - handleWidth - 2, area.getY() + 2, handleWidth, handleHeight);
+        grabHandle->toFront(false);
     }
 }

@@ -14,6 +14,7 @@ public:
 	void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 	void paint(juce::Graphics& g) override;
 	void resized() override;
+	void paintOverChildren(juce::Graphics& g) override;
 
 	int getSelectionId() const override { return index + PluginConstants::vcaSelectionOffset; }
 

@@ -7,16 +7,27 @@ GrabHandle::GrabHandle(int associatedSelectionId) : selectionId(associatedSelect
 
 void GrabHandle::paint(juce::Graphics& g)
 {
-    g.setColour(juce::Colours::white.withAlpha(0.3f));
-    auto area = getLocalBounds().reduced(4, 2).toFloat();
-    float spacing = area.getHeight() / 4.0f;
+    auto bounds = getLocalBounds().toFloat();
 
-    for (int i = 1; i <= 3; ++i)
-    {
-        g.drawHorizontalLine(static_cast<int>(area.getY() + (spacing * i)),
-            area.getX(),
-            area.getRight());
-    }
+    g.setColour(juce::Colours::black.withAlpha(0.5f));
+    g.fillRoundedRectangle(bounds.reduced(1.0f), 3.0f);
+
+    g.setColour(juce::Colours::white.withAlpha(0.95f));
+
+    float cy = bounds.getCentreY();
+    float padX = 4.0f;
+    float leftX = padX;
+    float rightX = bounds.getWidth() - padX;
+    float arrowSize = 3.5f;
+    float thickness = 1.5f;
+
+    g.drawLine(leftX, cy, rightX, cy, thickness);
+
+    g.drawLine(leftX, cy, leftX + arrowSize, cy - arrowSize, thickness);
+    g.drawLine(leftX, cy, leftX + arrowSize, cy + arrowSize, thickness);
+
+    g.drawLine(rightX, cy, rightX - arrowSize, cy - arrowSize, thickness);
+    g.drawLine(rightX, cy, rightX - arrowSize, cy + arrowSize, thickness);
 }
 
 void GrabHandle::mouseDrag(const juce::MouseEvent& e)

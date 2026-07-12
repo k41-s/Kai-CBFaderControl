@@ -75,9 +75,7 @@ void PerformanceView::configSetupButton()
 
 void PerformanceView::configEditLayoutButton()
 {
-	// See about using a form of padlock type icon here
-
-	editLayoutButton.setButtonText("Rearrange: Off");
+	editLayoutButton.setButtonText("< Locked >");
 	editLayoutButton.setClickingTogglesState(true);
 	editLayoutButton.setToggleState(false, juce::dontSendNotification);
 	addAndMakeVisible(editLayoutButton);
@@ -85,7 +83,7 @@ void PerformanceView::configEditLayoutButton()
 	editLayoutButton.onClick = [this]()
 		{
 			bool isEditing = editLayoutButton.getToggleState();
-			editLayoutButton.setButtonText(isEditing ? "Rearrange: On" : "Rearrange: Off");
+			editLayoutButton.setButtonText(isEditing ? "< Unlocked >" : "< Locked >");
 
 			for (auto* slot : slots)
 				slot->setEditMode(isEditing);

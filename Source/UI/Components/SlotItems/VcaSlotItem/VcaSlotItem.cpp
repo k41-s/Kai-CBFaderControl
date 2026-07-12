@@ -149,13 +149,16 @@ void VcaSlotItem::paint(juce::Graphics& g)
         g.setColour(juce::Colours::white.withAlpha(0.6f));
         g.drawRect(bounds, 2.0f);
     }
-
-	paintLinkIndicator(g);
 }
 
 void VcaSlotItem::resized()
 {
     setupSlotBounds();
+}
+
+void VcaSlotItem::paintOverChildren(juce::Graphics& g)
+{
+	paintLinkIndicator(g);
 }
 
 void VcaSlotItem::setupSlotBounds()
