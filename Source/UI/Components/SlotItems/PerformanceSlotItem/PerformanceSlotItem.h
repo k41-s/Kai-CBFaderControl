@@ -28,7 +28,6 @@ public:
 	void setMode(SlotMode mode);
 
 	int getSelectionId() const override { return index; }
-
 	std::function<void(bool isMute, bool newState, PerformanceSlotItem*)> onBulkToggleRequest;
 
 protected:

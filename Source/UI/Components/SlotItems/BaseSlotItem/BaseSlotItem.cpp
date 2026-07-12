@@ -169,6 +169,15 @@ void BaseSlotItem::setSelected(bool selected)
     }
 }
 
+void BaseSlotItem::setEditMode(bool isEditModeActive)
+{
+    if (grabHandle != nullptr)
+    {
+		grabHandle->setVisible(isEditModeActive);
+        resized();
+    }
+}
+
 bool BaseSlotItem::isEventFromButton(juce::Component* comp)
 {
     if (comp == nullptr) 
@@ -305,4 +314,19 @@ void BaseSlotItem::updateBaseGroupState(int grpId, bool applyFaderIndicator)
 
     volumeFader.repaint();
     groupLabel.setVisible(true);
+}
+
+void BaseSlotItem::configGrabHandle()
+{
+    grabHandle = std::make_unique<GrabHandle>(getSelectionId());
+    addChildComponent(grabHandle.get());
+}
+
+void BaseSlotItem::injectGrabHandle(juce::Rectangle<int>& area)
+{
+    if (grabHandle != nullptr && grabHandle->isVisible())
+    {
+        grabHandle->setBounds(area.removeFromTop(12));
+        area.removeFromTop(2);
+    }
 }

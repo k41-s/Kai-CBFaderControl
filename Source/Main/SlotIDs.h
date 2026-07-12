@@ -77,6 +77,8 @@ struct SlotIDs
     static juce::String vcaName(int vca) { return SlotIdStringPrefixes::vcaName + juce::String(vca); }
     static juce::String isVcaExpanded(int vca) { return SlotIdStringPrefixes::isVcaExpanded + juce::String(vca); }
 
+    static juce::Identifier visualSlotOrder() { return SlotIdStringPrefixes::slotOrder + "array"; }
+
     static juce::Identifier targetIP() { return "targetIP"; }
     static juce::Identifier incomingPort() { return "incomingPort"; }
     static juce::Identifier outgoingPort() { return "outgoingPort"; }

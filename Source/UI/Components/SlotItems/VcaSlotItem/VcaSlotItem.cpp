@@ -15,6 +15,8 @@ VcaSlotItem::VcaSlotItem(KaiCBFaderControlAudioProcessor& p, int vcaIndex)
 
 void VcaSlotItem::init()
 {
+	configGrabHandle();
+
     processor.apvts.state.addListener(this);
 
     configBaseVolumeFader();
@@ -160,6 +162,8 @@ void VcaSlotItem::setupSlotBounds()
 {
     auto area = getLocalBounds().reduced(2);
     int currentWidth = area.getWidth();
+
+	injectGrabHandle(area);
     
     setupTopArea(area);
     setupBottomArea(area, currentWidth);

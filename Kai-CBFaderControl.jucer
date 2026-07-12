@@ -103,6 +103,10 @@
                     file="Source/UI/Components/SlotItems/BaseSlotItem/BaseSlotItem.cpp"/>
               <FILE id="nIh6Z5" name="BaseSlotItem.h" compile="0" resource="0" file="Source/UI/Components/SlotItems/BaseSlotItem/BaseSlotItem.h"/>
             </GROUP>
+            <GROUP id="{F3040894-11FF-6663-F26C-70E0F0AA7984}" name="GrabHandle">
+              <FILE id="EtJoWp" name="GrabHandle.cpp" compile="1" resource="0" file="Source/UI/Components/SlotItems/GrabHandle/GrabHandle.cpp"/>
+              <FILE id="FGvSIa" name="GrabHandle.h" compile="0" resource="0" file="Source/UI/Components/SlotItems/GrabHandle/GrabHandle.h"/>
+            </GROUP>
             <GROUP id="{C0C6D1C4-C450-1129-DA22-2FFC33AC368D}" name="PerformanceSlotItem">
               <FILE id="KKj8gH" name="PerformanceSlotItem.cpp" compile="1" resource="0"
                     file="Source/UI/Components/SlotItems/PerformanceSlotItem/PerformanceSlotItem.cpp"/>

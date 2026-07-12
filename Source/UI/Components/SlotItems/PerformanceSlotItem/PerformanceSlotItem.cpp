@@ -23,6 +23,7 @@ void PerformanceSlotItem::refreshAllVisuals()
 
 void PerformanceSlotItem::init(int slotIndex)
 {
+    configGrabHandle();
     addListeners();
     configComponents();
     configAttachments(slotIndex);
@@ -424,6 +425,7 @@ void PerformanceSlotItem::setupSlotBounds()
     auto area = getLocalBounds().reduced(2);
     int currentWidth = area.getWidth();
 
+    injectGrabHandle(area);
     setupTopArea(area, currentWidth);
     injectPanControl(area);
     setupBottomArea(area, currentWidth);

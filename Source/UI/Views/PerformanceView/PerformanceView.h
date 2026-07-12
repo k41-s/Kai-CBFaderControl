@@ -16,7 +16,9 @@ class PerformanceView :
 	public juce::AsyncUpdater,
 	public juce::LassoSource<int>,
 	public juce::ChangeListener,
-	public juce::Timer
+	public juce::Timer,
+	public juce::DragAndDropContainer,
+	public juce::DragAndDropTarget
 {
 public:
 	PerformanceView(KaiCBFaderControlAudioProcessor& p);
@@ -63,6 +65,9 @@ public:
 	void handleRedo();
 	void handleSaveActiveStore();
 
+	bool isInterestedInDragSource(const SourceDetails& dragSourceDetails) override;
+	void itemDropped(const SourceDetails& dragSourceDetails) override;
+
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
 private:
@@ -81,6 +86,7 @@ private:
 	void createVcaFaderSlots();
 	void createFaderSlots();
 	void configSetupButton();
+	void configEditLayoutButton();
 
 	// Presets Helpers
 	void configPresetsButton();
@@ -219,9 +225,9 @@ private:
 	void addPinnedStoreButtons(juce::FlexBox& storeBox);
 	juce::FlexBox configFlexBox();
 	void checkAndAddActiveSlots(juce::FlexBox& flexBox);
-	void plotRegularSlots(juce::FlexBox& flexBox);
+	void plotSingleRegularSlot(juce::FlexBox& flexBox, int slotId);
+	void plotSingleVca(juce::FlexBox& flexBox, int vcaId);
 	void hideSlotIfVcaCollapsed(int grpId, bool& shouldShow) const;
-	void plotVcaMasters(juce::FlexBox& flexBox);
 	void addSlotIfActive(bool isActive, juce::FlexBox& flexBox, PerformanceSlotItem* slot, bool isMainStereo);
 
 	SlotDisplayInfo getSlotDisplayInfo(int index);
@@ -243,6 +249,8 @@ private:
 	void createAndAddPinnedButton(int storeIdx);
 
 	juce::String getLayoutSignature();
+
+	void syncSlotOrderFromState();
 
 	// ID Translation Helpers
 	bool isVcaSelection(int selectionId) const;
@@ -270,6 +278,8 @@ private:
 	juce::TextButton storesButton;
 	juce::Label activeStoreLabel;
 
+	juce::TextButton editLayoutButton;
+
 	bool hasUnsavedChanges = false;
 	bool isSettling = false;
 
@@ -278,6 +288,8 @@ private:
 
 	juce::LassoComponent<int> lasso;
 	juce::SelectedItemSet<int> selectedItems;
+
+	juce::Array<int> visualSlotOrder;
 
 	BinaryImageComponent cbLogo{ BinaryData::cblogo_png, BinaryData::cblogo_pngSize };
 	BinaryImageComponent xPatchImg{ BinaryData::XPatch_png, BinaryData::XPatch_pngSize };

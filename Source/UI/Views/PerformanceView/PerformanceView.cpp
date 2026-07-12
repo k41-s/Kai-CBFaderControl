@@ -24,6 +24,7 @@ void PerformanceView::init()
 	configComponents();
 	registerListeners();
 	addAndMakeVisible(lasso);
+	syncSlotOrderFromState();
 	triggerSettling();
 }
 
@@ -32,6 +33,7 @@ void PerformanceView::configComponents()
 	createFaderSlots();
 	createVcaFaderSlots();
 	configSetupButton();
+	configEditLayoutButton();
 	configPresetsButton();
 	configStoresButton();
 	configActiveStoreLabel();
@@ -68,6 +70,28 @@ void PerformanceView::configSetupButton()
 		{
 			if (onNavigateToSetup)
 				onNavigateToSetup();
+		};
+}
+
+void PerformanceView::configEditLayoutButton()
+{
+	// See about using a form of padlock type icon here
+
+	editLayoutButton.setButtonText("Rearrange: Off");
+	editLayoutButton.setClickingTogglesState(true);
+	editLayoutButton.setToggleState(false, juce::dontSendNotification);
+	addAndMakeVisible(editLayoutButton);
+
+	editLayoutButton.onClick = [this]()
+		{
+			bool isEditing = editLayoutButton.getToggleState();
+			editLayoutButton.setButtonText(isEditing ? "Rearrange: On" : "Rearrange: Off");
+
+			for (auto* slot : slots)
+				slot->setEditMode(isEditing);
+
+			for (auto* vca : vcaSlots)
+				vca->setEditMode(isEditing);
 		};
 }
 
@@ -695,11 +719,18 @@ void PerformanceView::valueTreePropertyChanged(juce::ValueTree& tree, const juce
 	{
 		triggerAsyncUpdate();
 	}
+
+	if (property == SlotIDs::visualSlotOrder())
+	{
+		syncSlotOrderFromState();
+		triggerAsyncUpdate();
+	}
 }
 
 void PerformanceView::valueTreeRedirected(juce::ValueTree& treeWhichHasBeenChanged)
 {
 	hasUnsavedChanges = false;
+	syncSlotOrderFromState();
 	triggerSettling();
 	handleActiveStoreParamChanged();
 }
@@ -1875,15 +1906,20 @@ void PerformanceView::setupAndFillHeader()
 	auto presetsArea = buttonStrip.removeFromRight(80).reduced(4, 4);
 	presetsButton.setBounds(presetsArea);
 
-	auto leftArea = buttonStrip.removeFromLeft(250);
+	auto leftArea = buttonStrip.removeFromLeft(350);
 
 	auto setupArea = leftArea.removeFromLeft(80).reduced(4, 4);
 	setupButton.setBounds(setupArea);
 
 	leftArea.removeFromLeft(20);
 
-	auto labelArea = leftArea.reduced(4, 4);
+	auto labelArea = leftArea.removeFromLeft(120).reduced(4, 4);
 	activeStoreLabel.setBounds(labelArea);
+
+	leftArea.removeFromLeft(10);
+
+	auto lockArea = leftArea.removeFromLeft(100).reduced(4, 4);
+	editLayoutButton.setBounds(lockArea);
 
 	xPatchImg.setBounds(headerArea.withHeight(topButtonStripHeight)
 		.withSizeKeepingCentre(75, topButtonStripHeight)
@@ -1952,28 +1988,54 @@ juce::FlexBox PerformanceView::configFlexBox()
 
 void PerformanceView::checkAndAddActiveSlots(juce::FlexBox& flexBox)
 {
-	plotRegularSlots(flexBox);
-	plotVcaMasters(flexBox);
+	for (int selectionId : visualSlotOrder)
+	{
+		if (isVcaSelection(selectionId))
+		{
+			plotSingleVca(flexBox, getTrueId(selectionId));
+		}
+		else
+		{
+			plotSingleRegularSlot(flexBox, selectionId);
+		}
+	}
 }
 
-void PerformanceView::plotRegularSlots(juce::FlexBox& flexBox)
+void PerformanceView::plotSingleRegularSlot(juce::FlexBox& flexBox, int slotId)
 {
-	for (int i = 1; i <= PluginConstants::numSlots; ++i)
+	auto info = getSlotDisplayInfo(slotId);
+	auto* slot = getSlotItem(slotId);
+
+	if (info.mode == SlotMode::Disabled || !info.shouldProcess)
 	{
-		auto info = getSlotDisplayInfo(i);
-		auto* slot = getSlotItem(i);
+		slot->setVisible(false);
+		return;
+	}
 
-		if (info.mode == SlotMode::Disabled || !info.shouldProcess)
-		{
-			slot->setVisible(false);
-			continue;
-		}
+	slot->setMode(info.mode);
+	slot->setVisible(info.isVisible);
 
-		slot->setMode(info.mode);
-		slot->setVisible(info.isVisible);
+	if (info.isVisible)
+	{
+		addSlotIfActive(true, flexBox, slot, info.isStereoMain);
+	}
+}
 
-		if (info.isVisible)
-			addSlotIfActive(true, flexBox, slot, info.isStereoMain);
+void PerformanceView::plotSingleVca(juce::FlexBox& flexBox, int vcaId)
+{
+	bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, vcaId);
+	auto* vca = getVcaItem(vcaId);
+
+	if (vcaEnabled)
+	{
+		vca->setVisible(true);
+		flexBox.items.add(juce::FlexItem(*vca)
+			.withMaxWidth(SlotSizeValues::vcaSlotMaxWidth)
+			.withFlex(SlotSizeValues::vcaSlotFlexGrowFactor));
+	}
+	else
+	{
+		vca->setVisible(false);
 	}
 }
 
@@ -1987,25 +2049,6 @@ void PerformanceView::hideSlotIfVcaCollapsed(int grpId, bool& shouldShow) const
 		if (vcaEnabled && !isExpanded)
 		{
 			shouldShow = false;
-		}
-	}
-}
-
-void PerformanceView::plotVcaMasters(juce::FlexBox& flexBox)
-{
-	for (int g = 1; g <= PluginConstants::numVcas; ++g)
-	{
-		bool vcaEnabled = SlotStateHelpers::isVcaEnabled(processor.apvts, g);
-		auto* vca = getVcaItem(g);
-
-		if (vcaEnabled) {
-			vca->setVisible(true);
-			flexBox.items.add(juce::FlexItem(*vca)
-				.withMaxWidth(SlotSizeValues::vcaSlotMaxWidth)
-				.withFlex(SlotSizeValues::vcaSlotFlexGrowFactor));
-		}
-		else {
-			vca->setVisible(false);
 		}
 	}
 }
@@ -2026,25 +2069,31 @@ juce::String PerformanceView::getLayoutSignature()
 {
 	juce::String sig;
 
-	for (int i = 1; i <= PluginConstants::numSlots; ++i)
+	for (int selectionId : visualSlotOrder)
 	{
-		auto info = getSlotDisplayInfo(i);
-		if (info.shouldProcess && info.isVisible)
+		if (isVcaSelection(selectionId))
 		{
-			sig += info.isStereoMain ? "S" : "M";
-			sig += juce::String(i) + "_";
+			int g = getTrueId(selectionId);
+			if (SlotStateHelpers::isVcaEnabled(processor.apvts, g))
+				sig += "V" + juce::String(g) + "_";
 		}
-	}
-
-	for (int g = 1; g <= PluginConstants::numVcas; ++g)
-	{
-		if (SlotStateHelpers::isVcaEnabled(processor.apvts, g))
+		else
 		{
-			sig += "V" + juce::String(g) + "_";
+			auto info = getSlotDisplayInfo(selectionId);
+			if (info.shouldProcess && info.isVisible)
+			{
+				sig += info.isStereoMain ? "S" : "M";
+				sig += juce::String(selectionId) + "_";
+			}
 		}
 	}
 
 	return sig;
+}
+
+void PerformanceView::syncSlotOrderFromState()
+{
+	visualSlotOrder = SlotStateHelpers::getVisualSlotOrder(processor.apvts.state);
 }
 
 int PerformanceView::getIdealWidth()
@@ -2304,4 +2353,64 @@ int PerformanceView::getLinkedSelectionId(int selectionId) const
 
 	bool targetIsVca = SlotStateHelpers::getCustomLinkedIsVca(processor.apvts.state, selectionId);
 	return makeSelectionId(targetTrueId, targetIsVca);
+}
+
+bool PerformanceView::isInterestedInDragSource(const SourceDetails& dragSourceDetails)
+{
+	// Make this SLOT DRAG string into a constant in appropriate package/file
+	// Also maybe the delimiter, |
+	return dragSourceDetails.description.toString().startsWith("SLOT_DRAG|");
+}
+
+void PerformanceView::itemDropped(const SourceDetails& dragSourceDetails)
+{
+	juce::String payload = dragSourceDetails.description.toString();
+	if (!payload.startsWith("SLOT_DRAG|")) return;
+
+	int draggedSelectionId = payload.substring(10).getIntValue();
+
+	int targetIndex = -1;
+	int dropX = dragSourceDetails.localPosition.x;
+
+	// Find the target slot based on the drop's horizontal coordinate
+	for (int i = 0; i < visualSlotOrder.size(); ++i)
+	{
+		int currentId = visualSlotOrder[i];
+		BaseSlotItem* slot = nullptr;
+
+		if (isVcaSelection(currentId))
+			slot = getVcaItem(getTrueId(currentId));
+		else
+			slot = getSlotItem(currentId);
+
+		if (slot != nullptr && slot->isVisible())
+		{
+			int slotCenterX = slot->getBounds().getCentreX();
+			// If the drop x-coordinate is left of this slot's centre, drop it here
+			if (dropX < slotCenterX)
+			{
+				targetIndex = i;
+				break;
+			}
+		}
+	}
+
+	if (targetIndex == -1)
+		targetIndex = visualSlotOrder.size();
+
+	// Adjust target index to prevent off-by-one errors when shifting an element forward
+	int currentIndex = visualSlotOrder.indexOf(draggedSelectionId);
+	if (currentIndex != -1 && currentIndex < targetIndex)
+	{
+		targetIndex--;
+	}
+
+	processor.undoManager.beginNewTransaction("Reorder Slots");
+
+	visualSlotOrder.removeAllInstancesOf(draggedSelectionId);
+	visualSlotOrder.insert(targetIndex, draggedSelectionId);
+
+	SlotStateHelpers::setVisualSlotOrder(processor.apvts.state, visualSlotOrder, &processor.undoManager);
+
+	triggerAsyncUpdate();
 }

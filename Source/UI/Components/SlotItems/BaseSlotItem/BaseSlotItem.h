@@ -3,6 +3,7 @@
 #include "../../../../Main/PluginProcessor/PluginProcessor.h"
 #include "../../UIConstants.h"
 #include "../../PrecisionSlider/PrecisionSlider.h"
+#include "../GrabHandle/GrabHandle.h"
 
 class BaseSlotItem : public juce::Component, public juce::ValueTree::Listener
 {
@@ -18,6 +19,8 @@ public:
     virtual int getSelectionId() const = 0;
     void setSelected(bool selected);
     bool getSelected() const { return isSelected; }
+
+    virtual void setEditMode(bool isEditModeActive);
 
     std::function<void(const juce::MouseEvent&, BaseSlotItem*)> onBackgroundMouseDown;
     std::function<void(const juce::MouseEvent&, BaseSlotItem*)> onBackgroundMouseDrag;
@@ -48,6 +51,9 @@ protected:
     void configBaseGroupLabels(std::function<int()> getGroupIdFunc);
     void updateBaseGroupState(int grpId, bool applyFaderIndicator = false);
 
+    void configGrabHandle();
+    void injectGrabHandle(juce::Rectangle<int>& area);
+
     virtual bool isEventFromButton(juce::Component* comp);
 
     void paintLinkIndicator(juce::Graphics& g);
@@ -61,6 +67,8 @@ protected:
 
     KaiCBFaderControlAudioProcessor& processor;
     int index;
+
+    std::unique_ptr<GrabHandle> grabHandle;
 
     juce::Font sharedFont;
 

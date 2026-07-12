@@ -456,6 +456,41 @@ namespace SlotStateHelpers
     }
 
     // =========================================================================
+    // VISUAL ORDERING
+    // =========================================================================
+
+    static inline juce::Array<int> getVisualSlotOrder(const juce::ValueTree& state)
+    {
+        juce::Array<int> order;
+        juce::String orderStr = getStringProp(state, SlotIDs::visualSlotOrder().toString(), "");
+
+        if (orderStr.isNotEmpty())
+        {
+            juce::StringArray tokens = juce::StringArray::fromTokens(orderStr, ",", "");
+            for (const auto& t : tokens)
+                order.add(t.getIntValue());
+        }
+        else
+        {
+            for (int i = 1; i <= PluginConstants::numSlots; ++i)
+                order.add(i);
+
+            for (int v = 1; v <= PluginConstants::numVcas; ++v)
+                order.add(v + PluginConstants::vcaSelectionOffset);
+        }
+        return order;
+    }
+
+    static inline void setVisualSlotOrder(juce::ValueTree& state, const juce::Array<int>& order, juce::UndoManager* undoManager = nullptr)
+    {
+        juce::StringArray tokens;
+        for (int id : order)
+            tokens.add(juce::String(id));
+
+        setStringProp(state, SlotIDs::visualSlotOrder().toString(), tokens.joinIntoString(","), undoManager);
+    }
+
+    // =========================================================================
     // EXTRAS
     // =========================================================================
 
