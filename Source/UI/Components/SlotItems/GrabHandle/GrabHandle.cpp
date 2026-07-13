@@ -7,27 +7,30 @@ GrabHandle::GrabHandle(int associatedSelectionId) : selectionId(associatedSelect
 
 void GrabHandle::paint(juce::Graphics& g)
 {
-    auto bounds = getLocalBounds().toFloat();
-
-    g.setColour(juce::Colours::black.withAlpha(0.5f));
-    g.fillRoundedRectangle(bounds.reduced(1.0f), 3.0f);
-
     g.setColour(juce::Colours::white.withAlpha(0.95f));
 
-    float cy = bounds.getCentreY();
-    float padX = 6.0f;
+    // 1. Calculate the vertical centre of the slot number label
+    // The grab handle spans: slotPadding (5px) + labelHeight + indicatorHeight (12px)
+    float slotPadding = 5.0f;
+    float indicatorHeight = 12.0f;
+    float labelHeight = getHeight() - slotPadding - indicatorHeight;
+    float cy = slotPadding + (labelHeight * 0.5f) + 1.5f;
+
+    // 2. Bring the arrows in from the edge to frame the number closely
+    float padX = 12.0f;
     float leftX = padX;
-    float rightX = bounds.getWidth() - padX;
-    float arrowSize = 3.5f;
+    float rightX = getWidth() - padX;
+
+    // 3. Make the arrows pointier (taller than they are wide)
+    float arrowWidth = 4.5f;
+    float arrowHeight = 3.0f;
     float thickness = 1.5f;
 
-    g.drawLine(leftX, cy, rightX, cy, thickness);
+    g.drawLine(leftX, cy, leftX + arrowWidth, cy - arrowHeight, thickness);
+    g.drawLine(leftX, cy, leftX + arrowWidth, cy + arrowHeight, thickness);
 
-    g.drawLine(leftX, cy, leftX + arrowSize, cy - arrowSize, thickness);
-    g.drawLine(leftX, cy, leftX + arrowSize, cy + arrowSize, thickness);
-
-    g.drawLine(rightX, cy, rightX - arrowSize, cy - arrowSize, thickness);
-    g.drawLine(rightX, cy, rightX - arrowSize, cy + arrowSize, thickness);
+    g.drawLine(rightX, cy, rightX - arrowWidth, cy - arrowHeight, thickness);
+    g.drawLine(rightX, cy, rightX - arrowWidth, cy + arrowHeight, thickness);
 }
 
 void GrabHandle::mouseDrag(const juce::MouseEvent& e)
@@ -36,6 +39,6 @@ void GrabHandle::mouseDrag(const juce::MouseEvent& e)
     {
         juce::String dragPayload = "SLOT_DRAG|" + juce::String(selectionId);
 
-        dragContainer->startDragging(dragPayload, this, juce::ScaledImage(), false, nullptr, &e.source);
+        dragContainer->startDragging(dragPayload, getParentComponent(), juce::ScaledImage(), false, nullptr, &e.source);
     }
 }

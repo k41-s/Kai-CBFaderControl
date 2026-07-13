@@ -217,10 +217,10 @@ void BaseSlotItem::paintLinkIndicator(juce::Graphics& g)
 
 void BaseSlotItem::drawLinkIndicator(juce::Graphics& g, bool isInverse, juce::Colour pairColour)
 {
-    juce::Rectangle<float> iconArea(4, 4, 18, 12);
+    juce::Rectangle<float> iconArea = linkIndicatorArea.toFloat();
     g.setColour(pairColour);
 
-    float fontSize = juce::jlimit(8.0f, 12.0f, sharedFont.getHeight() * 0.85f);
+    float fontSize = juce::jlimit(10.0f, 14.0f, sharedFont.getHeight());
     g.setFont(juce::Font(fontSize, juce::Font::bold));
 
     if (isInverse)
@@ -326,8 +326,7 @@ void BaseSlotItem::injectGrabHandle(juce::Rectangle<int>& area, int slotWidth)
 {
     if (grabHandle != nullptr)
     {
-        int handleWidth = juce::roundToInt(slotWidth * 0.9f);
-
-        grabHandle->setBounds(area.withSizeKeepingCentre(handleWidth, area.getHeight()));
+        grabHandle->setBounds(0, 0, getWidth(), area.getBottom());
+        grabHandle->toFront(false);
     }
 }

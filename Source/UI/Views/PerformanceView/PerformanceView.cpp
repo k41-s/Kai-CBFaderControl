@@ -84,7 +84,7 @@ void PerformanceView::configEditLayoutButton()
 		{
 			bool isEditing = editLayoutButton.getToggleState();
 			editLayoutButton.setButtonText(isEditing ? "< Unlocked >" : "< Locked >");
-
+			
 			for (auto* slot : slots)
 				slot->setEditMode(isEditing);
 

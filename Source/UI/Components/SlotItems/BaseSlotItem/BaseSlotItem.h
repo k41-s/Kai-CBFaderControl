@@ -68,6 +68,8 @@ protected:
     KaiCBFaderControlAudioProcessor& processor;
     int index;
 
+    juce::Rectangle<int> linkIndicatorArea;
+
     std::unique_ptr<GrabHandle> grabHandle;
 
     juce::Font sharedFont;

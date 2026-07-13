@@ -176,14 +176,19 @@ void VcaSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWidth)
     juce::Font maxFont(UISizeConstants::maxFontSize);
     int labelHeight = maxFont.getHeight() + UISizeConstants::slotPadding;
 
-    int grabHandleHeight = 12;
+    int indicatorHeight = 12;
 
-    int topAreaHeight = (labelHeight + UISizeConstants::slotPadding) * 3 + (UISizeConstants::slotBtnHeight + UISizeConstants::slotPadding) * 2;
+    int topAreaHeight = (labelHeight + UISizeConstants::slotPadding) * 3
+        + (UISizeConstants::slotBtnHeight + UISizeConstants::slotPadding) * 2
+        + indicatorHeight;
+    
     auto topArea = area.removeFromTop(topAreaHeight);
 
     setupIndexLabel(topArea, labelHeight);
-    auto grabArea = topArea.removeFromTop(grabHandleHeight);
-    injectGrabHandle(grabArea, currentWidth);
+
+    linkIndicatorArea = topArea.removeFromTop(indicatorHeight);
+    injectGrabHandle(linkIndicatorArea, currentWidth);
+
     setupGroupLabel(topArea, labelHeight);
     setupMuteButton(topArea);
     setupExpandButton(topArea);
