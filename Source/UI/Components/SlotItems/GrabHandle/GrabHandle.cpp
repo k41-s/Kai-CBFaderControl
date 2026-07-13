@@ -15,7 +15,7 @@ void GrabHandle::paint(juce::Graphics& g)
     g.setColour(juce::Colours::white.withAlpha(0.95f));
 
     float cy = bounds.getCentreY();
-    float padX = 4.0f;
+    float padX = 6.0f;
     float leftX = padX;
     float rightX = bounds.getWidth() - padX;
     float arrowSize = 3.5f;

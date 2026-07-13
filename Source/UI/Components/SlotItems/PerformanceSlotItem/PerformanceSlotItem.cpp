@@ -425,7 +425,6 @@ void PerformanceSlotItem::setupSlotBounds()
     auto area = getLocalBounds().reduced(2);
     int currentWidth = area.getWidth();
 
-    injectGrabHandle(area);
     setupTopArea(area, currentWidth);
     injectPanControl(area);
     setupBottomArea(area, currentWidth);
@@ -437,10 +436,14 @@ void PerformanceSlotItem::setupTopArea(juce::Rectangle<int>& area, int currentWi
     juce::Font maxFont(UISizeConstants::maxFontSize);
     int labelHeight = maxFont.getHeight() + UISizeConstants::slotPadding;
 
+    int grabHandleHeight = 12;
+
     int topAreaHeight = (labelHeight + UISizeConstants::slotPadding) * 3 + (UISizeConstants::slotBtnHeight + UISizeConstants::slotPadding) * 2;
     auto topArea = area.removeFromTop(topAreaHeight);
 
     setupIndexLabel(topArea, labelHeight);
+    auto grabArea = topArea.removeFromTop(grabHandleHeight);
+    injectGrabHandle(grabArea, currentWidth);
     setupNameLabel(topArea, currentWidth, labelHeight);
     setupMuteButton(topArea);
     setupSoloButton(topArea);

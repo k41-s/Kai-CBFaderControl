@@ -44,7 +44,7 @@ private:
 	void configExpandAttachment();
 
 	// Layout functions
-	void setupTopArea(juce::Rectangle<int>& area);
+	void setupTopArea(juce::Rectangle<int>& area, int currentWidth);
 	void setupIndexLabel(juce::Rectangle<int>& topArea, int labelHeight);
 	void setupGroupLabel(juce::Rectangle<int>& topArea, int labelHeight);
 	void setupMuteButton(juce::Rectangle<int>& topArea);

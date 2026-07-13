@@ -322,14 +322,12 @@ void BaseSlotItem::configGrabHandle()
     addChildComponent(grabHandle.get());
 }
 
-void BaseSlotItem::injectGrabHandle(juce::Rectangle<int>& area)
+void BaseSlotItem::injectGrabHandle(juce::Rectangle<int>& area, int slotWidth)
 {
-    if (grabHandle != nullptr && grabHandle->isVisible())
+    if (grabHandle != nullptr)
     {
-        int handleWidth = juce::jlimit(19, 24, juce::roundToInt(area.getWidth() * 0.2f));
-        int handleHeight = 16;
+        int handleWidth = juce::roundToInt(slotWidth * 0.9f);
 
-        grabHandle->setBounds(area.getRight() - handleWidth - 2, area.getY() + 2, handleWidth, handleHeight);
-        grabHandle->toFront(false);
+        grabHandle->setBounds(area.withSizeKeepingCentre(handleWidth, area.getHeight()));
     }
 }

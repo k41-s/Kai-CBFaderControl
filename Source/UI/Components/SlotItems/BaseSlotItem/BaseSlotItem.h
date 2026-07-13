@@ -52,7 +52,7 @@ protected:
     void updateBaseGroupState(int grpId, bool applyFaderIndicator = false);
 
     void configGrabHandle();
-    void injectGrabHandle(juce::Rectangle<int>& area);
+    void injectGrabHandle(juce::Rectangle<int>& area,int slotWidth);
 
     virtual bool isEventFromButton(juce::Component* comp);
 
