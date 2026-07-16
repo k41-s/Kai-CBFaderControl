@@ -2395,24 +2395,60 @@ bool PerformanceView::isInterestedInDragSource(const SourceDetails& dragSourceDe
 void PerformanceView::itemDropped(const SourceDetails& dragSourceDetails)
 {
 	juce::String payload = dragSourceDetails.description.toString();
-	if (!payload.startsWith("SLOT_DRAG|")) return;
+	if (!payload.startsWith("SLOT_DRAG|"))
+		return;
 
 	int draggedSelectionId = payload.substring(10).getIntValue();
-
 	int targetIndex = getInsertIndexFromPosition(dragSourceDetails.localPosition.x);
 	currentDragInsertIndex = -1;
 	repaint();
 
-	int currentIndex = visualSlotOrder.indexOf(draggedSelectionId);
-	if (currentIndex != -1 && currentIndex < targetIndex)
-		targetIndex--;
+	juce::Array<int> itemsToMove;
+
+	// Gather items: either the whole selection block or just the single dragged item
+	if (selectedItems.isSelected(draggedSelectionId))
+	{
+		for (int id : visualSlotOrder)
+		{
+			if (selectedItems.isSelected(id))
+				itemsToMove.add(id);
+		}
+	}
+	else
+	{
+		itemsToMove.add(draggedSelectionId);
+	}
+
+	// 1. Calculate how many moving items sit *before* the target drop index.
+	// This is strictly required to fix the "dragging to the right" bug.
+	int numItemsBeforeTarget = 0;
+	for (int i = 0; i < targetIndex; ++i)
+	{
+		if (itemsToMove.contains(visualSlotOrder[i]))
+		{
+			numItemsBeforeTarget++;
+		}
+	}
+
+	// 2. Remove all moving items from a working copy of the array
+	juce::Array<int> newOrder = visualSlotOrder;
+	for (int id : itemsToMove)
+	{
+		newOrder.removeAllInstancesOf(id);
+	}
+
+	// 3. Adjust the target index backwards by the exact number of removed preceding items
+	int adjustedTargetIndex = targetIndex - numItemsBeforeTarget;
+
+	// 4. Insert the block at the mathematically correct position
+	for (int i = 0; i < itemsToMove.size(); ++i)
+	{
+		newOrder.insert(adjustedTargetIndex + i, itemsToMove[i]);
+	}
 
 	processor.undoManager.beginNewTransaction("Reorder Slots");
-
-	visualSlotOrder.removeAllInstancesOf(draggedSelectionId);
-	visualSlotOrder.insert(targetIndex, draggedSelectionId);
+	visualSlotOrder = newOrder;
 	SlotStateHelpers::setVisualSlotOrder(processor.apvts.state, visualSlotOrder, &processor.undoManager);
-
 	triggerAsyncUpdate();
 }
 
