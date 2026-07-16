@@ -41,6 +41,8 @@ public:
 
 	void paint(juce::Graphics& g) override;
 	void paintOverChildren(juce::Graphics& g) override;
+	void paintPinnedStoreBtns(juce::Graphics& g);
+	void paintDragDropInsertionMarker(juce::Graphics& g);
 	void resized() override;
 
 	void setBaselineWidth(float& baselineWidth);
@@ -67,6 +69,10 @@ public:
 
 	bool isInterestedInDragSource(const SourceDetails& dragSourceDetails) override;
 	void itemDropped(const SourceDetails& dragSourceDetails) override;
+
+	void itemDragEnter(const SourceDetails& dragSourceDetails) override;
+	void itemDragMove(const SourceDetails& dragSourceDetails) override;
+	void itemDragExit(const SourceDetails& dragSourceDetails) override;
 
 	std::function<void()> onLayoutChangeRequest;
 	std::function<void()> onNavigateToSetup;
@@ -257,6 +263,12 @@ private:
 	int getTrueId(int selectionId) const;
 	int makeSelectionId(int trueId, bool isVca) const;
 	int getLinkedSelectionId(int selectionId) const;
+
+	// DragDrop helpers
+	int getInsertIndexFromPosition(int dropX) const;
+	int getDragLineX(int& top, int& bottom) const;
+
+	int currentDragInsertIndex = -1;
 
 	float currentBaselineWidth = SlotSizeValues::monoSlotTargetWidth;
 

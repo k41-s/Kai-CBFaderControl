@@ -9,19 +9,15 @@ void GrabHandle::paint(juce::Graphics& g)
 {
     g.setColour(juce::Colours::white.withAlpha(0.95f));
 
-    // 1. Calculate the vertical centre of the slot number label
-    // The grab handle spans: slotPadding (5px) + labelHeight + indicatorHeight (12px)
     float slotPadding = 5.0f;
     float indicatorHeight = 12.0f;
     float labelHeight = getHeight() - slotPadding - indicatorHeight;
     float cy = slotPadding + (labelHeight * 0.5f) + 1.5f;
 
-    // 2. Bring the arrows in from the edge to frame the number closely
     float padX = 12.0f;
     float leftX = padX;
     float rightX = getWidth() - padX;
 
-    // 3. Make the arrows pointier (taller than they are wide)
     float arrowWidth = 4.5f;
     float arrowHeight = 3.0f;
     float thickness = 1.5f;

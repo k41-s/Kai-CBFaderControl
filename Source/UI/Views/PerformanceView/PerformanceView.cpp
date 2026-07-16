@@ -1756,15 +1756,47 @@ void PerformanceView::paint(juce::Graphics& g)
 
 void PerformanceView::paintOverChildren(juce::Graphics& g)
 {
-	int activeId = SlotStateHelpers::getActiveStoreId(processor.apvts);
+	paintPinnedStoreBtns(g);
+	paintDragDropInsertionMarker(g);
+}
+
+void PerformanceView::paintPinnedStoreBtns(juce::Graphics& g)
+{
+	int activeStoreId = SlotStateHelpers::getActiveStoreId(processor.apvts);
 
 	for (auto* btn : pinnedStoreButtons)
 	{
-		if (static_cast<int>(btn->getProperties()[PresetTags::StoreIdProp]) == activeId)
+		if (static_cast<int>(btn->getProperties()[PresetTags::StoreIdProp]) == activeStoreId)
 		{
 			auto b = btn->getBounds();
 			g.setColour(hasUnsavedChanges ? juce::Colours::red : juce::Colours::limegreen);
 			g.fillEllipse((float)b.getRight() - 8.0f, (float)b.getY() + 2.0f, 6.0f, 6.0f);
+		}
+	}
+}
+
+void PerformanceView::paintDragDropInsertionMarker(juce::Graphics& g)
+{
+	if (currentDragInsertIndex >= 0)
+	{
+		int top = 0;
+		int bottom = 0;
+		int lineX = getDragLineX(top, bottom);
+
+		if (lineX >= 0)
+		{
+			g.setColour(juce::Colours::white.withAlpha(0.9f));
+			g.fillRect((float)lineX - 1.0f, (float)top, 2.0f, (float)(bottom - top));
+
+			juce::Path p;
+			p.addTriangle((float)lineX - 6.0f, (float)top,
+				(float)lineX + 6.0f, (float)top,
+				(float)lineX, (float)top + 7.0f);
+
+			p.addTriangle((float)lineX - 6.0f, (float)bottom,
+				(float)lineX + 6.0f, (float)bottom,
+				(float)lineX, (float)bottom - 7.0f);
+			g.fillPath(p);
 		}
 	}
 }
@@ -2367,48 +2399,102 @@ void PerformanceView::itemDropped(const SourceDetails& dragSourceDetails)
 
 	int draggedSelectionId = payload.substring(10).getIntValue();
 
-	int targetIndex = -1;
-	int dropX = dragSourceDetails.localPosition.x;
+	int targetIndex = getInsertIndexFromPosition(dragSourceDetails.localPosition.x);
+	currentDragInsertIndex = -1;
+	repaint();
 
-	// Find the target slot based on the drop's horizontal coordinate
-	for (int i = 0; i < visualSlotOrder.size(); ++i)
-	{
-		int currentId = visualSlotOrder[i];
-		BaseSlotItem* slot = nullptr;
-
-		if (isVcaSelection(currentId))
-			slot = getVcaItem(getTrueId(currentId));
-		else
-			slot = getSlotItem(currentId);
-
-		if (slot != nullptr && slot->isVisible())
-		{
-			int slotCenterX = slot->getBounds().getCentreX();
-			// If the drop x-coordinate is left of this slot's centre, drop it here
-			if (dropX < slotCenterX)
-			{
-				targetIndex = i;
-				break;
-			}
-		}
-	}
-
-	if (targetIndex == -1)
-		targetIndex = visualSlotOrder.size();
-
-	// Adjust target index to prevent off-by-one errors when shifting an element forward
 	int currentIndex = visualSlotOrder.indexOf(draggedSelectionId);
 	if (currentIndex != -1 && currentIndex < targetIndex)
-	{
 		targetIndex--;
-	}
 
 	processor.undoManager.beginNewTransaction("Reorder Slots");
 
 	visualSlotOrder.removeAllInstancesOf(draggedSelectionId);
 	visualSlotOrder.insert(targetIndex, draggedSelectionId);
-
 	SlotStateHelpers::setVisualSlotOrder(processor.apvts.state, visualSlotOrder, &processor.undoManager);
 
 	triggerAsyncUpdate();
+}
+
+int PerformanceView::getInsertIndexFromPosition(int dropX) const
+{
+	for (int i = 0; i < visualSlotOrder.size(); ++i)
+	{
+		int currentId = visualSlotOrder[i];
+		BaseSlotItem* slot = isVcaSelection(currentId) ?
+			(BaseSlotItem*)getVcaItem(getTrueId(currentId)) :
+			(BaseSlotItem*)getSlotItem(currentId);
+
+		if (slot != nullptr && slot->isVisible())
+		{
+			if (dropX < slot->getBounds().getCentreX())
+				return i;
+		}
+	}
+	return visualSlotOrder.size();
+}
+
+int PerformanceView::getDragLineX(int& top, int& bottom) const
+{
+	// Find the left edge of the slot at the target index
+	for (int i = currentDragInsertIndex; i < visualSlotOrder.size(); ++i)
+	{
+		int currentId = visualSlotOrder[i];
+		BaseSlotItem* slot = isVcaSelection(currentId)
+			? (BaseSlotItem*)getVcaItem(getTrueId(currentId))
+			: (BaseSlotItem*)getSlotItem(currentId);
+
+		if (slot != nullptr && slot->isVisible())
+		{
+			top = slot->getY();
+			bottom = slot->getBottom();
+			return slot->getX();
+		}
+	}
+
+	// If appending to the end, find the right edge of the last visible slot
+	for (int i = currentDragInsertIndex - 1; i >= 0; --i)
+	{
+		int currentId = visualSlotOrder[i];
+		BaseSlotItem* slot = isVcaSelection(currentId) ?
+			(BaseSlotItem*)getVcaItem(getTrueId(currentId)) :
+			(BaseSlotItem*)getSlotItem(currentId);
+
+		if (slot != nullptr && slot->isVisible())
+		{
+			top = slot->getY();
+			bottom = slot->getBottom();
+			return slot->getRight();
+		}
+	}
+
+	return -1;
+}
+
+void PerformanceView::itemDragEnter(const SourceDetails& dragSourceDetails)
+{
+	if (isInterestedInDragSource(dragSourceDetails))
+	{
+		currentDragInsertIndex = getInsertIndexFromPosition(dragSourceDetails.localPosition.x);
+		repaint();
+	}
+}
+
+void PerformanceView::itemDragMove(const SourceDetails& dragSourceDetails)
+{
+	if (isInterestedInDragSource(dragSourceDetails))
+	{
+		int newIndex = getInsertIndexFromPosition(dragSourceDetails.localPosition.x);
+		if (currentDragInsertIndex != newIndex)
+		{
+			currentDragInsertIndex = newIndex;
+			repaint();
+		}
+	}
+}
+
+void PerformanceView::itemDragExit(const SourceDetails& dragSourceDetails)
+{
+	currentDragInsertIndex = -1;
+	repaint();
 }
