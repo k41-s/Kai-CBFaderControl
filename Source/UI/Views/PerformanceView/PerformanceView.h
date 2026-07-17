@@ -223,6 +223,7 @@ private:
 	void reactivateGroupMembers(int grpId);
 
 	void toggleSoloSafe(const juce::Array<int>& activeSlots);
+	void handleClearAllSolos();
 
 	void handleCollectGroupSlots(int clickedSelectionId);
 	int getTargetGroupId(int clickedSelectionId);

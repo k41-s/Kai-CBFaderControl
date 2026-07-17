@@ -1319,6 +1319,10 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 			toggleSoloSafe(activeSlots);
 			break;
 
+		case ClearAllSolos:
+			handleClearAllSolos();
+			break;
+
 		case CustomUnlink:
 			handleCustomUnlink(activeSlots);
 			break;
@@ -1520,6 +1524,17 @@ void PerformanceView::addSoloSafeMenuItem(const juce::Array<int>& activeSlots, j
 
 	juce::String text = activeSlots.size() == 1 ? "Solo Safe" : "Solo Safe (Bulk)";
 	menu.addItem(ToggleSoloSafe, text, true, allSafe);
+
+	bool anySoloActive = false;
+	for (int i = 1; i <= PluginConstants::numSlots; ++i) {
+		if (SlotStateHelpers::isSlotSoloed(processor.apvts, i)) {
+			anySoloActive = true;
+			break;
+		}
+	}
+
+	if (anySoloActive)
+		menu.addItem(ClearAllSolos, "Clear All Solos");
 }
 
 void PerformanceView::handleColourAssignment(const juce::Array<int>& selectedArr, int result)
@@ -1699,6 +1714,25 @@ void PerformanceView::toggleSoloSafe(const juce::Array<int>& activeSlots)
 	{
 		SlotStateHelpers::setSlotSoloSafe(processor.apvts, idx, targetState);
 	}
+}
+
+void PerformanceView::handleClearAllSolos()
+{
+	processor.undoManager.beginNewTransaction("Clear All Solos");
+
+	bool anyChanged = false;
+
+	for (int i = 1; i <= PluginConstants::numSlots; ++i) 
+	{
+		if (SlotStateHelpers::isSlotSoloed(processor.apvts, i)) 
+		{
+			SlotStateHelpers::setSlotSoloed(processor.apvts, i, false);
+			anyChanged = true;
+		}
+	}
+
+	if (anyChanged)
+		triggerAsyncUpdate();
 }
 
 void PerformanceView::handleCollectGroupSlots(int clickedSelectionId)
