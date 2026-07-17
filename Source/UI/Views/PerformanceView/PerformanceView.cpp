@@ -142,18 +142,7 @@ void PerformanceView::handleLoadPresetRequest()
 {
 	if (hasUnsavedChanges)
 	{
-		juce::AlertWindow::showAsync(juce::MessageBoxOptions()
-			.withAssociatedComponent(this)
-			.withIconType(juce::MessageBoxIconType::WarningIcon)
-			.withTitle(DialogStrings::UnsavedTitle)
-			.withMessage("You have unsaved changes in your active mix. Loading a preset will discard them. Continue?")
-			.withButton("Yes, discard")
-			.withButton("No, cancel"),
-			[this](int choice)
-			{
-				if (choice == DialogActions::Confirm)
-					launchLoadPresetChooser();
-			});
+		showUnsavedChangesWarningAsync( [this]() { launchLoadPresetChooser(); });
 	}
 	else
 	{
@@ -516,12 +505,41 @@ void PerformanceView::handleStoreSaveMenuResult(int result)
 void PerformanceView::handleStoreRecallMenuResult(int result)
 {
 	int index = result - BaseRecall;
-	int currentIndex = SlotStateHelpers::getActiveStoreId(processor.apvts);
+	requestStoreRecall(index);
+}
 
-	if (currentIndex == index)
-		processor.forceRecallStore(index);
-	else
-		SlotStateHelpers::setActiveStoreId(processor.apvts, index);
+void PerformanceView::requestStoreRecall(int storeIdx)
+{
+	auto executeRecall = [this, storeIdx]() {
+		int currentIndex = SlotStateHelpers::getActiveStoreId(processor.apvts);
+		if (currentIndex == storeIdx)
+			processor.forceRecallStore(storeIdx);
+		else
+			SlotStateHelpers::setActiveStoreId(processor.apvts, storeIdx);
+		};
+
+	if (hasUnsavedChanges) {
+		showUnsavedChangesWarningAsync(executeRecall);
+	}
+	else {
+		executeRecall();
+	}
+}
+
+void PerformanceView::showUnsavedChangesWarningAsync(std::function<void()> onConfirm)
+{
+	juce::AlertWindow::showAsync(juce::MessageBoxOptions()
+		.withParentComponent(this)
+		.withIconType(juce::MessageBoxIconType::WarningIcon)
+		.withTitle(DialogStrings::UnsavedTitle)
+		.withMessage("You have unsaved changes that will be discarded. Continue?")
+		.withButton("Yes, discard")
+		.withButton("No, cancel"),
+		[onConfirm](int choice) {
+			if (choice == DialogActions::Confirm) {
+				onConfirm();
+			}
+		});
 }
 
 void PerformanceView::configImages()
@@ -1693,11 +1711,18 @@ void PerformanceView::handleCollectGroupSlots(int clickedSelectionId)
 	juce::Array<int> groupItems;
 	juce::Array<int> nonGroupItems;
 	int originalClickedIndex = -1;
+	int vcaSelectionId = -1;
 
-	filterLayoutListsForGroupCollect(clickedSelectionId, originalClickedIndex, targetGroupId, groupItems, nonGroupItems);
+	filterLayoutListsForGroupCollect(clickedSelectionId, originalClickedIndex, vcaSelectionId, targetGroupId, groupItems, nonGroupItems);
 
 	if (groupItems.size() <= 1 || originalClickedIndex == -1)
 		return;
+
+	if (vcaSelectionId != -1 && groupItems.getLast() != vcaSelectionId)
+	{
+		groupItems.removeAllInstancesOf(vcaSelectionId);
+		groupItems.add(vcaSelectionId);
+	}
 
 	int targetStartIndex = calcTargetIndexForGroupCollect(clickedSelectionId, originalClickedIndex, nonGroupItems, groupItems);
 
@@ -1718,7 +1743,7 @@ int PerformanceView::getTargetGroupId(int clickedSelectionId)
 	return targetGroupId;
 }
 
-void PerformanceView::filterLayoutListsForGroupCollect(int clickedSelectionId, int& originalClickedIndex, int targetGroupId, juce::Array<int>& groupItems, juce::Array<int>& nonGroupItems)
+void PerformanceView::filterLayoutListsForGroupCollect(int clickedSelectionId, int& originalClickedIndex, int& vcaSelectionId, int targetGroupId, juce::Array<int>& groupItems, juce::Array<int>& nonGroupItems)
 {
 	for (int i = 0; i < visualSlotOrder.size(); ++i)
 	{
@@ -1729,7 +1754,12 @@ void PerformanceView::filterLayoutListsForGroupCollect(int clickedSelectionId, i
 
 		bool isGroupMember = false;
 		if (isVcaSelection(id))
-			isGroupMember = (getTrueId(id) == targetGroupId);
+		{
+			if (getTrueId(id) == targetGroupId) {
+				isGroupMember = true;
+				vcaSelectionId = id;
+			}
+		}
 		else
 			isGroupMember = (SlotStateHelpers::getGroupId(processor.apvts.state, id) == targetGroupId);
 
@@ -2312,11 +2342,7 @@ void PerformanceView::createAndAddPinnedButton(int storeIdx)
 
 	btn->onClick = [this, storeIdx]()
 		{
-			int currentIndex = SlotStateHelpers::getActiveStoreId(processor.apvts);
-			if (currentIndex == storeIdx)
-				processor.forceRecallStore(storeIdx);
-			else
-				SlotStateHelpers::setActiveStoreId(processor.apvts, storeIdx);
+			requestStoreRecall(storeIdx);
 		};
 
 	btn->onRightClick = [this, storeIdx](juce::Button* b)

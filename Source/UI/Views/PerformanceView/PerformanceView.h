@@ -129,6 +129,8 @@ private:
 	void handleStoreRename(juce::AlertWindow* alert, int index);
 	void handleStoreSaveMenuResult(int result);
 	void handleStoreRecallMenuResult(int result);
+	void requestStoreRecall(int storeIdx);
+	void showUnsavedChangesWarningAsync(std::function<void()> onConfirm);
 
 	// Listener management
 	void registerListeners();
@@ -224,7 +226,7 @@ private:
 
 	void handleCollectGroupSlots(int clickedSelectionId);
 	int getTargetGroupId(int clickedSelectionId);
-	void filterLayoutListsForGroupCollect(int clickedSelectionId, int& originalClickedIndex, int targetGroupId, juce::Array<int>& groupItems, juce::Array<int>& nonGroupItems);
+	void filterLayoutListsForGroupCollect(int clickedSelectionId, int& originalClickedIndex, int& vcaSelectionId, int targetGroupId, juce::Array<int>& groupItems, juce::Array<int>& nonGroupItems);
 	int calcTargetIndexForGroupCollect(int clickedSelectionId, int originalClickedIndex, juce::Array<int>& nonGroupItems, juce::Array<int>& groupMembers) const;
 
 	void handleCollectLinkedFader(int clickedSelectionId);
