@@ -1001,6 +1001,8 @@ void PerformanceView::addExistingLinkMenuOptions(const juce::Array<int>& activeS
 	setupLinkColourMenu(activeSlots, colourMenu);
 	menu.addSubMenu("Link Colour", colourMenu);
 
+	menu.addItem(ContextMenuID::CollectLinkedFader, "Collect Linked Fader");
+
 	menu.addItem(CustomUnlink, "Remove Link");
 }
 
@@ -1309,6 +1311,10 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 
 		case CollectGroupSlots:
 			handleCollectGroupSlots(selectedArr[0]);
+			break;
+
+		case ContextMenuID::CollectLinkedFader:
+			handleCollectLinkedFader(selectedArr[0]);
 			break;
 
 		default:
@@ -1742,6 +1748,28 @@ int PerformanceView::calcTargetIndexForGroupCollect(int clickedSelectionId, int 
 	targetStartIndex = juce::jlimit(0, nonGroupItems.size(), targetStartIndex);
 
 	return targetStartIndex;
+}
+
+void PerformanceView::handleCollectLinkedFader(int clickedSelectionId)
+{
+	int linkedId = getLinkedSelectionId(clickedSelectionId);
+
+	if (linkedId == 0)
+		return;
+
+	juce::Array<int> newOrder = visualSlotOrder;
+
+	newOrder.removeAllInstancesOf(linkedId);
+
+	int targetIndex = newOrder.indexOf(clickedSelectionId);
+
+	if (targetIndex != -1)
+	{
+		newOrder.insert(targetIndex + 1, linkedId);
+
+		applyNewSlotOrder(newOrder, "Collect Linked Fader");
+		triggerAsyncUpdate();
+	}
 }
 
 void PerformanceView::paint(juce::Graphics& g)

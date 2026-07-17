@@ -227,6 +227,8 @@ private:
 	void filterLayoutListsForGroupCollect(int clickedSelectionId, int& originalClickedIndex, int targetGroupId, juce::Array<int>& groupItems, juce::Array<int>& nonGroupItems);
 	int calcTargetIndexForGroupCollect(int clickedSelectionId, int originalClickedIndex, juce::Array<int>& nonGroupItems, juce::Array<int>& groupMembers) const;
 
+	void handleCollectLinkedFader(int clickedSelectionId);
+
 	// Layout and drawing functions
 	void setupAndFillHeader();
 	void setupAndFillArea();
