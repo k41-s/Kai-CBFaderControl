@@ -125,10 +125,8 @@ private:
 	void pinStoresFromSet(juce::StringArray& setNames, int index);
 	void handleRemoveSetMenuResult(int result);
 	void handleHideSetMenuResult(int setIndex);
-	void handleRemoveStoresMenuResult();
 	void promptForStoreName(int index);
 	void handleStoreRename(juce::AlertWindow* alert, int index);
-	void promptForAddMoreStores();
 	void handleStoreSaveMenuResult(int result);
 	void handleStoreRecallMenuResult(int result);
 

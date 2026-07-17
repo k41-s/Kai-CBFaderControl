@@ -180,7 +180,7 @@ void KaiCBFaderControlAudioProcessor::addActiveStoreParam(juce::AudioProcessorVa
     params.add(std::make_unique<juce::AudioParameterInt>(
         juce::ParameterID(PresetTags::ActiveStoreParamId, 1),
         PresetTags::ActiveStoreParamName,
-        0, PresetConstants::maxStores, PresetConstants::noStore
+        0, PresetConstants::numStores, PresetConstants::noStore
     ));
 }
 

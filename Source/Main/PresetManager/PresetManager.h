@@ -20,9 +20,6 @@ public:
 
     juce::Array<int> getPinnedStores() const;
 
-    int getNumVisibleStores() const;
-    void setNumVisibleStores(int num);
-
     std::unique_ptr<juce::XmlElement> createXml() const;
     void loadFromXml(juce::XmlElement* xml);
 

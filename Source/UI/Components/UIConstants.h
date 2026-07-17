@@ -160,7 +160,6 @@ namespace AlertFieldIDs
 {
     static inline const juce::String setName = "setNameField";
     static inline const juce::String storeName = "nameField";
-    static inline const juce::String numStores = "numField";
 }
 
 namespace DragAndDropConstants

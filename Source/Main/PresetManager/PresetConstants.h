@@ -20,8 +20,6 @@ namespace PresetTags
     inline const juce::Identifier StoreIdProp{ "storeId" };
     inline const juce::String DefaultStoreNamePrefix{ "ST " };
 
-    inline const juce::Identifier VisibleStoresProp{ "visibleStores" };
-
     inline const juce::Identifier StoreSetsProp{ "StoreSets" };
     inline const juce::Identifier SetProp{ "Set" };
     inline const juce::Identifier SetNameProp{ "setName" };
@@ -31,8 +29,8 @@ namespace PresetTags
 namespace PresetConstants
 {
     inline const int noStore = 0;
-    inline const int defaultStores = 8;
-    inline const int maxStores = 127;
+    inline const int numStores = 20;
+    inline const int defaultPinnedStores = 4;
 
     inline const int maxStoreNameLength = 6;
     inline const int maxPinnedStores = 16;

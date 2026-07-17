@@ -101,26 +101,12 @@ bool PresetManager::isStorePinned(int index) const
 juce::Array<int> PresetManager::getPinnedStores() const
 {
     juce::Array<int> pinned;
-    for (int i = 1; i <= PresetConstants::maxStores; ++i)
+    for (int i = 1; i <= PresetConstants::numStores; ++i)
     {
         if (isStorePinned(i))
             pinned.add(i);
     }
     return pinned;
-}
-
-int PresetManager::getNumVisibleStores() const
-{
-    if (storesTree.hasProperty(PresetTags::VisibleStoresProp))
-        return storesTree.getProperty(PresetTags::VisibleStoresProp);
-
-    return PresetConstants::defaultStores;
-}
-
-void PresetManager::setNumVisibleStores(int num)
-{
-    int safeNum = juce::jlimit(1, PresetConstants::maxStores, num);
-    storesTree.setProperty(PresetTags::VisibleStoresProp, safeNum, nullptr);
 }
 
 std::unique_ptr<juce::XmlElement> PresetManager::createXml() const
@@ -163,9 +149,8 @@ juce::ValueTree PresetManager::getOrCreateStoreNode(int index)
     {
         node = juce::ValueTree(nodeName);
 
-        bool isPinnedByDefault = (index >= 1 && index <= PresetConstants::defaultStores);
+        bool isPinnedByDefault = (index >= 1 && index <= PresetConstants::defaultPinnedStores);
         node.setProperty(PresetTags::StorePinnedProp, isPinnedByDefault, nullptr);
-
         storesTree.addChild(node, -1, nullptr);
     }
     return node;

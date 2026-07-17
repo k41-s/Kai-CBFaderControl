@@ -260,11 +260,6 @@ void PerformanceView::updateActiveStoreLabel(int index)
 void PerformanceView::showStoresMenu()
 {
 	juce::PopupMenu menu;
-	int numVisible = processor.presetManager->getNumVisibleStores();
-
-	menu.addItem(AddMore, "Add Stores", numVisible < PresetConstants::maxStores);
-	menu.addItem(RemoveStores, "Reset Num Stores", numVisible > PresetConstants::defaultStores);
-	menu.addSeparator();
 
 	menu.addItem(SavePinnedAsSet, "Save Current Pinned as Set...");
 
@@ -275,7 +270,7 @@ void PerformanceView::showStoresMenu()
 	}
 	menu.addSeparator();
 
-	for (int i = 1; i <= numVisible; ++i)
+	for (int i = 1; i <= PresetConstants::numStores; ++i)
 	{
 		addStoreSubMenu(i, menu);
 	}
@@ -319,7 +314,7 @@ void PerformanceView::populateStoreMenuOptions(int i, juce::PopupMenu& storeMenu
 	storeMenu.addItem(BaseClear + i, "Clear State");
 
 	bool isPinned = processor.presetManager->isStorePinned(i);
-	storeMenu.addItem(BasePin + i, isPinned ? "Unpin from Footer" : "Pin to Footer", true, isPinned);
+	storeMenu.addItem(BasePin + i, isPinned ? "Unpin from Footer" : "Pin to Footer");
 }
 
 void PerformanceView::showPinnedStoreMenu(int i, juce::Button* btn)
@@ -355,21 +350,12 @@ void PerformanceView::handleStoresMenuResult(int result)
 	{
 		promptForStoreSetName();
 	}
-	else if (result == RemoveStores)
-	{
-		handleRemoveStoresMenuResult();
-	}
 	else if (result > BaseClear)
 	{
 		int storeIdx = result - StoresMenuIds::BaseClear;
 		processor.presetManager->clearStore(storeIdx);
 
 		updatePinnedButtons();
-	}
-	else if (result == AddMore)
-	{
-		promptForAddMoreStores();
-		return;
 	}
 	else if (result > BaseRename)
 	{
@@ -429,7 +415,7 @@ void PerformanceView::handleRecallSetMenuResult(int result)
 
 void PerformanceView::wipeCurrentPins()
 {
-	for (int i = 1; i <= PresetConstants::maxStores; ++i)
+	for (int i = 1; i <= PresetConstants::numStores; ++i)
 	{
 		if (processor.presetManager->isStorePinned(i))
 			processor.presetManager->setStorePinned(i, false);
@@ -474,46 +460,6 @@ void PerformanceView::handleHideSetMenuResult(int setIndex)
 	}
 }
 
-void PerformanceView::handleRemoveStoresMenuResult()
-{
-	auto* alert = new juce::AlertWindow("Reset Stores",
-		"How many stores would you like to keep? (Stores beyond this number will be permanently cleared).",
-		juce::AlertWindow::NoIcon);
-
-	alert->setLookAndFeel(&performanceLF);
-	alert->addTextEditor(AlertFieldIDs::numStores, juce::String(PresetConstants::defaultStores), "Number of stores:");
-
-	if (auto* editor = alert->getTextEditor(AlertFieldIDs::numStores))
-	{
-		editor->setInputRestrictions(3, UIStringConstants::numericChars);
-	}
-
-	alert->addButton(DialogStrings::ResetBtn, DialogActions::Confirm, juce::KeyPress(juce::KeyPress::returnKey));
-	alert->addButton(DialogStrings::CancelBtn, DialogActions::Cancel, juce::KeyPress(juce::KeyPress::escapeKey));
-
-	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int choice)
-		{
-			if (choice == DialogActions::Confirm)
-			{
-				int currentVisible = processor.presetManager->getNumVisibleStores();
-
-				int targetStores = alert->getTextEditorContents(AlertFieldIDs::numStores).getIntValue();
-
-				targetStores = juce::jlimit(1, currentVisible, targetStores);
-
-				for (int i = currentVisible; i > targetStores; --i)
-				{
-					processor.presetManager->clearStore(i);
-				}
-
-				processor.presetManager->setNumVisibleStores(targetStores);
-
-				updatePinnedButtons();
-				resized();
-			}
-		}), true);
-}
-
 void PerformanceView::promptForStoreName(int index)
 {
 	auto* alert = new juce::AlertWindow("Rename Store", "Enter a new name:", juce::AlertWindow::NoIcon);
@@ -550,27 +496,6 @@ void PerformanceView::handleStoreRename(juce::AlertWindow* alert, int index)
 		}
 	}
 	processor.presetManager->saveStore(index, processor.apvts.copyState());
-}
-
-void PerformanceView::promptForAddMoreStores()
-{
-	auto* alert = new juce::AlertWindow("Add Stores",
-		"Enter the new total number of stores (Max " + juce::String(PresetConstants::maxStores) + "):",
-		juce::AlertWindow::NoIcon);
-
-	alert->setLookAndFeel(&performanceLF);
-	alert->addTextEditor(AlertFieldIDs::numStores, juce::String(processor.presetManager->getNumVisibleStores()), "Number");
-	alert->addButton(DialogStrings::UpdateBtn, DialogActions::Confirm, juce::KeyPress(juce::KeyPress::returnKey));
-	alert->addButton(DialogStrings::CancelBtn, DialogActions::Cancel, juce::KeyPress(juce::KeyPress::escapeKey));
-
-	alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int result)
-		{
-			if (result == DialogActions::Confirm)
-			{
-				int newNum = alert->getTextEditorContents(AlertFieldIDs::numStores).getIntValue();
-				processor.presetManager->setNumVisibleStores(newNum);
-			}
-		}), true);
 }
 
 void PerformanceView::handleStoreSaveMenuResult(int result)
