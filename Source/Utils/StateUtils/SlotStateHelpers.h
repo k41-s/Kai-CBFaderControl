@@ -13,6 +13,7 @@ namespace SlotStateHelpers
         static inline int findManualGroupColour(const juce::ValueTree& state, int targetGrpId, std::array<bool, GroupColours::numColours>& isColourUsed);
         static inline int resolveAutoGroupColour(const juce::ValueTree& state, int targetGrpId, std::array<bool, GroupColours::numColours>& isColourUsed);
     }
+
     // =========================================================================
     // GETTERS
     // =========================================================================
@@ -580,5 +581,4 @@ namespace SlotStateHelpers
             return whiteIndex;
         }
     }
-
 }

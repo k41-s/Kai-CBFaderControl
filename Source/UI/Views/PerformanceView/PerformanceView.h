@@ -224,6 +224,11 @@ private:
 
 	void toggleSoloSafe(const juce::Array<int>& activeSlots);
 
+	void handleCollectGroupSlots(int clickedSelectionId);
+	int getTargetGroupId(int clickedSelectionId);
+	void filterLayoutListsForGroupCollect(int clickedSelectionId, int& originalClickedIndex, int targetGroupId, juce::Array<int>& groupItems, juce::Array<int>& nonGroupItems);
+	int calcTargetIndexForGroupCollect(int clickedSelectionId, int originalClickedIndex, juce::Array<int>& nonGroupItems, juce::Array<int>& groupMembers) const;
+
 	// Layout and drawing functions
 	void setupAndFillHeader();
 	void setupAndFillArea();
@@ -275,6 +280,8 @@ private:
 
 	bool isSlotDragPayload(const juce::String& payload) const { return payload.startsWith(DragAndDropConstants::slotDragPayloadPrefix); }
 	int extractIdFromPayload(const juce::String& payload) const { return payload.substring(DragAndDropConstants::slotDragPayloadPrefix.length()).getIntValue(); }
+
+	void applyNewSlotOrder(const juce::Array<int>& newOrder, const juce::String& transactionName);
 
 	int currentDragInsertIndex = -1;
 

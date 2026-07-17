@@ -980,6 +980,7 @@ void PerformanceView::addStandardMenuOptions(juce::Array<int>& readOnlySlots, ju
 	{
 		addVcaMenuItem(menu, commonGrpId);
 		setupAndAddGrpColourMenu(menu, commonGrpId);
+		menu.addItem(ContextMenuID::CollectGroupSlots, "Collect Group Slots");
 	}
 
 	addLinkMasksMenuItems(activeSlots, menu);
@@ -1381,6 +1382,10 @@ void PerformanceView::handlePopupMenuResult(int result, const juce::Array<int>& 
 			handleCreateCustomLink(activeSlots);
 			break;
 
+		case CollectGroupSlots:
+			handleCollectGroupSlots(selectedArr[0]);
+			break;
+
 		default:
 			break;
 	}
@@ -1745,6 +1750,73 @@ void PerformanceView::toggleSoloSafe(const juce::Array<int>& activeSlots)
 	{
 		SlotStateHelpers::setSlotSoloSafe(processor.apvts, idx, targetState);
 	}
+}
+
+void PerformanceView::handleCollectGroupSlots(int clickedSelectionId)
+{
+	int targetGroupId = getTargetGroupId(clickedSelectionId);
+
+	if (!SlotStateHelpers::isValidGroup(targetGroupId))
+		return;
+
+	juce::Array<int> groupItems;
+	juce::Array<int> nonGroupItems;
+	int originalClickedIndex = -1;
+
+	filterLayoutListsForGroupCollect(clickedSelectionId, originalClickedIndex, targetGroupId, groupItems, nonGroupItems);
+
+	if (groupItems.size() <= 1 || originalClickedIndex == -1)
+		return;
+
+	int targetStartIndex = calcTargetIndexForGroupCollect(clickedSelectionId, originalClickedIndex, nonGroupItems, groupItems);
+
+	juce::Array<int> newOrder = nonGroupItems;
+	newOrder.insertArray(targetStartIndex, groupItems.getRawDataPointer(), groupItems.size());
+
+	applyNewSlotOrder(newOrder, "Collect Group Slots");
+	triggerAsyncUpdate();
+}
+
+int PerformanceView::getTargetGroupId(int clickedSelectionId)
+{
+	int targetGroupId;
+	if (isVcaSelection(clickedSelectionId))
+		targetGroupId = getTrueId(clickedSelectionId);
+	else
+		targetGroupId = SlotStateHelpers::getGroupId(processor.apvts.state, clickedSelectionId);
+	return targetGroupId;
+}
+
+void PerformanceView::filterLayoutListsForGroupCollect(int clickedSelectionId, int& originalClickedIndex, int targetGroupId, juce::Array<int>& groupItems, juce::Array<int>& nonGroupItems)
+{
+	for (int i = 0; i < visualSlotOrder.size(); ++i)
+	{
+		int id = visualSlotOrder[i];
+
+		if (id == clickedSelectionId)
+			originalClickedIndex = i;
+
+		bool isGroupMember = false;
+		if (isVcaSelection(id))
+			isGroupMember = (getTrueId(id) == targetGroupId);
+		else
+			isGroupMember = (SlotStateHelpers::getGroupId(processor.apvts.state, id) == targetGroupId);
+
+		if (isGroupMember)
+			groupItems.add(id);
+		else
+			nonGroupItems.add(id);
+	}
+}
+
+int PerformanceView::calcTargetIndexForGroupCollect(int clickedSelectionId, int originalClickedIndex, juce::Array<int>& nonGroupItems, juce::Array<int>& groupItems) const
+{
+	int relativeIndexInGroup = groupItems.indexOf(clickedSelectionId);
+
+	int targetStartIndex = originalClickedIndex - relativeIndexInGroup;
+	targetStartIndex = juce::jlimit(0, nonGroupItems.size(), targetStartIndex);
+
+	return targetStartIndex;
 }
 
 void PerformanceView::paint(juce::Graphics& g)
@@ -2448,13 +2520,17 @@ void PerformanceView::buildAndSetNewSlotOrder(juce::Array<int>& itemsToMove, int
 	}
 
 	int adjustedTargetIndex = targetIndex - numItemsBeforeTarget;
-
 	for (int i = 0; i < itemsToMove.size(); ++i)
 	{
 		newOrder.insert(adjustedTargetIndex + i, itemsToMove[i]);
 	}
 
-	processor.undoManager.beginNewTransaction("Reorder Slots");
+	applyNewSlotOrder(newOrder, "Reorder Slots");
+}
+
+void PerformanceView::applyNewSlotOrder(const juce::Array<int>& newOrder, const juce::String& transactionName)
+{
+	processor.undoManager.beginNewTransaction(transactionName);
 	visualSlotOrder = newOrder;
 	SlotStateHelpers::setVisualSlotOrder(processor.apvts.state, visualSlotOrder, &processor.undoManager);
 }

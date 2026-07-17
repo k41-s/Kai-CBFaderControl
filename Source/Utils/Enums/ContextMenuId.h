@@ -18,5 +18,6 @@ enum ContextMenuID {
     LinkMaskPan = 206,
     CustomUnlink = 210,
     CreateCustomLink = 211,
-    AssignLinkColourBase = 220
+    AssignLinkColourBase = 220,
+	CollectGroupSlots = 300,
 };
