@@ -276,6 +276,8 @@ void LinkManager::updateSipState()
     }
 
     ScopedAtomicSetter setter(isPropagatingGroup, true);
+    ScopedAtomicSetter linkSetter(isPropagatingCustomLink, true);
+
     applyOrReleaseSIPMutes(anySoloActive);
 }
 
