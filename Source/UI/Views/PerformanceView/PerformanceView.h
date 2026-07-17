@@ -67,6 +67,7 @@ public:
 	void handleRedo();
 	void handleSaveActiveStore();
 
+	//Drag Drop functions
 	bool isInterestedInDragSource(const SourceDetails& dragSourceDetails) override;
 	void itemDropped(const SourceDetails& dragSourceDetails) override;
 
@@ -267,6 +268,13 @@ private:
 	// DragDrop helpers
 	int getInsertIndexFromPosition(int dropX) const;
 	int getDragLineX(int& top, int& bottom) const;
+
+	juce::Array<int> findItemsToMove(int& draggedSelectionId);
+	int calcMovingItemsBeforeTarget(juce::Array<int>& itemsToMove, int targetIndex);
+	void buildAndSetNewSlotOrder(juce::Array<int>& itemsToMove, int targetIndex, int numItemsBeforeTarget);
+
+	bool isSlotDragPayload(const juce::String& payload) const { return payload.startsWith(DragAndDropConstants::slotDragPayloadPrefix); }
+	int extractIdFromPayload(const juce::String& payload) const { return payload.substring(DragAndDropConstants::slotDragPayloadPrefix.length()).getIntValue(); }
 
 	int currentDragInsertIndex = -1;
 

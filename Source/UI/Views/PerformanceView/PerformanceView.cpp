@@ -2387,25 +2387,30 @@ int PerformanceView::getLinkedSelectionId(int selectionId) const
 
 bool PerformanceView::isInterestedInDragSource(const SourceDetails& dragSourceDetails)
 {
-	// Make this SLOT DRAG string into a constant in appropriate package/file
-	// Also maybe the delimiter, |
-	return dragSourceDetails.description.toString().startsWith("SLOT_DRAG|");
+	return isSlotDragPayload(dragSourceDetails.description.toString());
 }
 
 void PerformanceView::itemDropped(const SourceDetails& dragSourceDetails)
 {
 	juce::String payload = dragSourceDetails.description.toString();
-	if (!payload.startsWith("SLOT_DRAG|"))
+	if (!isSlotDragPayload(payload))
 		return;
 
-	int draggedSelectionId = payload.substring(10).getIntValue();
+	int draggedSelectionId = extractIdFromPayload(payload);
 	int targetIndex = getInsertIndexFromPosition(dragSourceDetails.localPosition.x);
 	currentDragInsertIndex = -1;
 	repaint();
 
-	juce::Array<int> itemsToMove;
+	juce::Array<int> itemsToMove = findItemsToMove(draggedSelectionId);
+	int numItemsBeforeTarget = calcMovingItemsBeforeTarget(itemsToMove, targetIndex);
 
-	// Gather items: either the whole selection block or just the single dragged item
+	buildAndSetNewSlotOrder(itemsToMove, targetIndex, numItemsBeforeTarget);
+	triggerAsyncUpdate();
+}
+
+juce::Array<int> PerformanceView::findItemsToMove(int& draggedSelectionId)
+{
+	juce::Array<int> itemsToMove;
 	if (selectedItems.isSelected(draggedSelectionId))
 	{
 		for (int id : visualSlotOrder)
@@ -2418,29 +2423,32 @@ void PerformanceView::itemDropped(const SourceDetails& dragSourceDetails)
 	{
 		itemsToMove.add(draggedSelectionId);
 	}
+	return itemsToMove;
+}
 
-	// 1. Calculate how many moving items sit *before* the target drop index.
-	// This is strictly required to fix the "dragging to the right" bug.
-	int numItemsBeforeTarget = 0;
+int PerformanceView::calcMovingItemsBeforeTarget(juce::Array<int>& itemsToMove, int targetIndex)
+{
+	int counter = 0;
 	for (int i = 0; i < targetIndex; ++i)
 	{
 		if (itemsToMove.contains(visualSlotOrder[i]))
 		{
-			numItemsBeforeTarget++;
+			counter++;
 		}
 	}
+	return counter;
+}
 
-	// 2. Remove all moving items from a working copy of the array
+void PerformanceView::buildAndSetNewSlotOrder(juce::Array<int>& itemsToMove, int targetIndex, int numItemsBeforeTarget)
+{
 	juce::Array<int> newOrder = visualSlotOrder;
 	for (int id : itemsToMove)
 	{
 		newOrder.removeAllInstancesOf(id);
 	}
 
-	// 3. Adjust the target index backwards by the exact number of removed preceding items
 	int adjustedTargetIndex = targetIndex - numItemsBeforeTarget;
 
-	// 4. Insert the block at the mathematically correct position
 	for (int i = 0; i < itemsToMove.size(); ++i)
 	{
 		newOrder.insert(adjustedTargetIndex + i, itemsToMove[i]);
@@ -2449,7 +2457,6 @@ void PerformanceView::itemDropped(const SourceDetails& dragSourceDetails)
 	processor.undoManager.beginNewTransaction("Reorder Slots");
 	visualSlotOrder = newOrder;
 	SlotStateHelpers::setVisualSlotOrder(processor.apvts.state, visualSlotOrder, &processor.undoManager);
-	triggerAsyncUpdate();
 }
 
 int PerformanceView::getInsertIndexFromPosition(int dropX) const

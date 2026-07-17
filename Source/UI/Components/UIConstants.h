@@ -162,3 +162,10 @@ namespace AlertFieldIDs
     static inline const juce::String storeName = "nameField";
     static inline const juce::String numStores = "numField";
 }
+
+namespace DragAndDropConstants
+{
+    static inline const juce::String slotDragPrefix = "SLOT_DRAG";
+    static inline const juce::String delimiter = "|";
+    static inline const juce::String slotDragPayloadPrefix = slotDragPrefix + delimiter;
+}

@@ -1,4 +1,5 @@
 #include "GrabHandle.h"
+#include "../../UIConstants.h"
 
 GrabHandle::GrabHandle(int associatedSelectionId) : selectionId(associatedSelectionId)
 {
@@ -33,7 +34,7 @@ void GrabHandle::mouseDrag(const juce::MouseEvent& e)
 {
     if (auto* dragContainer = juce::DragAndDropContainer::findParentDragContainerFor(this))
     {
-        juce::String dragPayload = "SLOT_DRAG|" + juce::String(selectionId);
+        juce::String dragPayload = DragAndDropConstants::slotDragPayloadPrefix + juce::String(selectionId);
 
         dragContainer->startDragging(dragPayload, getParentComponent(), juce::ScaledImage(), false, nullptr, &e.source);
     }
