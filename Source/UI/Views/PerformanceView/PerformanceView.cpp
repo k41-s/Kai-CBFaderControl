@@ -1924,33 +1924,41 @@ void PerformanceView::vcaSlotsOnResized(float baselineWidth)
 void PerformanceView::setupAndFillHeader()
 {
 	auto area = getLocalBounds();
-
 	int slotNumberBlueHeight = (int)(area.getHeight() * 0.045f);
 	headerArea = area.removeFromTop(topButtonStripHeight + slotNumberBlueHeight);
 
-	auto buttonStrip = headerArea.withHeight(topButtonStripHeight);
+	auto buttonStrip = headerArea.withHeight(topButtonStripHeight).reduced(4);
 
-	auto presetsArea = buttonStrip.removeFromRight(80).reduced(4, 4);
-	presetsButton.setBounds(presetsArea);
+	juce::FlexBox fb;
+	fb.flexDirection = juce::FlexBox::Direction::row;
+	fb.flexWrap = juce::FlexBox::Wrap::noWrap;
+	fb.alignItems = juce::FlexBox::AlignItems::stretch;
 
-	auto leftArea = buttonStrip.removeFromLeft(350);
+	fb.items.add(juce::FlexItem(setupButton)
+		.withFlex(1.0f).withMinWidth(45.0f).withMaxWidth(80.0f)
+		.withMargin(juce::FlexItem::Margin(0, 5, 0, 0)));
 
-	auto setupArea = leftArea.removeFromLeft(80).reduced(4, 4);
-	setupButton.setBounds(setupArea);
+	fb.items.add(juce::FlexItem(activeStoreLabel)
+		.withFlex(1.5f).withMinWidth(60.0f).withMaxWidth(120.0f)
+		.withMargin(juce::FlexItem::Margin(0, 5, 0, 0)));
 
-	leftArea.removeFromLeft(20);
+	fb.items.add(juce::FlexItem(editLayoutButton)
+		.withFlex(1.5f).withMinWidth(70.0f).withMaxWidth(100.0f));
 
-	auto labelArea = leftArea.removeFromLeft(120).reduced(4, 4);
-	activeStoreLabel.setBounds(labelArea);
+	fb.items.add(juce::FlexItem().withFlex(1.0f));
 
-	leftArea.removeFromLeft(10);
+	fb.items.add(juce::FlexItem(xPatchImg)
+		.withFlex(1.2f).withMinWidth(40.0f).withMaxWidth(70.0f));
 
-	auto lockArea = leftArea.removeFromLeft(100).reduced(4, 4);
-	editLayoutButton.setBounds(lockArea);
+	fb.items.add(juce::FlexItem().withFlex(1.8f));
 
-	xPatchImg.setBounds(headerArea.withHeight(topButtonStripHeight)
-		.withSizeKeepingCentre(75, topButtonStripHeight)
-		.reduced(4));
+	fb.items.add(juce::FlexItem(presetsButton)
+		.withFlex(1.0f).withMinWidth(50.0f).withMaxWidth(80.0f));
+
+	fb.performLayout(buttonStrip);
+
+	float labelFontSize = juce::jlimit(11.0f, 15.0f, activeStoreLabel.getWidth() * 0.18f);
+	activeStoreLabel.setFont(juce::Font(labelFontSize, juce::Font::bold));
 }
 
 void PerformanceView::setupAndFillArea()

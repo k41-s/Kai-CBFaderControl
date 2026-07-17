@@ -589,16 +589,18 @@ void PerformanceViewLookFeel::drawButtonText(juce::Graphics& g, juce::TextButton
 void PerformanceViewLookFeel::handleMultipleLineButtonText(juce::TextButton& button, juce::Graphics& g, juce::String& text, juce::Rectangle<float>& textBounds)
 {
 	float maxFont = UISizeConstants::btnTextMaxFont * 0.85f;
-	float dynamicSize = button.getWidth() * 0.30f;
-	float fontSize = juce::jlimit(UISizeConstants::minFontSize, maxFont, dynamicSize);
-
-	g.setFont(juce::Font(fontSize, juce::Font::bold));
 
 	auto topText = text.upToFirstOccurrenceOf("\n", false, false);
 	auto bottomText = text.fromFirstOccurrenceOf("\n", false, false);
 
-	auto topHalf = textBounds.removeFromTop(textBounds.getHeight() * 0.5f);
+	int longestLineLength = juce::jmax(topText.length(), bottomText.length());
+	float dynamicSize = (button.getWidth() / (float)juce::jmax(1, longestLineLength)) * 1.6f;
 
+	float fontSize = juce::jlimit(UISizeConstants::minFontSize, maxFont, dynamicSize);
+
+	g.setFont(juce::Font(fontSize, juce::Font::bold));
+
+	auto topHalf = textBounds.removeFromTop(textBounds.getHeight() * 0.5f);
 	g.drawText(topText, topHalf.translated(0, 2), juce::Justification::centred, true);
 	g.drawText(bottomText, textBounds.translated(0, -2), juce::Justification::centred, true);
 }
@@ -606,12 +608,14 @@ void PerformanceViewLookFeel::handleMultipleLineButtonText(juce::TextButton& but
 void PerformanceViewLookFeel::handleSingleLineButtonText(juce::TextButton& button, juce::Graphics& g, juce::String& text, const juce::Rectangle<float>& textBounds)
 {
 	float maxFont = UISizeConstants::btnTextMaxFont;
-	float minFont = 10.0f;
-	float dynamicSize = button.getWidth() * 0.45f;
+	float minFont = UISizeConstants::minFontSize;
+
+	float textLengthMultiplier = 1.6f;
+	float dynamicSize = (button.getWidth() / (float)juce::jmax(1, text.length())) * textLengthMultiplier;
+
 	float fontSize = juce::jlimit(minFont, maxFont, dynamicSize);
 
 	g.setFont(juce::Font(fontSize, juce::Font::bold));
-
 	g.drawText(text, textBounds, juce::Justification::centred, true);
 }
 
