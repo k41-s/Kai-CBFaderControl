@@ -355,12 +355,16 @@ void LinkManager::propagateCustomLinkMute(int sourceTrueId, bool isSourceVca, fl
     if (route.targetId == 0 || !SlotStateHelpers::isLinkMaskMute(processor.apvts.state, route.sourceTreeId))
         return;
 
+    float appliedValue = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, route.sourceTreeId)
+        ? (1.0f - newValue)
+        : newValue;
+
     ScopedAtomicSetter setter(isPropagatingCustomLink, true);
 
     if (route.isTargetVca)
-        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaMute(route.targetId), newValue);
+        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::vcaMute(route.targetId), appliedValue);
     else
-        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(route.targetId), newValue);
+        SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::mute(route.targetId), appliedValue);
 }
 
 void LinkManager::propagateCustomLinkSolo(int sourceTrueId, bool isSourceVca, float newValue)
@@ -370,8 +374,12 @@ void LinkManager::propagateCustomLinkSolo(int sourceTrueId, bool isSourceVca, fl
     if (route.targetId == 0 || route.isTargetVca || !SlotStateHelpers::isLinkMaskSolo(processor.apvts.state, route.sourceTreeId))
         return;
 
+    float appliedValue = SlotStateHelpers::isLinkPolarityInverse(processor.apvts.state, route.sourceTreeId)
+        ? (1.0f - newValue)
+        : newValue;
+
     ScopedAtomicSetter setter(isPropagatingCustomLink, true);
-    SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::solo(route.targetId), newValue);
+    SlotStateHelpers::setParamNormalized(processor.apvts, SlotIDs::solo(route.targetId), appliedValue);
 }
 
 void LinkManager::propagateCustomLinkPan(int sourceTrueId, bool isSourceVca, float delta)

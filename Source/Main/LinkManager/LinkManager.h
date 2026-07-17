@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "../../UI/Components/UIConstants.h"
+#include "../../Utils/ScopedAtomicSetter.h"
 
 class KaiCBFaderControlAudioProcessor; // Forward declaration to avoid circular dependency
 
@@ -11,6 +12,19 @@ public:
     ~LinkManager() override;
 
     void parameterChanged(const juce::String& parameterID, float newValue) override;
+
+    /**
+     * RAII helper to temporarily suspend custom link propagation.
+     * Inherits privately from ScopedAtomicSetter to keep the atomic variable strictly protected.
+     */
+    class ScopedPropagationBypass : private ScopedAtomicSetter
+    {
+    public:
+        ScopedPropagationBypass(LinkManager& lm)
+            : ScopedAtomicSetter(lm.isPropagatingCustomLink, true)
+        {
+        }
+    };
 
 private:
 

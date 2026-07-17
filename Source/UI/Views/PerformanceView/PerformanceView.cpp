@@ -8,6 +8,7 @@
 #include "../../../Utils/Enums/DialogConstants.h"
 #include "../../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../../Components/PinnedStoreButton/PinnedStoreButton.h"
+#include "../../../Utils/ScopedAtomicSetter.h"
 
 PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
 	:processor(p)
@@ -1719,6 +1720,8 @@ void PerformanceView::toggleSoloSafe(const juce::Array<int>& activeSlots)
 void PerformanceView::handleClearAllSolos()
 {
 	processor.undoManager.beginNewTransaction("Clear All Solos");
+
+	LinkManager::ScopedPropagationBypass linkBypass(*processor.linkManager);
 
 	bool anyChanged = false;
 
