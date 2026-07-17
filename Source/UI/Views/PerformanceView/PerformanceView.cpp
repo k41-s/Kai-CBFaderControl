@@ -2293,11 +2293,20 @@ void PerformanceView::handleSelectAll()
 {
 	selectedItems.deselectAll();
 
-	for (int i = 1; i <= PluginConstants::numSlots; ++i)
-	{
-		if (isSlotFullAccess(i))
+	for (int selectionId : visualSlotOrder) {
+		if (isVcaSelection(selectionId)) 
 		{
-			selectedItems.addToSelection(i);
+			if (SlotStateHelpers::isVcaEnabled(processor.apvts, getTrueId(selectionId))) 
+			{
+				selectedItems.addToSelection(selectionId);
+			}
+		}
+		else 
+		{
+			auto info = getSlotDisplayInfo(selectionId);
+			if (info.shouldProcess && info.isVisible) {
+				selectedItems.addToSelection(selectionId);
+			}
 		}
 	}
 }
