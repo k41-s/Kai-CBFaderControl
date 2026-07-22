@@ -5,7 +5,7 @@
 #include "../../Components/UIConstants.h"
 #include "../../../Utils/OSCUtils/NetworkUtils.h"
 
-SetupPageView::SetupPageView(KaiCBFaderControlAudioProcessor& p) : processor(p)
+SetupPageView::SetupPageView(CBFaderControlAudioProcessor& p) : processor(p)
 {
 	init();
 }

@@ -6,7 +6,7 @@
 #include "../../../../Utils/UIUtils/UIUtils.h"
 #include "../../../../Utils/StateUtils/SlotStateHelpers.h"
 
-PerformanceSlotItem::PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex)
+PerformanceSlotItem::PerformanceSlotItem(CBFaderControlAudioProcessor& p, int slotIndex)
 	:BaseSlotItem(p, slotIndex)
 {
     init(slotIndex);

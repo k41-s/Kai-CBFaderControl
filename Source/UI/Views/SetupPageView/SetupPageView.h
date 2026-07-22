@@ -13,7 +13,7 @@ class SetupPageView :
 	public juce::ChangeListener
 {
 public:
-	SetupPageView(KaiCBFaderControlAudioProcessor& p);
+	SetupPageView(CBFaderControlAudioProcessor& p);
 	~SetupPageView() override;
 
 	void resized() override;
@@ -95,7 +95,7 @@ private:
 
 	juce::TextButton navigateBtn{ "Go to Performance" };
 
-	KaiCBFaderControlAudioProcessor& processor;
+	CBFaderControlAudioProcessor& processor;
 	SetupViewLookFeel customLF;
 	
 	juce::Label localIpLabel;

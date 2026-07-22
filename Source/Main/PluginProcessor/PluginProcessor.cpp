@@ -6,7 +6,7 @@
 #include "../../UI/Components/UIConstants.h"
 
 //==============================================================================
-KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
+CBFaderControlAudioProcessor::CBFaderControlAudioProcessor()
     : AudioProcessor(BusesProperties()
         .withOutput("Output", juce::AudioChannelSet::stereo(), true)
     ),
@@ -16,7 +16,7 @@ KaiCBFaderControlAudioProcessor::KaiCBFaderControlAudioProcessor()
     init();
 }
 
-void KaiCBFaderControlAudioProcessor::init()
+void CBFaderControlAudioProcessor::init()
 {
     initListeners();
     initialiseNetworkingDefaults();
@@ -26,12 +26,12 @@ void KaiCBFaderControlAudioProcessor::init()
     initGlobalRegistry();
 }
 
-void KaiCBFaderControlAudioProcessor::initListeners()
+void CBFaderControlAudioProcessor::initListeners()
 {
     apvts.addParameterListener(PresetTags::ActiveStoreParamId, this);
 }
 
-void KaiCBFaderControlAudioProcessor::initialiseNetworkingDefaults()
+void CBFaderControlAudioProcessor::initialiseNetworkingDefaults()
 {
     auto& state = apvts.state;
     if (!state.hasProperty(SlotIDs::targetIP()))
@@ -44,23 +44,23 @@ void KaiCBFaderControlAudioProcessor::initialiseNetworkingDefaults()
         SlotStateHelpers::setOutgoingPort(state, NetworkConstants::defaultOutgoingPort);
 }
 
-void KaiCBFaderControlAudioProcessor::initOscManager()
+void CBFaderControlAudioProcessor::initOscManager()
 {
     oscManager = std::make_unique<OscManager>(*this);
     oscManager->connect();
 }
 
-void KaiCBFaderControlAudioProcessor::initLinkManager()
+void CBFaderControlAudioProcessor::initLinkManager()
 {
     linkManager = std::make_unique<LinkManager>(*this);
 }
 
-void KaiCBFaderControlAudioProcessor::initPresetManager()
+void CBFaderControlAudioProcessor::initPresetManager()
 {
     presetManager = std::make_unique<PresetManager>();
 }
 
-void KaiCBFaderControlAudioProcessor::initGlobalRegistry()
+void CBFaderControlAudioProcessor::initGlobalRegistry()
 {
     wasSlotOwned.insertMultiple(0, false, PluginConstants::numSlots);
 
@@ -74,24 +74,24 @@ void KaiCBFaderControlAudioProcessor::initGlobalRegistry()
     }
 }
 
-KaiCBFaderControlAudioProcessor::~KaiCBFaderControlAudioProcessor()
+CBFaderControlAudioProcessor::~CBFaderControlAudioProcessor()
 {
     removeListeners();
     clearGlobalSlotRegistry();
 }
 
-void KaiCBFaderControlAudioProcessor::removeListeners()
+void CBFaderControlAudioProcessor::removeListeners()
 {
     apvts.removeParameterListener(PresetTags::ActiveStoreParamId, this);
 }
 
-void KaiCBFaderControlAudioProcessor::clearGlobalSlotRegistry()
+void CBFaderControlAudioProcessor::clearGlobalSlotRegistry()
 {
     globalSlotRegistry->removeChangeListener(this);
     releaseOwnedSlots();
 }
 
-void KaiCBFaderControlAudioProcessor::releaseOwnedSlots() const
+void CBFaderControlAudioProcessor::releaseOwnedSlots() const
 {
     for (int i = 1; i <= PluginConstants::numSlots; ++i)
         globalSlotRegistry->releaseSlot(i, getInstanceId());
@@ -99,7 +99,7 @@ void KaiCBFaderControlAudioProcessor::releaseOwnedSlots() const
 
 //==============================================================================
 
-juce::AudioProcessorValueTreeState::ParameterLayout KaiCBFaderControlAudioProcessor::createParameterLayout()
+juce::AudioProcessorValueTreeState::ParameterLayout CBFaderControlAudioProcessor::createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout params;
 
@@ -113,7 +113,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout KaiCBFaderControlAudioProces
     return params;
 }
 
-void KaiCBFaderControlAudioProcessor::addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i)
+void CBFaderControlAudioProcessor::addParamsForSlot(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i)
 {
     params.add(std::make_unique<juce::AudioParameterBool>(
         SlotIDs::isActive(i),
@@ -153,7 +153,7 @@ void KaiCBFaderControlAudioProcessor::addParamsForSlot(juce::AudioProcessorValue
     ));
 }
 
-void KaiCBFaderControlAudioProcessor::addParamsForVca(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i)
+void CBFaderControlAudioProcessor::addParamsForVca(juce::AudioProcessorValueTreeState::ParameterLayout& params, int i)
 {
     params.add(std::make_unique<juce::AudioParameterBool>(
         SlotIDs::vcaEnabled(i), ParamSlotNames::vcaEnabled(i), false));
@@ -175,7 +175,7 @@ void KaiCBFaderControlAudioProcessor::addParamsForVca(juce::AudioProcessorValueT
         SlotIDs::isVcaExpanded(i), ParamSlotNames::isVcaExpanded(i), true));
 }
 
-void KaiCBFaderControlAudioProcessor::addActiveStoreParam(juce::AudioProcessorValueTreeState::ParameterLayout& params)
+void CBFaderControlAudioProcessor::addActiveStoreParam(juce::AudioProcessorValueTreeState::ParameterLayout& params)
 {
     params.add(std::make_unique<juce::AudioParameterInt>(
         juce::ParameterID(PresetTags::ActiveStoreParamId, 1),
@@ -185,12 +185,12 @@ void KaiCBFaderControlAudioProcessor::addActiveStoreParam(juce::AudioProcessorVa
 }
 
 //==============================================================================
-const juce::String KaiCBFaderControlAudioProcessor::getName() const
+const juce::String CBFaderControlAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool KaiCBFaderControlAudioProcessor::acceptsMidi() const
+bool CBFaderControlAudioProcessor::acceptsMidi() const
 {
 #if JucePlugin_WantsMidiInput
     return true;
@@ -199,7 +199,7 @@ bool KaiCBFaderControlAudioProcessor::acceptsMidi() const
 #endif
 }
 
-bool KaiCBFaderControlAudioProcessor::producesMidi() const
+bool CBFaderControlAudioProcessor::producesMidi() const
 {
 #if JucePlugin_ProducesMidiOutput
     return true;
@@ -208,7 +208,7 @@ bool KaiCBFaderControlAudioProcessor::producesMidi() const
 #endif
 }
 
-bool KaiCBFaderControlAudioProcessor::isMidiEffect() const
+bool CBFaderControlAudioProcessor::isMidiEffect() const
 {
 #if JucePlugin_IsMidiEffect
     return true;
@@ -217,50 +217,50 @@ bool KaiCBFaderControlAudioProcessor::isMidiEffect() const
 #endif
 }
 
-double KaiCBFaderControlAudioProcessor::getTailLengthSeconds() const
+double CBFaderControlAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int KaiCBFaderControlAudioProcessor::getNumPrograms()
+int CBFaderControlAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
     // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int KaiCBFaderControlAudioProcessor::getCurrentProgram()
+int CBFaderControlAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void KaiCBFaderControlAudioProcessor::setCurrentProgram(int index)
+void CBFaderControlAudioProcessor::setCurrentProgram(int index)
 {
 }
 
-const juce::String KaiCBFaderControlAudioProcessor::getProgramName(int index)
+const juce::String CBFaderControlAudioProcessor::getProgramName(int index)
 {
     return {};
 }
 
-void KaiCBFaderControlAudioProcessor::changeProgramName(int index, const juce::String& newName)
+void CBFaderControlAudioProcessor::changeProgramName(int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void KaiCBFaderControlAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void CBFaderControlAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 }
 
-void KaiCBFaderControlAudioProcessor::releaseResources()
+void CBFaderControlAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool KaiCBFaderControlAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool CBFaderControlAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
@@ -269,7 +269,7 @@ bool KaiCBFaderControlAudioProcessor::isBusesLayoutSupported(const BusesLayout& 
 }
 #endif
 
-void KaiCBFaderControlAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void CBFaderControlAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
@@ -299,19 +299,19 @@ void KaiCBFaderControlAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
 }
 
 //==============================================================================
-bool KaiCBFaderControlAudioProcessor::hasEditor() const
+bool CBFaderControlAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* KaiCBFaderControlAudioProcessor::createEditor()
+juce::AudioProcessorEditor* CBFaderControlAudioProcessor::createEditor()
 {
-    return new KaiCBFaderControlAudioProcessorEditor(*this);
+    return new CBFaderControlAudioProcessorEditor(*this);
 }
 
 //==============================================================================
 
-void KaiCBFaderControlAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
+void CBFaderControlAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
     juce::XmlElement parentXml(PresetTags::RootXmlTag);
 
@@ -323,7 +323,7 @@ void KaiCBFaderControlAudioProcessor::getStateInformation(juce::MemoryBlock& des
     copyXmlToBinary(parentXml, destData);
 }
 
-void KaiCBFaderControlAudioProcessor::saveApvtsState(juce::XmlElement& parentXml)
+void CBFaderControlAudioProcessor::saveApvtsState(juce::XmlElement& parentXml)
 {
     auto state = apvts.copyState();
     std::unique_ptr<juce::XmlElement> apvtsXml(state.createXml());
@@ -331,14 +331,14 @@ void KaiCBFaderControlAudioProcessor::saveApvtsState(juce::XmlElement& parentXml
         parentXml.addChildElement(apvtsXml.release());
 }
 
-void KaiCBFaderControlAudioProcessor::saveStoreState(juce::XmlElement& parentXml) const
+void CBFaderControlAudioProcessor::saveStoreState(juce::XmlElement& parentXml) const
 {
     std::unique_ptr<juce::XmlElement> storesXml(presetManager->createXml());
     if (storesXml != nullptr)
         parentXml.addChildElement(storesXml.release());
 }
 
-void KaiCBFaderControlAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+void CBFaderControlAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     ScopedAtomicSetter setter(isRestoringState, true);
     std::unique_ptr<juce::XmlElement> parentXml(getXmlFromBinary(data, sizeInBytes));
@@ -374,21 +374,21 @@ void KaiCBFaderControlAudioProcessor::setStateInformation(const void* data, int 
     claimActiveSlots();
 }
 
-void KaiCBFaderControlAudioProcessor::restoreApvts(std::unique_ptr<juce::XmlElement>& parentXml)
+void CBFaderControlAudioProcessor::restoreApvts(std::unique_ptr<juce::XmlElement>& parentXml)
 {
     auto* apvtsXml = parentXml->getChildByName(apvts.state.getType());
     if (apvtsXml != nullptr)
         apvts.replaceState(juce::ValueTree::fromXml(*apvtsXml));
 }
 
-void KaiCBFaderControlAudioProcessor::restoreStores(std::unique_ptr<juce::XmlElement>& parentXml) const
+void CBFaderControlAudioProcessor::restoreStores(std::unique_ptr<juce::XmlElement>& parentXml) const
 {
     auto* storesXml = parentXml->getChildByName(PresetTags::StoresTreeType.toString());
     if (storesXml != nullptr)
         presetManager->loadFromXml(storesXml);
 }
 
-void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadcaster* source)
+void CBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
     if (source == &globalSlotRegistry.get())
     {
@@ -406,7 +406,7 @@ void KaiCBFaderControlAudioProcessor::changeListenerCallback(juce::ChangeBroadca
     }
 }
 
-void KaiCBFaderControlAudioProcessor::clearSlotRouting(int slotIdx)
+void CBFaderControlAudioProcessor::clearSlotRouting(int slotIdx)
 {
     auto& state = apvts.state;
     int linkedIdx = SlotStateHelpers::getLinkedSlotId(state, slotIdx);
@@ -420,18 +420,18 @@ void KaiCBFaderControlAudioProcessor::clearSlotRouting(int slotIdx)
     }
 }
 
-void KaiCBFaderControlAudioProcessor::removeFromGroup(juce::ValueTree& state, int slotIdx)
+void CBFaderControlAudioProcessor::removeFromGroup(juce::ValueTree& state, int slotIdx)
 {
     SlotStateHelpers::setGroupId(state, slotIdx, 0);
     SlotStateHelpers::setGroupRole(state, slotIdx, GroupRole::Member);
 }
 
-void KaiCBFaderControlAudioProcessor::removeFromStereoPair(juce::ValueTree& state, int slotIdx)
+void CBFaderControlAudioProcessor::removeFromStereoPair(juce::ValueTree& state, int slotIdx)
 {
 	SlotStateHelpers::unlinkStereoSlot(state, slotIdx);
 }
 
-void KaiCBFaderControlAudioProcessor::claimActiveSlots() const
+void CBFaderControlAudioProcessor::claimActiveSlots() const
 {
     for (int i = 1; i <= PluginConstants::numSlots; ++i)
         if (SlotStateHelpers::isSlotActive(apvts, i))
@@ -442,10 +442,10 @@ void KaiCBFaderControlAudioProcessor::claimActiveSlots() const
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new KaiCBFaderControlAudioProcessor();
+    return new CBFaderControlAudioProcessor();
 }
 
-void KaiCBFaderControlAudioProcessor::forceRecallStore(int storeIdx)
+void CBFaderControlAudioProcessor::forceRecallStore(int storeIdx)
 {
     if (storeIdx > 0)
     {
@@ -453,7 +453,7 @@ void KaiCBFaderControlAudioProcessor::forceRecallStore(int storeIdx)
     }
 }
 
-void KaiCBFaderControlAudioProcessor::savePresetToFile(const juce::File& file)
+void CBFaderControlAudioProcessor::savePresetToFile(const juce::File& file)
 {
     juce::XmlElement parentXml(PresetTags::RootXmlTag);
     saveApvtsState(parentXml);
@@ -461,12 +461,12 @@ void KaiCBFaderControlAudioProcessor::savePresetToFile(const juce::File& file)
     parentXml.writeTo(file);
 }
 
-std::unique_ptr<juce::XmlElement> KaiCBFaderControlAudioProcessor::loadPresetFile(const juce::File& file)
+std::unique_ptr<juce::XmlElement> CBFaderControlAudioProcessor::loadPresetFile(const juce::File& file)
 {
     return juce::XmlDocument::parse(file);
 }
 
-void KaiCBFaderControlAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
+void CBFaderControlAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
 {
     if (parameterID == PresetTags::ActiveStoreParamId)
     {
@@ -474,7 +474,7 @@ void KaiCBFaderControlAudioProcessor::parameterChanged(const juce::String& param
     }
 }
 
-void KaiCBFaderControlAudioProcessor::handleActiveStoreParameterChanged(float newValue)
+void CBFaderControlAudioProcessor::handleActiveStoreParameterChanged(float newValue)
 {
     int storeIdx = juce::roundToInt(newValue);
 
@@ -484,7 +484,7 @@ void KaiCBFaderControlAudioProcessor::handleActiveStoreParameterChanged(float ne
     }
 }
 
-void KaiCBFaderControlAudioProcessor::recallStoreStateAsync(int storeIdx)
+void CBFaderControlAudioProcessor::recallStoreStateAsync(int storeIdx)
 {
     juce::MessageManager::callAsync([this, storeIdx]()
         {

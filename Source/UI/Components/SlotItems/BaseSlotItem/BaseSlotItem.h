@@ -8,7 +8,7 @@
 class BaseSlotItem : public juce::Component, public juce::ValueTree::Listener
 {
 public:
-    BaseSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex);
+    BaseSlotItem(CBFaderControlAudioProcessor& p, int slotIndex);
     ~BaseSlotItem() override;
 
     void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
@@ -65,7 +65,7 @@ protected:
 
     int targetSlotWidth = -1; // -1 means unconstrained by default
 
-    KaiCBFaderControlAudioProcessor& processor;
+    CBFaderControlAudioProcessor& processor;
     int index;
 
     juce::Rectangle<int> linkIndicatorArea;

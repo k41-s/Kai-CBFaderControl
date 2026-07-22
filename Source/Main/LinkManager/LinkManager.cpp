@@ -4,7 +4,7 @@
 #include "../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../../Utils/ScopedAtomicSetter.h"
 
-LinkManager::LinkManager(KaiCBFaderControlAudioProcessor& p) : processor(p)
+LinkManager::LinkManager(CBFaderControlAudioProcessor& p) : processor(p)
 {
     init();
 }

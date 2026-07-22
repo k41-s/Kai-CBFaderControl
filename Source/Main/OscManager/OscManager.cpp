@@ -6,7 +6,7 @@
 #include "../../Utils/OSCUtils/OscHelpers.h"
 #include "../../Utils/ScopedAtomicSetter.h"
 
-OscManager::OscManager(KaiCBFaderControlAudioProcessor& p) 
+OscManager::OscManager(CBFaderControlAudioProcessor& p) 
     : processor(p), messageQueue(OscConstants::fifoSize, juce::OSCMessage("/empty"))
 {
     init();

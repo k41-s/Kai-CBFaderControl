@@ -3,7 +3,7 @@
 #include "OscConstants.h"
 #include <unordered_map>
 
-class KaiCBFaderControlAudioProcessor;
+class CBFaderControlAudioProcessor;
 
 class OscManager : 
     public juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>,
@@ -11,7 +11,7 @@ class OscManager :
     public juce::Timer
 {
 public:
-    OscManager(KaiCBFaderControlAudioProcessor& p);
+    OscManager(CBFaderControlAudioProcessor& p);
     ~OscManager() override;
 
     void connect();
@@ -71,7 +71,7 @@ private:
 
     bool shouldProcessSlotOsc(int slotId) const;
 
-    KaiCBFaderControlAudioProcessor& processor;
+    CBFaderControlAudioProcessor& processor;
     juce::OSCReceiver receiver;
     juce::OSCSender sender;
 

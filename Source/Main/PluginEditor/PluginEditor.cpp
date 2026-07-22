@@ -13,13 +13,13 @@
 #include "../../Utils/Enums/DialogConstants.h"
 
 //==============================================================================
-KaiCBFaderControlAudioProcessorEditor::KaiCBFaderControlAudioProcessorEditor (KaiCBFaderControlAudioProcessor& p)
+CBFaderControlAudioProcessorEditor::CBFaderControlAudioProcessorEditor (CBFaderControlAudioProcessor& p)
 	: AudioProcessorEditor(&p), audioProcessor(p), setupPage(p), performanceView(p)
 {
     init();
 }
 
-void KaiCBFaderControlAudioProcessorEditor::init()
+void CBFaderControlAudioProcessorEditor::init()
 {
 	setWantsKeyboardFocus(true);
     addScreens();
@@ -30,14 +30,14 @@ void KaiCBFaderControlAudioProcessorEditor::init()
     setAppropriateSize();
 }
 
-void KaiCBFaderControlAudioProcessorEditor::addScreens()
+void CBFaderControlAudioProcessorEditor::addScreens()
 {
     addAndMakeVisible(setupPage);
     addAndMakeVisible(performanceView);
 }
 
 
-void KaiCBFaderControlAudioProcessorEditor::configSetupPageLambdas()
+void CBFaderControlAudioProcessorEditor::configSetupPageLambdas()
 {
     setupPage.onNavigateToPerformance = [this]()
         {
@@ -47,7 +47,7 @@ void KaiCBFaderControlAudioProcessorEditor::configSetupPageLambdas()
         };
 }
 
-void KaiCBFaderControlAudioProcessorEditor::configPerformanceViewLambdas()
+void CBFaderControlAudioProcessorEditor::configPerformanceViewLambdas()
 {
     performanceView.onNavigateToSetup = [this]()
         {
@@ -65,7 +65,7 @@ void KaiCBFaderControlAudioProcessorEditor::configPerformanceViewLambdas()
         };
 }
 
-void KaiCBFaderControlAudioProcessorEditor::determineInitialState()
+void CBFaderControlAudioProcessorEditor::determineInitialState()
 {
     showSetupPage = true;
     for (int i = 0; i < PluginConstants::numSlots; ++i)
@@ -78,12 +78,12 @@ void KaiCBFaderControlAudioProcessorEditor::determineInitialState()
     }
 }
 
-void KaiCBFaderControlAudioProcessorEditor::configResizing()
+void CBFaderControlAudioProcessorEditor::configResizing()
 {
     setResizable(true, true);
 }
 
-void KaiCBFaderControlAudioProcessorEditor::setAppropriateSize()
+void CBFaderControlAudioProcessorEditor::setAppropriateSize()
 {
     int savedWidth = audioProcessor.lastEditorWidth;
     int savedHeight = audioProcessor.lastEditorHeight;
@@ -108,11 +108,11 @@ void KaiCBFaderControlAudioProcessorEditor::setAppropriateSize()
     }
 }
 
-KaiCBFaderControlAudioProcessorEditor::~KaiCBFaderControlAudioProcessorEditor()
+CBFaderControlAudioProcessorEditor::~CBFaderControlAudioProcessorEditor()
 {
 }
 
-void KaiCBFaderControlAudioProcessorEditor::userTriedToCloseWindow()
+void CBFaderControlAudioProcessorEditor::userTriedToCloseWindow()
 {
     if (performanceView.getHasUnsavedChanges())
     {
@@ -141,12 +141,12 @@ void KaiCBFaderControlAudioProcessorEditor::userTriedToCloseWindow()
 }
 
 //==============================================================================
-void KaiCBFaderControlAudioProcessorEditor::paint (juce::Graphics& g)
+void CBFaderControlAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll(MyColours::background);
 }
 
-void KaiCBFaderControlAudioProcessorEditor::resized()
+void CBFaderControlAudioProcessorEditor::resized()
 {
     showCurrentView(showSetupPage);
 
@@ -154,7 +154,7 @@ void KaiCBFaderControlAudioProcessorEditor::resized()
     audioProcessor.lastEditorHeight = getHeight();
 }
 
-void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
+void CBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
 {
     setupPage.setVisible(showSetupPage);
     performanceView.setVisible(!showSetupPage);
@@ -190,7 +190,7 @@ void KaiCBFaderControlAudioProcessorEditor::showCurrentView(bool showSetupPage)
     }
 }
 
-void KaiCBFaderControlAudioProcessorEditor::updateWindowSize(int width, int height)
+void CBFaderControlAudioProcessorEditor::updateWindowSize(int width, int height)
 {
     auto maxSize = getMaxConstrainedWindowSize();
     int trueMaxWidth = maxSize.x;
@@ -208,7 +208,7 @@ void KaiCBFaderControlAudioProcessorEditor::updateWindowSize(int width, int heig
     setSize(safeWidth, safeHeight);
 }
 
-juce::Point<int> KaiCBFaderControlAudioProcessorEditor::getMaxConstrainedWindowSize()
+juce::Point<int> CBFaderControlAudioProcessorEditor::getMaxConstrainedWindowSize()
 {
     auto* display = juce::Desktop::getInstance().getDisplays().getDisplayForRect(getScreenBounds());
     int maxScreenWidth = display ? display->userArea.getWidth() - 40 : WindowSizeValues::maxWidth;
@@ -220,7 +220,7 @@ juce::Point<int> KaiCBFaderControlAudioProcessorEditor::getMaxConstrainedWindowS
     return { trueMaxWidth, trueMaxHeight };
 }
 
-bool KaiCBFaderControlAudioProcessorEditor::keyPressed(const juce::KeyPress& key)
+bool CBFaderControlAudioProcessorEditor::keyPressed(const juce::KeyPress& key)
 {
     if (showSetupPage)
         return false;

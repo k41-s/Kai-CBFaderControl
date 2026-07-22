@@ -8,7 +8,7 @@
 class VcaSlotItem : public BaseSlotItem
 {
 public:
-	VcaSlotItem(KaiCBFaderControlAudioProcessor& p, int vcaIndex);
+	VcaSlotItem(CBFaderControlAudioProcessor& p, int vcaIndex);
 	~VcaSlotItem() override;
 
 	void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;

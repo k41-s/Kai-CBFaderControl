@@ -21,7 +21,7 @@ class PerformanceView :
 	public juce::DragAndDropTarget
 {
 public:
-	PerformanceView(KaiCBFaderControlAudioProcessor& p);
+	PerformanceView(CBFaderControlAudioProcessor& p);
 	~PerformanceView();
 
 	void parameterChanged(const juce::String& parameterID, float newValue) override;
@@ -295,7 +295,7 @@ private:
 
 	juce::TextButton setupButton{ "Setup" };
 
-	KaiCBFaderControlAudioProcessor& processor;
+	CBFaderControlAudioProcessor& processor;
 	PerformanceViewLookFeel performanceLF;
 
 	juce::TextButton presetsButton;

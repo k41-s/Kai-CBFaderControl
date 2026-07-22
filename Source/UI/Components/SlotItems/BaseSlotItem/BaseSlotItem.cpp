@@ -4,7 +4,7 @@
 #include "../../../../Utils/UIUtils/UIUtils.h"
 #include "../../../CustomLookAndFeel/PerformanceViewLookFeel/PerformanceViewLookFeel.h"
 
-BaseSlotItem::BaseSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex)
+BaseSlotItem::BaseSlotItem(CBFaderControlAudioProcessor& p, int slotIndex)
     : processor(p), index(slotIndex)
 {
 }

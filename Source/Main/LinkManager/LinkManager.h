@@ -3,12 +3,12 @@
 #include "../../UI/Components/UIConstants.h"
 #include "../../Utils/ScopedAtomicSetter.h"
 
-class KaiCBFaderControlAudioProcessor; // Forward declaration to avoid circular dependency
+class CBFaderControlAudioProcessor; // Forward declaration to avoid circular dependency
 
 class LinkManager : public juce::AudioProcessorValueTreeState::Listener
 {
 public:
-    LinkManager(KaiCBFaderControlAudioProcessor& processor);
+    LinkManager(CBFaderControlAudioProcessor& processor);
     ~LinkManager() override;
 
     void parameterChanged(const juce::String& parameterID, float newValue) override;
@@ -97,7 +97,7 @@ private:
 
     void forEachGroupMember(int leaderSlotIdx, int grpId, std::function<void(int)> action) const;
 
-    KaiCBFaderControlAudioProcessor& processor;
+    CBFaderControlAudioProcessor& processor;
 
     std::array<float, PluginConstants::numSlots> lastVolume;
     std::array<float, PluginConstants::numSlots> unclampedVolume;

@@ -8,7 +8,7 @@ class SlotConfigItem :
 {
 public:
 
-	SlotConfigItem(KaiCBFaderControlAudioProcessor& p, int slotNum);
+	SlotConfigItem(CBFaderControlAudioProcessor& p, int slotNum);
 	~SlotConfigItem() override;
 
 	void setToggleState(bool shouldBeActive, bool shouldNotify);
@@ -44,7 +44,7 @@ private:
 
 	bool isLassoSelected = false;
 
-	KaiCBFaderControlAudioProcessor& processor;
+	CBFaderControlAudioProcessor& processor;
 	int slotNumber;
 
 	juce::Label slotLabel;

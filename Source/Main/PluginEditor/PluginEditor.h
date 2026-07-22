@@ -7,16 +7,16 @@
 
 //==============================================================================
 
-class KaiCBFaderControlAudioProcessorEditor  : public juce::AudioProcessorEditor
+class CBFaderControlAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    KaiCBFaderControlAudioProcessorEditor (KaiCBFaderControlAudioProcessor&);
+    CBFaderControlAudioProcessorEditor (CBFaderControlAudioProcessor&);
     void init();
     void addScreens();
     void configResizing();
     void configSetupPageLambdas();
     void configPerformanceViewLambdas();
-    ~KaiCBFaderControlAudioProcessorEditor() override;
+    ~CBFaderControlAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -33,11 +33,11 @@ private:
 	void updateWindowSize(int width, int height);
     juce::Point<int> getMaxConstrainedWindowSize();
 
-    KaiCBFaderControlAudioProcessor& audioProcessor;
+    CBFaderControlAudioProcessor& audioProcessor;
     SetupPageView setupPage;
 	PerformanceView performanceView;
 
     bool showSetupPage = true;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KaiCBFaderControlAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CBFaderControlAudioProcessorEditor)
 };

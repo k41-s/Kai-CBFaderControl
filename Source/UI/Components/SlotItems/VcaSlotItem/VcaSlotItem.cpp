@@ -7,7 +7,7 @@
 #include "../../../../Utils/StateUtils/SlotStateHelpers.h"
 #include "../../../../Utils/Enums/ContextMenuId.h"
 
-VcaSlotItem::VcaSlotItem(KaiCBFaderControlAudioProcessor& p, int vcaIndex)
+VcaSlotItem::VcaSlotItem(CBFaderControlAudioProcessor& p, int vcaIndex)
 	: BaseSlotItem(p, vcaIndex)
 {
     init();

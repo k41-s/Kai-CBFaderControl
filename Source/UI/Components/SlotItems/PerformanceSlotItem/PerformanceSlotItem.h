@@ -11,7 +11,7 @@ class PerformanceSlotItem :
 	public juce::AudioProcessorValueTreeState::Listener
 {
 public:
-	PerformanceSlotItem(KaiCBFaderControlAudioProcessor& p, int slotIndex);
+	PerformanceSlotItem(CBFaderControlAudioProcessor& p, int slotIndex);
 	~PerformanceSlotItem() override;
 
 	void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;

@@ -7,15 +7,15 @@
 #include "../../Utils/GlobalSlotRegistry/GlobalSlotRegistry.h"
 
 //==============================================================================
-class KaiCBFaderControlAudioProcessor :
+class CBFaderControlAudioProcessor :
     public juce::AudioProcessor,
     public juce::ChangeListener,
     public juce::AudioProcessorValueTreeState::Listener
 {
 public:
     //==============================================================================
-    KaiCBFaderControlAudioProcessor();
-    ~KaiCBFaderControlAudioProcessor() override;
+    CBFaderControlAudioProcessor();
+    ~CBFaderControlAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -126,5 +126,5 @@ private:
     juce::Array<bool> wasSlotOwned;
 
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(KaiCBFaderControlAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CBFaderControlAudioProcessor)
 };

@@ -10,7 +10,7 @@
 #include "../../Components/PinnedStoreButton/PinnedStoreButton.h"
 #include "../../../Utils/ScopedAtomicSetter.h"
 
-PerformanceView::PerformanceView(KaiCBFaderControlAudioProcessor& p)
+PerformanceView::PerformanceView(CBFaderControlAudioProcessor& p)
 	:processor(p)
 {
 	init();

@@ -3,7 +3,7 @@
 #include "../../CustomLookAndFeel/MyColours.h"
 #include "../../../Utils/StateUtils/SlotStateHelpers.h"
 
-SlotConfigItem::SlotConfigItem(KaiCBFaderControlAudioProcessor& p, int slotNum)
+SlotConfigItem::SlotConfigItem(CBFaderControlAudioProcessor& p, int slotNum)
 	: processor(p), slotNumber(slotNum)
 {
 	processor.apvts.state.addListener(this);
