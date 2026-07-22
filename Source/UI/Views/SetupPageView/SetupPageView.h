@@ -37,6 +37,7 @@ private:
 	void init();
 	void configLocalIpLabel();
 	void configComponents();
+	void configAboutButton();
 	void configLabelEditorPair(juce::String lblTxt,
 		juce::Label& label,
 		juce::String editorTxt,
@@ -67,6 +68,7 @@ private:
 	);
 	void setStatusBounds(juce::Rectangle<int>& statusRow);
 	void setupLeftPanel(juce::Rectangle<int>& area);
+	void placeAboutButton(juce::Rectangle<int>& area);
 	void placeStatusComponents(juce::Rectangle<int>& area);
 	void placeToggleAllBtn(juce::Rectangle<int>& area);
 	void placeIpComponents(juce::Rectangle<int>& area);
@@ -88,6 +90,8 @@ private:
 	void setAllSlotsActive(bool shouldBeActive);
 
 	SlotConfigItem* getSlotItem(int slotId) const { return slotItems[slotId - 1]; }
+
+	juce::TextButton aboutButton{ "About" };
 
 	juce::TextButton navigateBtn{ "Go to Performance" };
 

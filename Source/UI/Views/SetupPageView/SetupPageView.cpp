@@ -60,6 +60,28 @@ void SetupPageView::configComponents()
 	configNavBtn();
 
 	configImages();
+
+	configAboutButton();
+}
+
+void SetupPageView::configAboutButton()
+{
+	addAndMakeVisible(aboutButton);
+
+	aboutButton.setTooltip("About this plugin");
+
+	aboutButton.onClick = [this]()
+		{
+			auto aboutLabel = std::make_unique<juce::Label>("About", "Made by Kai Sabijan for CB Electronics\nVersion 1.0.0");
+
+			aboutLabel->setJustificationType(juce::Justification::centred);
+			aboutLabel->setColour(juce::Label::backgroundColourId, MyColours::valueBackground);
+			aboutLabel->setColour(juce::Label::textColourId, MyColours::white);
+
+			aboutLabel->setSize(200, 60);
+
+			juce::CallOutBox::launchAsynchronously(std::move(aboutLabel), aboutButton.getScreenBounds(), nullptr);
+		};
 }
 
 void SetupPageView::configLocalIpLabel()
@@ -301,12 +323,24 @@ void SetupPageView::resized()
 
 void SetupPageView::setupLeftPanel(juce::Rectangle<int>& area)
 {
+	placeAboutButton(area);
 	placeIpComponents(area);
 	placePortComponents(area);
 	placeToggleAllBtn(area);
 	placeStatusComponents(area);
 	placeNavigateBtn(area);
+
 	placeImages(area);
+}
+
+void SetupPageView::placeAboutButton(juce::Rectangle<int>& area)
+{
+	int btnWidth = 50;
+	int btnHeight = 24;
+	auto row = area.removeFromTop(btnHeight);
+
+	auto buttonArea = row.removeFromLeft(btnWidth).withSizeKeepingCentre(btnWidth, btnHeight);
+	aboutButton.setBounds(buttonArea);
 }
 
 void SetupPageView::placeIpComponents(juce::Rectangle<int>& area)
